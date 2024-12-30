@@ -3,6 +3,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
+import { Metadata } from "next";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -13,6 +15,12 @@ const bricolageGrotesque = Bricolage_Grotesque({
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+export const metadata: Metadata = {
+  title: "Quoteshack",
+  description:
+    "Quick and Easy Loans. Apply for your loan with ease and get quick approvals. Secure and reliable loan application process.",
+};
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
@@ -33,6 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Navbar />
           {children}
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );
