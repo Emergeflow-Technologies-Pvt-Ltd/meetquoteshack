@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
+import Providers from "./providers";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
 
 const inter = Inter({ subsets: ["latin"] });
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -22,7 +25,8 @@ export const metadata: Metadata = {
     "Quick and Easy Loans. Apply for your loan with ease and get quick approvals. Secure and reliable loan application process.",
 };
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = async ({ children }) => {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -32,16 +36,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           bricolageGrotesque.variable
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Navbar />
-          {children}
-        </ThemeProvider>
-        <Toaster />
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Navbar session={session} />
+            {children}
+          </ThemeProvider>
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

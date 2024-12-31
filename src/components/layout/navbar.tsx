@@ -24,8 +24,10 @@ import { cn } from "@/lib/utils";
 import { ToggleTheme } from "./toggle-theme";
 import Logo from "./logo";
 import { routeList } from "@/data/navbar";
+import { Session } from "next-auth";
+import { signIn, signOut } from "next-auth/react";
 
-export const Navbar = () => {
+export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
@@ -98,9 +100,15 @@ export const Navbar = () => {
 
           <div className="hidden lg:flex">
             <ToggleTheme />
-            <Button className="ms-2" aria-label="login">
-              Login
-            </Button>
+            {session ? (
+              <Button onClick={() => signOut()} className="ms-2" aria-label="login">
+                Logout
+              </Button>
+            ) : (
+              <Button onClick={() => signIn()} className="ms-2" aria-label="login">
+                Login
+              </Button>
+            )}
           </div>
         </div>
       </div>
