@@ -29,7 +29,7 @@ const InfoCard: FC<CardProps> = ({ Icon, title, description, index = 0 }) => (
     viewport={{ once: true }}
   >
     <Card className="flex flex-col items-center p-8 space-y-4 text-center h-full cursor-pointer shadow-md transition-transform transform hover:scale-105">
-      <CardHeader className="bg-primary text-white rounded-full ">
+      <CardHeader className="bg-violet-200 text-dark rounded-full ">
         <Icon className="w-8 h-8" />
       </CardHeader>
       <CardContent>

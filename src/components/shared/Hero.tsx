@@ -56,8 +56,8 @@ export default function Hero() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-10 px-4 lg:px-0">
           <div className="max-w-3xl text-center lg:text-start">
             <div className="flex items-center gap-1 justify-center md:justify-start">
-              <FileStack className="text-primary" size={20} />
-              <p className="inline-block font-semibold md:text-lg text-primary">
+              <FileStack size={20} />
+              <p className="inline-block font-semibold md:text-lg">
                 Simplify your loan application
               </p>
             </div>
