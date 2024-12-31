@@ -92,9 +92,9 @@ const Section = ({ title, items }: { title: string; items: { href: string; label
 
 function Footer() {
   return (
-    <div className="bg-violet-950 dark:bg-black pt-10 text-white">
+    <div className="bg-violet-950 dark:bg-black text-white m-0 p-0">
         <Container>
-        <div className="flex flex-col md:flex-row justify-between pb-10 mx-5 xl:mx-0">
+        <div className="flex flex-col md:flex-row justify-between">
           <Section title="About us" items={aboutUsLinks} />
           <Section title="Loans" items={loanLinks} />
           <Section title="Provinces" items={provinceLinks} />

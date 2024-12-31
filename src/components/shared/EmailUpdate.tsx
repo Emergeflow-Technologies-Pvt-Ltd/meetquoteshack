@@ -58,7 +58,7 @@ export default function EmailUpdate() {
   const { register, handleSubmit } = useEmailForm();
 
   return (
-    <div className="bg-violet-200 py-12 px-4 w-full dark:bg-violet-800">
+    <div className="bg-violet-200 px-4 w-full dark:bg-violet-800">
       <Section className="bg-violet-200 py-12 px-4 mx-auto lg:flex lg:items-center lg:justify-between w-full dark:bg-violet-800">
         <div className="flex flex-col text-center lg:text-start lg:items-start lg:max-w-xl w-full">
           <h2 className="text-3xl font-bold mb-4 dark:text-white">
