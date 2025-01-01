@@ -5,6 +5,7 @@ import Section from "@/components/shared/section";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Mail, Shield, Home } from "lucide-react";
 import prisma from "@/lib/db";
+import Link from "next/link";
 
 export default async function ProfilePage() {
   const session = await getServerSession();
@@ -14,9 +15,13 @@ export default async function ProfilePage() {
         where: {
           userId: session.user.id,
         },
+        select: {
+          id: true,
+          createdAt: true,
+        },
       })
     : [];
-
+  console.log(mortgageApplications);
   return (
     <Section className="py-24">
       <Card>
@@ -70,7 +75,7 @@ export default async function ProfilePage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Activity</CardTitle>
+                <CardTitle>Current Loan Applications</CardTitle>
               </CardHeader>
               <CardContent>
                 {mortgageApplications.length > 0 ? (
@@ -84,9 +89,13 @@ export default async function ProfilePage() {
                           <Home className="w-4 h-4 text-muted-foreground" />
                           <div>
                             <p className="text-sm font-medium">
-                              Mortgage Application
+                              <Link href={`/applications/${application.id}`}>
+                                Mortgage Application
+                              </Link>
                             </p>
-                            
+                            <p className="text-xs text-muted-foreground">
+                              Started: {new Date(application.createdAt).toLocaleDateString()}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -94,7 +103,7 @@ export default async function ProfilePage() {
                   </div>
                 ) : (
                   <p className="text-center text-muted-foreground">
-                    No recent activity
+                    No current loan applications
                   </p>
                 )}
               </CardContent>
