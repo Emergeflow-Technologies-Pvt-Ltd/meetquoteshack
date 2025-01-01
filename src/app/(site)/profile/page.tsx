@@ -3,10 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Section from "@/components/shared/section";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Mail, Shield } from "lucide-react";
+import { CalendarDays, Mail, Shield, Home } from "lucide-react";
+import prisma from "@/lib/db";
 
 export default async function ProfilePage() {
   const session = await getServerSession();
+
+  const mortgageApplications = session?.user?.email
+    ? await prisma.mortgageApplication.findMany({
+        where: {
+          userId: session.user.id,
+        },
+      })
+    : [];
 
   return (
     <Section className="py-24">
@@ -17,7 +26,10 @@ export default async function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={session?.user?.image ?? ""} alt={session?.user?.name ?? ""} />
+              <AvatarImage
+                src={session?.user?.image ?? ""}
+                alt={session?.user?.name ?? ""}
+              />
               <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
             </Avatar>
             <div>
@@ -46,8 +58,12 @@ export default async function ProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Email: {session?.user?.email}</p>
-                  <p className="text-sm text-muted-foreground">Type: Standard User</p>
+                  <p className="text-sm text-muted-foreground">
+                    Email: {session?.user?.email}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Type: Standard User
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -57,7 +73,30 @@ export default async function ProfilePage() {
                 <CardTitle>Activity</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-center text-muted-foreground">No recent activity</p>
+                {mortgageApplications.length > 0 ? (
+                  <div className="space-y-4">
+                    {mortgageApplications.map((application) => (
+                      <div
+                        key={application.id}
+                        className="flex items-center justify-between border-b pb-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Home className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">
+                              Mortgage Application
+                            </p>
+                            
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground">
+                    No recent activity
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

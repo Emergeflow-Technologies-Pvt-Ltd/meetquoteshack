@@ -46,7 +46,7 @@ export default function LoanForm() {
       housingType: undefined,
       downPayment: undefined,
     },
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   async function onNext() {
@@ -54,25 +54,13 @@ export default function LoanForm() {
       0: ["isAdult", "hasBankruptcy"],
       1: ["firstName", "lastName", "currentAddress", "residencyDuration"],
       2: ["housingStatus", "housingPayment", "canadianStatus"],
-      3: [
-        "employmentStatus",
-        "grossIncome",
-        "workplaceName",
-        "workplacePhone",
-        "workplaceEmail",
-      ],
-      4: [
-        "loanAmount",
-        "loanPurpose",
-        "mortgageType",
-        "housingType",
-        "downPayment",
-      ],
+      3: ["employmentStatus", "grossIncome", "workplaceName", "workplacePhone", "workplaceEmail"],
+      4: ["loanAmount", "loanPurpose", "mortgageType", "housingType", "downPayment"],
     };
 
     const isValid = await form.trigger(fieldsToValidate[currentStep] ?? []);
 
-    if (isValid) {
+    if (isValid && currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   }
@@ -85,15 +73,24 @@ export default function LoanForm() {
     if (currentStep < formSteps.length - 1) {
       onNext();
     } else {
+      const payload = {
+        ...data,
+        residencyDuration: Number(data.residencyDuration),
+        housingPayment: Number(data.housingPayment),
+        grossIncome: Number(data.grossIncome),
+        loanAmount: data.loanAmount ? Number(data.loanAmount) : undefined,
+      };
+
       axios
-        .post("/api/apply/mortgage", data)
+        .post("/api/apply/mortgage", payload)
         .then(() => {
           router.push("/apply/mortgage/success");
         })
         .catch((error) => {
           toast({
             title: "Error",
-            description: error.response.data.error,
+            description: error.response?.data?.error || "Something went wrong",
+            variant: "destructive",
           });
         });
     }
