@@ -89,7 +89,7 @@ export default function Hero() {
                   Apply for loan
                 </Button>
               </Link>
-              <Link href="/registerAsLender">
+              <Link href="/become-lender">
                 <Button
                   variant="outline"
                   className="border-violet-600 text-violet-600 hover:bg-violet-50 px-8 py-6 text-lg rounded-lg transition-all duration-200 font-semibold"

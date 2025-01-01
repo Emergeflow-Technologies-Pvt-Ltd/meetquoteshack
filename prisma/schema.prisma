@@ -45,6 +45,16 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Lender {
+  id          String  @id @default(cuid())
+  name        String
+  business    String
+  phone       String
+  investment  String
+  email       String
+  province    String
+}
+
 enum UserRole {
   LOANEE @map("loanee")
   LENDER @map("lender")
