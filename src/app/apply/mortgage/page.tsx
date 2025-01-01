@@ -17,8 +17,10 @@ import { loanFormSchema, type LoanFormValues } from "./types";
 import Section from "@/components/shared/section";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function LoanForm() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
 
   const form = useForm<LoanFormValues>({
@@ -85,11 +87,8 @@ export default function LoanForm() {
     } else {
       axios
         .post("/api/apply/mortgage", data)
-        .then((response) => {
-          toast({
-            title: "Application submitted successfully",
-            description: response.data.message,
-          });
+        .then(() => {
+          router.push("/apply/mortgage/success");
         })
         .catch((error) => {
           toast({
