@@ -60,3 +60,74 @@ enum UserRole {
   LENDER @map("lender")
   ADMIN  @map("admin")
 }
+
+
+model MortgageApplication {
+  id                String  @id @default(cuid())
+  isAdult           Boolean
+  hasBankruptcy     Boolean
+  firstName         String
+  lastName          String
+  currentAddress    String
+  residencyDuration Int
+  housingStatus     HousingStatus
+  housingPayment    Decimal
+  canadianStatus    CanadianStatus
+  employmentStatus  EmploymentStatus
+  grossIncome       Decimal
+  workplaceName     String
+  workplacePhone    String
+  workplaceEmail    String
+  loanAmount        Decimal?
+  loanPurpose       LoanPurpose?
+  mortgageType      MortgageType?
+  housingType       HousingType?
+  downPayment       Decimal?
+}
+
+enum HousingStatus {
+  rent
+  own
+}
+
+enum CanadianStatus {
+  citizen
+  permanentResident
+  temporaryResident
+  other
+}
+
+enum EmploymentStatus {
+  fullTime
+  partTime
+  contract
+  seasonal
+  selfEmployed
+  other
+}
+
+enum LoanPurpose {
+  buying
+  repair
+  renovation
+}
+
+enum MortgageType {
+  refinance
+  equity
+  bridge
+  firsttime
+}
+
+enum HousingType {
+  condo
+  apartment
+  duplex
+  townhouse
+  detached
+  semidetached
+  container
+  mobile
+  bungalow
+  other
+}

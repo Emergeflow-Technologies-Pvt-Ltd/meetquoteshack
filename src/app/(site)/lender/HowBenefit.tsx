@@ -48,7 +48,7 @@ const benefits = [
 export default function HowBenefit() {
   return (
     <Section className="bg-violet-50 py-16 mt-20" fullWidth={true}>
-      <div className="px-4 lg:px-0">
+      <div className="px-4 lg:px-0 max-w-7xl mx-auto">
         <h1 className="text-center text-3xl font-bold">How You Benefit</h1>
         <div className="mt-10 pb-5 mx-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {benefits.map((benefit) => (
