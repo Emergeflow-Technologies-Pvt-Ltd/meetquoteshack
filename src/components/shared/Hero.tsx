@@ -5,8 +5,7 @@ import Image from "next/image";
 import { FileStack } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
-import Section from "./section"; // Importing the Section component
-import { signIn } from "next-auth/react";
+import Section from "./section"; 
 
 interface ImageProps {
   src: string;
@@ -82,7 +81,6 @@ export default function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Link href="/apply">
                 <Button
-                  onClick={() => signIn("google")}
                   className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
                   size="lg"
                 >
