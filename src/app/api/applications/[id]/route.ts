@@ -9,7 +9,6 @@ export async function GET(
   try {
     const session = await getServerSession();
     const id = (await params).id;
-    console.log(id);
 
     if (!session?.user?.email) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -19,11 +18,13 @@ export async function GET(
       return new NextResponse("Missing application ID", { status: 400 });
     }
 
-
     const application = await prisma.mortgageApplication.findUnique({
       where: {
         id: id,
         userId: session.user.id
+      },
+      include: {
+        documents: true
       }
     });
 

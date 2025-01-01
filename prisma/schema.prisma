@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -46,13 +46,13 @@ model Session {
 }
 
 model Lender {
-  id          String  @id @default(cuid())
-  name        String
-  business    String
-  phone       String
-  investment  String
-  email       String
-  province    String
+  id         String @id @default(cuid())
+  name       String
+  business   String
+  phone      String
+  investment String
+  email      String
+  province   String
 }
 
 enum UserRole {
@@ -61,12 +61,11 @@ enum UserRole {
   ADMIN  @map("admin")
 }
 
-
 model MortgageApplication {
-  id                String  @id @default(cuid())
+  id                String                @id @default(cuid())
   userId            String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
   isAdult           Boolean
   hasBankruptcy     Boolean
   firstName         String
@@ -86,6 +85,20 @@ model MortgageApplication {
   mortgageType      MortgageType?
   housingType       HousingType?
   downPayment       Decimal?
+  status            LoanStatus            @default(PROCESSING)
+  documents         ApplicationDocument[]
+}
+
+model ApplicationDocument {
+  id                  String              @id @default(cuid())
+  mortgageApplication MortgageApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId       String
+  documentType        DocumentType
+  fileUrl             String?
+  fileType            String?
+  fileName            String?
+  uploadedAt          DateTime            @default(now())
+  status              DocumentStatus      @default(PENDING)
 }
 
 enum HousingStatus {
@@ -133,4 +146,29 @@ enum HousingType {
   mobile
   bungalow
   other
+}
+
+enum LoanStatus {
+  PROCESSING  @map("processing")
+  REJECTED    @map("rejected")
+  VERIFIED    @map("verified")
+  PROGRESSING @map("progressing")
+  ACCEPTED    @map("accepted")
+  ARCHIVED    @map("archived")
+}
+
+enum DocumentType {
+  IDENTITY_PROOF
+  INCOME_PROOF
+  EMPLOYMENT_LETTER
+  TAX_RETURN
+  BANK_STATEMENT
+  PROPERTY_DOCUMENT
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
 }
