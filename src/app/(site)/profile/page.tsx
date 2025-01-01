@@ -1,14 +1,12 @@
-"use client";
-
-import { useSession } from "next-auth/react";
+import { getServerSession } from "next-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Section from "@/components/shared/section";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Mail, Shield } from "lucide-react";
 
-const ProfilePage = () => {
-  const { data: session } = useSession();
+export default async function ProfilePage() {
+  const session = await getServerSession();
 
   return (
     <Section className="py-24">
@@ -67,6 +65,4 @@ const ProfilePage = () => {
       </Card>
     </Section>
   );
-};
-
-export default ProfilePage;
+}
