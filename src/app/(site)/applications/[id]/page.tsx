@@ -4,11 +4,13 @@ import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Section from "@/components/shared/section";
-import { Home, FileText } from "lucide-react";
+import { Home, FileText, Upload } from "lucide-react";
 import axios from 'axios';
 import { MortgageApplication, ApplicationDocument } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { documentTypes } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import { uploadFile, getPresignedUrl } from "@/lib/upload";
 
 export default function ApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session } = useSession();
@@ -27,6 +29,30 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
 
     fetchApplication();
   }, [session, id]);
+
+  const handleFileUpload = async (docId: string, file: File) => {
+    if (!session?.user?.email) return;
+
+    try {
+      const key = await uploadFile(session.user.email, file);
+      if (typeof key === 'string') {
+        const signedUrl = await getPresignedUrl(key);
+        
+        await axios.patch(`/api/applications/${id}`, {
+          fileName: file.name,
+          fileKey: key,
+          fileUrl: signedUrl,
+          docId: docId
+        });
+
+        // Refresh application data
+        const { data } = await axios.get(`/api/applications/${id}`);
+        setApplication(data);
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
+  };
 
   if (loading) {
     return <p>Loading...</p>;
@@ -75,9 +101,31 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
                           )}
                         </div>
                       </div>
-                      <Badge className={`${getStatusColor(doc.status)}`}>
-                        {doc.status}
-                      </Badge>
+                      <div className="flex items-center gap-3">
+                        <Badge className={`${getStatusColor(doc.status)}`}>
+                          {doc.status}
+                        </Badge>
+                        {doc.status !== "UPLOADED" && doc.status !== "APPROVED" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.onchange = (e) => {
+                                const file = (e.target as HTMLInputElement).files?.[0];
+                                if (file) {
+                                  handleFileUpload(doc.id, file);
+                                }
+                              };
+                              input.click();
+                            }}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

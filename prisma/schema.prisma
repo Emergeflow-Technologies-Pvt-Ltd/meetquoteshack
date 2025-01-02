@@ -95,6 +95,7 @@ model ApplicationDocument {
   applicationId       String
   documentType        DocumentType
   fileUrl             String?
+  fileKey             String?
   fileType            String?
   fileName            String?
   uploadedAt          DateTime            @default(now())
@@ -169,6 +170,7 @@ enum DocumentType {
 
 enum DocumentStatus {
   PENDING  @map("pending")
+  UPLOADED @map("uploaded")
   APPROVED @map("approved")
   REJECTED @map("rejected")
 }

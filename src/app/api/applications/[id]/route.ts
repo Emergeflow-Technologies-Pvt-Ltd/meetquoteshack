@@ -39,3 +39,47 @@ export async function GET(
     return new NextResponse("Internal error", { status: 500 });
   }
 }
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await getServerSession();
+    const id = (await params).id;
+
+    if (!session?.user?.email) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const body = await request.json();
+    const { fileName, fileKey, fileUrl, docId } = body;
+
+    const application = await prisma.mortgageApplication.findUnique({
+      where: {
+        id: id,
+        userId: session.user.id
+      },
+      include: {
+        documents: true
+      }
+    });
+
+    if (!application) {
+      return new NextResponse("Not found", { status: 404 });
+    }
+
+    await prisma.applicationDocument.update({
+      where: {
+        id: docId
+      },
+      data: {
+        fileName,
+        fileKey,
+        fileUrl,
+        status: "UPLOADED"
+      }
+    });
+  } catch (error) {
+    console.error("[APPLICATION_PATCH]", error);
+    return new NextResponse("Internal error", { status: 500 });
+  }
+  return NextResponse.json({ message: "Document updated" });
+}
