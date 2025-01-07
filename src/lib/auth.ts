@@ -3,11 +3,13 @@ import prisma from "@/lib/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthOptions, DefaultSession } from "next-auth";
 import { Adapter } from "next-auth/adapters";
+import { UserRole } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session {
     user: DefaultSession["user"] & {
       id: string;
+      role: UserRole;
     };
   }
 }
