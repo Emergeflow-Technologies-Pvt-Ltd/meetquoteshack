@@ -1,8 +1,13 @@
+import { UserRole } from "@prisma/client";
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
   function middleware(req) {
-    console.log(req.nextUrl.pathname, ' *************');
+    if(req.nextUrl.pathname.startsWith('/admin')){
+      if(req.nextauth.token?.role !== UserRole.ADMIN){
+        return Response.redirect(new URL('/', req.nextUrl));
+      }
+    }
   },
   {
     callbacks: {
@@ -17,5 +22,6 @@ export const config = {
   matcher: [
     "/become-lender",
     "/profile",
+    "/admin/:path*",
   ],
 };
