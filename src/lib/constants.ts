@@ -1,4 +1,5 @@
 import { DocumentType } from "@prisma/client";
+import { DocumentTypeConfig } from "./types";
 
 export const provinces = [
   "Alberta",
@@ -23,12 +24,40 @@ export const investRanges = [
   { value: "Above 100000$", label: "Above 100000$" },
 ];
 
-export const documentTypes = [
-  { value: DocumentType.IDENTITY_PROOF, label: "Upload your government-issued photo ID (passport, driver's license, etc.)" },
-  { value: DocumentType.INCOME_PROOF, label: "Upload your last 3 months of pay stubs or income statements" },
-  { value: DocumentType.EMPLOYMENT_LETTER, label: "Upload an employment verification letter from your current employer" },
-  { value: DocumentType.TAX_RETURN, label: "Upload your T4 and Notice of Assessment from the last tax year" },
-  { value: DocumentType.BANK_STATEMENT, label: "Upload 3 months of bank statements from your primary account" },
-  { value: DocumentType.PROPERTY_DOCUMENT, label: "Upload property related documents (deed, assessment, etc.)" },
-  { value: DocumentType.OTHER, label: "Other" },
+export const availableDocumentTypes: DocumentTypeConfig[] = [
+  {
+    type: DocumentType.IDENTITY_PROOF,
+    label: "Identity Proof",
+    description: "Government-issued photo ID (passport, driver's license, etc.)"
+  },
+  {
+    type: DocumentType.INCOME_PROOF,
+    label: "Income Proof",
+    description: "Last 3 months of pay stubs or income statements"
+  },
+  {
+    type: DocumentType.EMPLOYMENT_LETTER,
+    label: "Employment Letter",
+    description: "Employment verification letter from current employer"
+  },
+  {
+    type: DocumentType.TAX_RETURN,
+    label: "Tax Return",
+    description: "T4 and Notice of Assessment from the last tax year"
+  },
+  {
+    type: DocumentType.BANK_STATEMENT,
+    label: "Bank Statements",
+    description: "3 months of bank statements from primary account"
+  },
+  {
+    type: DocumentType.PROPERTY_DOCUMENT,
+    label: "Property Documents",
+    description: "Property related documents (deed, assessment, etc.)"
+  },
+  {
+    type: DocumentType.OTHER,
+    label: "Other Documents",
+    description: "Additional supporting documents"
+  }
 ];
