@@ -42,9 +42,7 @@ export default function ApplicationPage({ params }: Props) {
   const [application, setApplication] = useState<ApplicationWithUser | null>(
     null
   );
-  const [documentUrls, setDocumentUrls] = useState<Map<string, string>>(
-    new Map()
-  );
+
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([]);
 
@@ -78,7 +76,6 @@ export default function ApplicationPage({ params }: Props) {
               }
             })
           );
-          setDocumentUrls(urlMap);
         }
       } catch (error) {
         console.error("Failed to fetch application:", error);
@@ -336,21 +333,23 @@ export default function ApplicationPage({ params }: Props) {
                           >
                             {doc.status}
                           </Badge>
-                          {doc.fileKey && documentUrls.has(doc.id) && (
+                          {doc.fileKey && (
                             <Button
                               variant="outline"
-                              asChild
+                              onClick={async () => {
+                                try {
+                                  const { data } = await axios.get(`/api/documents/${doc.id}`);
+                                  window.open(data.url, '_blank');
+                                } catch (error) {
+                                  console.error('Failed to fetch document URL:', error);
+                                }
+                              }}
                               className="hover:bg-blue-50 border-blue-200 text-blue-600"
                             >
-                              <a
-                                href={documentUrls.get(doc.id)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2"
-                              >
+                              <div className="flex items-center gap-2">
                                 <svg
                                   className="w-4 h-4"
-                                  fill="none"
+                                  fill="none" 
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
                                 >
@@ -362,7 +361,7 @@ export default function ApplicationPage({ params }: Props) {
                                   />
                                 </svg>
                                 View
-                              </a>
+                              </div>
                             </Button>
                           )}
                         </div>
