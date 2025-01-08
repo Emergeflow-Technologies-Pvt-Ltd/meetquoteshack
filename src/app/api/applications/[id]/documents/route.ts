@@ -6,8 +6,9 @@ import prisma from "@/lib/db";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const id = (await params).id;
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.role !== UserRole.ADMIN) {
@@ -23,7 +24,7 @@ export async function POST(
       documentTypes.map((documentType) =>
         prisma.applicationDocument.create({
           data: {
-            mortgageApplication: { connect: { id: params.id } },
+            mortgageApplication: { connect: { id } },
             documentType,
           },
         })
