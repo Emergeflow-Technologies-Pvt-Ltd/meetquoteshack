@@ -8,7 +8,7 @@ import { Home, FileText, Upload } from "lucide-react";
 import axios from 'axios';
 import { MortgageApplication, ApplicationDocument } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
-import { documentTypes } from "@/lib/constants";
+import { availableDocumentTypes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { uploadFile, getPresignedUrl } from "@/lib/upload";
 
@@ -95,7 +95,7 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-muted-foreground" />
                         <div>
-                          {documentTypes.find(type => type.value === doc.documentType)?.label}
+                          {availableDocumentTypes.find(type => type.type === doc.documentType)?.label}
                           {doc.fileName && (
                             <p className="text-sm text-blue-500">{doc.fileName}</p>
                           )}
