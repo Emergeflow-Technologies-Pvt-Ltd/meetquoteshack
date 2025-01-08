@@ -16,12 +16,17 @@ export async function uploadFile(email: string, file: File) {
 }
 
 export async function getPresignedUrl(key: string) {
-  const { data, error } = await supabase.storage
-    .from("quoteshack-dev")
-    .createSignedUrl(key, 60);
-  if (error) {
-    return error;
-  }
+  try {
+    const { data, error } = await supabase.storage
+      .from("quoteshack-dev")
+      .createSignedUrl(key, 60 * 60 * 24 * 30);
 
-  return data.signedUrl;
+    if (error) throw error;
+    if (!data?.signedUrl) throw new Error("Could not generate signed URL");
+
+    return data.signedUrl;
+  } catch (error) {
+    console.error("Error generating presigned URL:", error);
+    throw error;
+  }
 }
