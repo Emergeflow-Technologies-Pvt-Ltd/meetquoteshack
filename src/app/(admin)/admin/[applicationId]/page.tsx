@@ -36,6 +36,19 @@ type ApplicationWithUser = MortgageApplication & {
   intendedPropertyAddress?: string;
 };
 
+export const getStatusColors = (status: string) => {
+  const colors = {
+    VERIFIED: "bg-green-100 text-green-800 border-green-300",
+    REJECTED: "bg-red-100 text-red-800 border-red-300",
+    PROCESSING: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    PROGRESSING: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    APPROVED: "bg-green-100 text-green-800 border-green-300",
+    UPLOADED: "bg-blue-100 text-blue-800 border-blue-300",
+    default: "bg-gray-100 text-gray-800 border-gray-300",
+  };
+  return colors[status as keyof typeof colors] || colors.default;
+};
+
 export default function ApplicationPage({ params }: Props) {
   const { applicationId } = use(params);
   const [application, setApplication] = useState<ApplicationWithUser | null>(
@@ -123,19 +136,6 @@ export default function ApplicationPage({ params }: Props) {
     );
   }
 
-  const getStatusColor = (status: LoanStatus) => {
-    const colors: Record<string, string> = {
-      [LoanStatus.VERIFIED]: "bg-green-100 text-green-800 border-green-300",
-      [LoanStatus.REJECTED]: "bg-red-100 text-red-800 border-red-300",
-      [LoanStatus.PROCESSING]:
-        "bg-yellow-100 text-yellow-800 border-yellow-300",
-      [LoanStatus.PROGRESSING]:
-        "bg-yellow-100 text-yellow-800 border-yellow-300",
-      default: "bg-gray-100 text-gray-800 border-gray-300",
-    };
-    return colors[status] || colors.default;
-  };
-
   const handleStatusUpdate = async (newStatus: LoanStatus) => {
     setIsLoading(true);
     try {
@@ -175,7 +175,7 @@ export default function ApplicationPage({ params }: Props) {
             <p className="mt-1 text-sm text-gray-500">ID: {application.id}</p>
           </div>
           <Badge
-            className={`px-3 py-1 text-sm font-medium ${getStatusColor(
+            className={`px-3 py-1 text-sm font-medium ${getStatusColors(
               application.status
             )}`}
           >
@@ -338,40 +338,46 @@ export default function ApplicationPage({ params }: Props) {
                           <p className="text-sm text-gray-500">
                             {docTypeConfig?.description}
                           </p>
+                          {doc.fileName && (
+                            <p className="text-sm text-blue-500">{doc.fileName}</p>
+                          )}
                         </div>
-                        {doc.fileKey && documentUrls.has(doc.id) ? (
-                          <Button
-                            variant="outline"
-                            asChild
-                            className="hover:bg-blue-50 border-blue-200 text-blue-600"
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            className={getStatusColors(doc.status)}
                           >
-                            <a
-                              href={documentUrls.get(doc.id)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
-                              View
-                            </a>
-                          </Button>
-                        ) : (
-                          <Badge className="bg-yellow-50 text-yellow-800 border border-yellow-200">
-                            Pending
+                            {doc.status}
                           </Badge>
-                        )}
+                          {doc.fileKey && documentUrls.has(doc.id) && (
+                            <Button
+                              variant="outline"
+                              asChild
+                              className="hover:bg-blue-50 border-blue-200 text-blue-600"
+                            >
+                              <a
+                                href={documentUrls.get(doc.id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                  />
+                                </svg>
+                                View
+                              </a>
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
