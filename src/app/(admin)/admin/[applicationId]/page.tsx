@@ -165,17 +165,17 @@ export default function ApplicationPage({ params }: Props) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">
-              Application Review
+              Application Details
             </h1>
             <p className="mt-1 text-sm text-gray-500">ID: {application.id}</p>
           </div>
           <Badge
-            className={`px-4 py-2 text-sm font-medium border ${getStatusColor(
+            className={`px-3 py-1 text-sm font-medium ${getStatusColor(
               application.status
             )}`}
           >
@@ -183,87 +183,69 @@ export default function ApplicationPage({ params }: Props) {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Personal Info */}
-          <div className="lg:col-span-1">
-            <Card className="shadow-sm">
-              <CardHeader className="border-b bg-gray-50">
-                <CardTitle className="text-lg">Applicant Details</CardTitle>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Applicant Info */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Personal Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 pt-6">
+              <CardContent className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Full Name
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
+                  <label className="text-xs font-medium text-gray-500">Name</label>
+                  <p className="text-sm text-gray-900">
                     {application.firstName} {application.lastName}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Current Address
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
+                  <label className="text-xs font-medium text-gray-500">Address</label>
+                  <p className="text-sm text-gray-900">
                     {application.currentAddress}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Employment
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
+                  <label className="text-xs font-medium text-gray-500">Employment</label>
+                  <p className="text-sm text-gray-900">
                     {application.workplaceName}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="mt-6 shadow-sm">
-              <CardHeader className="border-b bg-gray-50">
-                <CardTitle className="text-lg">Financial Details</CardTitle>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Financial Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 pt-6">
-                <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Loan Amount
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    $
-                    {application.loanAmount?.toLocaleString() ||
-                      "Not specified"}
-                  </p>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Loan Amount</label>
+                    <p className="text-sm text-gray-900">
+                      ${application.loanAmount?.toLocaleString() || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Down Payment</label>
+                    <p className="text-sm text-gray-900">
+                      ${application.downPayment?.toLocaleString() || "N/A"}
+                    </p>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Down Payment
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    $
-                    {application.downPayment?.toLocaleString() ||
-                      "Not specified"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Loan Purpose
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 capitalize">
+                  <label className="text-xs font-medium text-gray-500">Purpose</label>
+                  <p className="text-sm text-gray-900 capitalize">
                     {application.loanPurpose?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Mortgage Type
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 capitalize">
+                  <label className="text-xs font-medium text-gray-500">Type</label>
+                  <p className="text-sm text-gray-900 capitalize">
                     {application.mortgageType?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Housing Type
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 capitalize">
+                  <label className="text-xs font-medium text-gray-500">Property</label>
+                  <p className="text-sm text-gray-900 capitalize">
                     {application.housingType?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
@@ -273,52 +255,44 @@ export default function ApplicationPage({ params }: Props) {
 
           {/* Right Column - Documents */}
           <div className="lg:col-span-2">
-            <Card className="shadow-sm">
-              <CardHeader className="border-b bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">Required Documents</CardTitle>
-                  <div className="flex gap-3">
-                    <Select
-                      value={undefined}
-                      onValueChange={(value) => {
-                        const docType = value as DocumentType;
-                        if (!selectedDocTypes.includes(docType)) {
-                          setSelectedDocTypes((prev) => [...prev, docType]);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-[200px] bg-white">
-                        <SelectValue placeholder="Add document type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableToAdd
-                          .filter(
-                            (docType) =>
-                              !selectedDocTypes.includes(docType.type)
-                          )
-                          .map((docType) => (
-                            <SelectItem key={docType.type} value={docType.type}>
-                              {docType.label}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleAddDocument}
-                      disabled={!selectedDocTypes.length}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Add ({selectedDocTypes.length})
-                    </Button>
-                  </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle>Required Documents</CardTitle>
+                <div className="flex gap-2">
+                  <Select
+                    value={undefined}
+                    onValueChange={(value) => {
+                      const docType = value as DocumentType;
+                      if (!selectedDocTypes.includes(docType)) {
+                        setSelectedDocTypes((prev) => [...prev, docType]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Add document" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableToAdd
+                        .filter((docType) => !selectedDocTypes.includes(docType.type))
+                        .map((docType) => (
+                          <SelectItem key={docType.type} value={docType.type}>
+                            {docType.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleAddDocument}
+                    disabled={!selectedDocTypes.length}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Add ({selectedDocTypes.length})
+                  </Button>
                 </div>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent>
                 {selectedDocTypes.length > 0 && (
-                  <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <h4 className="text-sm font-medium text-blue-900 mb-3">
-                      Selected Document Types
-                    </h4>
+                  <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-100">
                     <div className="flex flex-wrap gap-2">
                       {selectedDocTypes.map((docType) => {
                         const docTypeConfig = availableDocumentTypes.find(
@@ -327,7 +301,7 @@ export default function ApplicationPage({ params }: Props) {
                         return (
                           <Badge
                             key={docType}
-                            className="bg-white border border-blue-200 text-blue-800 flex items-center gap-2 px-3 py-1"
+                            className="bg-white border border-blue-200 text-blue-800 flex items-center gap-1 px-2 py-1"
                           >
                             {docTypeConfig?.label}
                             <button
@@ -336,7 +310,7 @@ export default function ApplicationPage({ params }: Props) {
                                   prev.filter((t) => t !== docType)
                                 )
                               }
-                              className="hover:text-red-500 focus:outline-none"
+                              className="hover:text-red-500"
                             >
                               ×
                             </button>
@@ -347,7 +321,7 @@ export default function ApplicationPage({ params }: Props) {
                   </div>
                 )}
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {application.documents.map((doc) => {
                     const docTypeConfig = availableDocumentTypes.find(
                       (type) => type.type === doc.documentType
@@ -355,51 +329,49 @@ export default function ApplicationPage({ params }: Props) {
                     return (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center justify-between p-3 border rounded hover:bg-gray-50"
                       >
                         <div>
                           <p className="font-medium text-gray-900">
                             {docTypeConfig?.label}
                           </p>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-gray-500">
                             {docTypeConfig?.description}
                           </p>
                         </div>
-                        <div>
-                          {doc.fileKey && documentUrls.has(doc.id) ? (
-                            <Button
-                              variant="outline"
-                              asChild
-                              className="hover:bg-blue-50 border-blue-200 text-blue-600"
+                        {doc.fileKey && documentUrls.has(doc.id) ? (
+                          <Button
+                            variant="outline"
+                            asChild
+                            className="hover:bg-blue-50 border-blue-200 text-blue-600"
+                          >
+                            <a
+                              href={documentUrls.get(doc.id)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2"
                             >
-                              <a
-                                href={documentUrls.get(doc.id)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2"
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                               >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                  />
-                                </svg>
-                                View Document
-                              </a>
-                            </Button>
-                          ) : (
-                            <Badge className="bg-yellow-50 text-yellow-800 border border-yellow-200">
-                              Pending Upload
-                            </Badge>
-                          )}
-                        </div>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                              View
+                            </a>
+                          </Button>
+                        ) : (
+                          <Badge className="bg-yellow-50 text-yellow-800 border border-yellow-200">
+                            Pending
+                          </Badge>
+                        )}
                       </div>
                     );
                   })}
@@ -407,23 +379,19 @@ export default function ApplicationPage({ params }: Props) {
               </CardContent>
             </Card>
 
-            <div className="mt-8 flex justify-end gap-4">
+            <div className="mt-6 flex justify-end gap-3">
               <Button
                 variant="outline"
                 onClick={() => handleStatusUpdate(LoanStatus.REJECTED)}
-                disabled={
-                  isLoading || application.status === LoanStatus.REJECTED
-                }
-                className="min-w-[140px] border-red-200 text-red-600 hover:bg-red-50"
+                disabled={isLoading || application.status === LoanStatus.REJECTED}
+                className="border-red-200 text-red-600 hover:bg-red-50"
               >
                 {isLoading ? "Processing..." : "Reject"}
               </Button>
               <Button
                 onClick={() => handleStatusUpdate(LoanStatus.VERIFIED)}
-                disabled={
-                  isLoading || application.status === LoanStatus.VERIFIED
-                }
-                className="min-w-[140px] bg-green-600 hover:bg-green-700 text-white"
+                disabled={isLoading || application.status === LoanStatus.VERIFIED}
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {isLoading ? "Processing..." : "Approve"}
               </Button>
