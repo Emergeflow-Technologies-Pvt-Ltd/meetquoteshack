@@ -123,7 +123,9 @@ export default function ApplicationPage({ params }: Props) {
     }
 
     try {
-      await axios.delete(`/api/applications/${application.id}/documents/${docId}`);
+      await axios.delete(`/api/applications/${application.id}/documents`, {
+        data: { documentId: docId },
+      });
       setApplication((prev) =>
         prev ? {
           ...prev,

@@ -40,3 +40,46 @@ export async function POST(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const applicationId = (await params).id;
+  const { documentId } = await request.json();
+
+  try {
+    const document = await prisma.applicationDocument.findFirst({
+      where: {
+        id: documentId,
+        applicationId: applicationId
+      }
+    });
+
+    if (!document) {
+      return NextResponse.json(
+        { error: "Document not found or does not belong to this application" },
+        { status: 404 }
+      );
+    }
+
+    if (document.fileKey) {
+      return NextResponse.json(
+        { error: "Cannot delete document with uploaded file" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.applicationDocument.delete({
+      where: { id: documentId },
+    });
+
+    return NextResponse.json({ message: "Document deleted" });
+  } catch (error) {
+    console.error("Failed to delete document:", error);
+    return NextResponse.json(
+      { error: "Failed to delete document" },
+      { status: 500 }
+    );
+  }
+}
