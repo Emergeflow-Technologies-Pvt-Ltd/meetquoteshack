@@ -50,39 +50,36 @@ export default function ApplicationPage({ params }: Props) {
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
-      try {
-        const response = await fetch(`/api/applications/${applicationId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
+
+      axios
+        .get(`/api/applications/${applicationId}`)
+        .then(({ data: app }) => {
+          setApplication(app);
+
+          if (app.documents?.length > 0) {
+            const urlMap = new Map<string, string>();
+            Promise.all(
+              app.documents.map(async (doc: ApplicationDocument) => {
+                if (doc.fileKey) {
+                  return axios
+                    .get(`/api/documents/${doc.id}`)
+                    .then(({ data }) => {
+                      urlMap.set(doc.id, data.url);
+                    });
+                }
+              })
+            );
+          }
+        })
+        .catch((error) => {
+          if (error.response?.status === 404) {
             notFound();
           }
-          throw new Error("Failed to fetch application");
-        }
-
-        const app = await response.json();
-        setApplication(app);
-
-        if (app.documents?.length > 0) {
-          const urlMap = new Map<string, string>();
-          await Promise.all(
-            app.documents.map(async (doc: ApplicationDocument) => {
-              if (doc.fileKey) {
-                const docResponse = await fetch(
-                  `/api/documents/${doc.fileKey}`
-                );
-                if (docResponse.ok) {
-                  const { url } = await docResponse.json();
-                  urlMap.set(doc.id, url);
-                }
-              }
-            })
-          );
-        }
-      } catch (error) {
-        console.error("Failed to fetch application:", error);
-      } finally {
-        setIsLoading(false);
-      }
+          console.error("Failed to fetch application:", error);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
 
     fetchData();
@@ -122,21 +119,23 @@ export default function ApplicationPage({ params }: Props) {
       return;
     }
 
-    try {
-      await axios.delete(`/api/applications/${application.id}/documents`, {
+    axios
+      .delete(`/api/applications/${application.id}/documents`, {
         data: { documentId: docId },
+      })
+      .then(() => {
+        setApplication((prev) =>
+          prev
+            ? {
+                ...prev,
+                documents: prev.documents.filter((doc) => doc.id !== docId),
+              }
+            : null
+        );
+      })
+      .catch((error) => {
+        console.error("Failed to remove document:", error);
       });
-      setApplication((prev) =>
-        prev
-          ? {
-          ...prev,
-              documents: prev.documents.filter((doc) => doc.id !== docId),
-            }
-          : null
-      );
-    } catch (error) {
-      console.error("Failed to remove document:", error);
-    }
   };
 
   if (!application) {
@@ -151,26 +150,19 @@ export default function ApplicationPage({ params }: Props) {
   }
 
   const handleStatusUpdate = async (newStatus: LoanStatus) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/applications/${application.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (response.ok) {
+    axios
+      .patch(`/api/applications/${application.id}`, {
+        status: newStatus,
+      })
+      .then(() => {
         setApplication((prev) =>
           prev ? { ...prev, status: newStatus } : null
         );
-      }
-    } catch (error) {
-      console.error("Failed to update status:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      })
+      .catch((error) => {
+        console.error("Failed to update status:", error);
+        alert("Failed to update application status");
+      });
   };
 
   const availableToAdd = availableDocumentTypes.filter(
@@ -383,18 +375,18 @@ export default function ApplicationPage({ params }: Props) {
                           {doc.fileKey && (
                             <Button
                               variant="outline"
-                              onClick={async () => {
-                                try {
-                                  const { data } = await axios.get(
-                                    `/api/documents/${doc.id}`
-                                  );
-                                  window.open(data.url, "_blank");
-                                } catch (error) {
-                                  console.error(
-                                    "Failed to fetch document URL:",
-                                    error
-                                  );
-                                }
+                              onClick={() => {
+                                axios
+                                  .get(`/api/documents/${doc.id}`)
+                                  .then(({ data }) => {
+                                    window.open(data.url, "_blank");
+                                  })
+                                  .catch((error) => {
+                                    console.error(
+                                      "Failed to fetch document URL:",
+                                      error
+                                    );
+                                  });
                               }}
                               className="hover:bg-blue-50 border-blue-200 text-blue-600"
                             >
