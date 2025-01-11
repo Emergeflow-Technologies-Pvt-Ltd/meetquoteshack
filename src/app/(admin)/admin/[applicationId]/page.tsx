@@ -114,7 +114,7 @@ export default function ApplicationPage({ params }: Props) {
   const handleRemoveDocument = async (docId: string) => {
     if (!application) return;
 
-    const doc = application.documents.find(d => d.id === docId);
+    const doc = application.documents.find((d) => d.id === docId);
     if (!doc) return;
 
     if (doc.fileKey) {
@@ -127,10 +127,12 @@ export default function ApplicationPage({ params }: Props) {
         data: { documentId: docId },
       });
       setApplication((prev) =>
-        prev ? {
+        prev
+          ? {
           ...prev,
-          documents: prev.documents.filter(doc => doc.id !== docId)
-        } : null
+              documents: prev.documents.filter((doc) => doc.id !== docId),
+            }
+          : null
       );
     } catch (error) {
       console.error("Failed to remove document:", error);
