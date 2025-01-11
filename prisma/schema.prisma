@@ -150,12 +150,11 @@ enum HousingType {
 }
 
 enum LoanStatus {
-  PROCESSING  @map("processing")
-  REJECTED    @map("rejected")
-  VERIFIED    @map("verified")
-  PROGRESSING @map("progressing")
-  ACCEPTED    @map("accepted")
-  ARCHIVED    @map("archived")
+  PROCESSING  @map("processing") // admin processing the application
+  REJECTED    @map("rejected") // admin rejected the application
+  PROGRESSING @map("progressing") // admin accepted the application, and it's on loan pool
+  ACCEPTED    @map("accepted") // loanee accepted the application
+  ARCHIVED    @map("archived") // loanee has processed the application, and it's archived
 }
 
 enum DocumentType {
@@ -169,8 +168,8 @@ enum DocumentType {
 }
 
 enum DocumentStatus {
-  PENDING  @map("pending")
-  UPLOADED @map("uploaded")
-  APPROVED @map("approved")
-  REJECTED @map("rejected")
+  PENDING  @map("pending") // document not uploaded by loanee
+  UPLOADED @map("uploaded") // document uploaded by loanee
+  APPROVED @map("approved") // document approved by admin
+  REJECTED @map("rejected") // document rejected by admin
 }
