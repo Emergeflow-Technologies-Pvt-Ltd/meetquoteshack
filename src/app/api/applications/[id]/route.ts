@@ -50,12 +50,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const body = await request.json();
-    const { fileName, fileKey, fileUrl, docId } = body;
+    const { fileName, fileKey, fileUrl, docId, status } = body;
 
     const application = await prisma.mortgageApplication.findUnique({
       where: {
         id: id,
-        userId: session.user.id
+        userId: status ? undefined : session.user.id // Allow admin to update status
       },
       include: {
         documents: true
@@ -66,20 +66,31 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return new NextResponse("Not found", { status: 404 });
     }
 
-    await prisma.applicationDocument.update({
-      where: {
-        id: docId
-      },
-      data: {
-        fileName,
-        fileKey,
-        fileUrl,
-        status: "UPLOADED"
-      }
-    });
+    if (status) {
+      // Handle status update (admin only)
+      const updatedApplication = await prisma.mortgageApplication.update({
+        where: { id },
+        data: { status }
+      });
+      return NextResponse.json(updatedApplication);
+    } else {
+      // Handle document update
+      const updatedDoc = await prisma.applicationDocument.update({
+        where: {
+          id: docId
+        },
+        data: {
+          fileName,
+          fileKey, 
+          fileUrl,
+          status: "UPLOADED"
+        }
+      });
+      return NextResponse.json({ message: "Document updated", document: updatedDoc });
+    }
+
   } catch (error) {
     console.error("[APPLICATION_PATCH]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-  return NextResponse.json({ message: "Document updated" });
 }
