@@ -14,6 +14,7 @@ import {
 import prisma from "@/lib/db";
 import Link from "next/link";
 import { getStatusColors } from "@/lib/utils";
+import { LoanStatus } from "@prisma/client";
 
 export default async function ProfilePage() {
   const session = await getServerSession();
@@ -140,10 +141,10 @@ export default async function ProfilePage() {
                                 Application #{application.id.slice(0, 8)}
                               </h3>
                               <Badge className={getStatusColors(application.status)}>
-                                {application.status === "VERIFIED" && (
+                                {application.status === LoanStatus.ACCEPTED && (
                                   <CheckCircle className="w-3 h-3 mr-1" />
                                 )}
-                                {application.status === "REJECTED" && (
+                                {application.status === LoanStatus.REJECTED && (
                                   <XCircle className="w-3 h-3 mr-1" />
                                 )}
                                 {application.status}
