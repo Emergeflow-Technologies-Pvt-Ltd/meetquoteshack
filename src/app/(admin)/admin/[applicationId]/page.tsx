@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 import { getStatusColors } from "@/lib/utils";
+import { Eye } from "lucide-react";
 
 interface Props {
   params: Promise<{
@@ -177,19 +178,25 @@ export default function ApplicationPage({ params }: Props) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Name</label>
+                  <label className="text-xs font-medium text-gray-500">
+                    Name
+                  </label>
                   <p className="text-sm text-gray-900">
                     {application.firstName} {application.lastName}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Address</label>
+                  <label className="text-xs font-medium text-gray-500">
+                    Address
+                  </label>
                   <p className="text-sm text-gray-900">
                     {application.currentAddress}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Employment</label>
+                  <label className="text-xs font-medium text-gray-500">
+                    Employment
+                  </label>
                   <p className="text-sm text-gray-900">
                     {application.workplaceName}
                   </p>
@@ -204,32 +211,42 @@ export default function ApplicationPage({ params }: Props) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-medium text-gray-500">Loan Amount</label>
+                    <label className="text-xs font-medium text-gray-500">
+                      Loan Amount
+                    </label>
                     <p className="text-sm text-gray-900">
                       ${application.loanAmount?.toLocaleString() || "N/A"}
                     </p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-500">Down Payment</label>
+                    <label className="text-xs font-medium text-gray-500">
+                      Down Payment
+                    </label>
                     <p className="text-sm text-gray-900">
                       ${application.downPayment?.toLocaleString() || "N/A"}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Purpose</label>
+                  <label className="text-xs font-medium text-gray-500">
+                    Purpose
+                  </label>
                   <p className="text-sm text-gray-900 capitalize">
                     {application.loanPurpose?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Type</label>
+                  <label className="text-xs font-medium text-gray-500">
+                    Type
+                  </label>
                   <p className="text-sm text-gray-900 capitalize">
                     {application.mortgageType?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500">Property</label>
+                  <label className="text-xs font-medium text-gray-500">
+                    Property
+                  </label>
                   <p className="text-sm text-gray-900 capitalize">
                     {application.housingType?.toLowerCase() || "Not specified"}
                   </p>
@@ -258,7 +275,9 @@ export default function ApplicationPage({ params }: Props) {
                     </SelectTrigger>
                     <SelectContent>
                       {availableToAdd
-                        .filter((docType) => !selectedDocTypes.includes(docType.type))
+                        .filter(
+                          (docType) => !selectedDocTypes.includes(docType.type)
+                        )
                         .map((docType) => (
                           <SelectItem key={docType.type} value={docType.type}>
                             {docType.label}
@@ -324,13 +343,13 @@ export default function ApplicationPage({ params }: Props) {
                             {docTypeConfig?.description}
                           </p>
                           {doc.fileName && (
-                            <p className="text-sm text-blue-500">{doc.fileName}</p>
+                            <p className="text-sm text-blue-500">
+                              {doc.fileName}
+                            </p>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge
-                            className={getStatusColors(doc.status)}
-                          >
+                          <Badge className={getStatusColors(doc.status)}>
                             {doc.status}
                           </Badge>
                           {doc.fileKey && (
@@ -338,30 +357,21 @@ export default function ApplicationPage({ params }: Props) {
                               variant="outline"
                               onClick={async () => {
                                 try {
-                                  const { data } = await axios.get(`/api/documents/${doc.id}`);
-                                  window.open(data.url, '_blank');
+                                  const { data } = await axios.get(
+                                    `/api/documents/${doc.id}`
+                                  );
+                                  window.open(data.url, "_blank");
                                 } catch (error) {
-                                  console.error('Failed to fetch document URL:', error);
+                                  console.error(
+                                    "Failed to fetch document URL:",
+                                    error
+                                  );
                                 }
                               }}
                               className="hover:bg-blue-50 border-blue-200 text-blue-600"
                             >
-                              <div className="flex items-center gap-2">
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none" 
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                  />
-                                </svg>
-                                View
-                              </div>
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
                             </Button>
                           )}
                         </div>
@@ -376,14 +386,18 @@ export default function ApplicationPage({ params }: Props) {
               <Button
                 variant="outline"
                 onClick={() => handleStatusUpdate(LoanStatus.REJECTED)}
-                disabled={isLoading || application.status === LoanStatus.REJECTED}
+                disabled={
+                  isLoading || application.status === LoanStatus.REJECTED
+                }
                 className="border-red-200 text-red-600 hover:bg-red-50"
               >
                 {isLoading ? "Processing..." : "Reject"}
               </Button>
               <Button
                 onClick={() => handleStatusUpdate(LoanStatus.VERIFIED)}
-                disabled={isLoading || application.status === LoanStatus.VERIFIED}
+                disabled={
+                  isLoading || application.status === LoanStatus.VERIFIED
+                }
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {isLoading ? "Processing..." : "Approve"}
