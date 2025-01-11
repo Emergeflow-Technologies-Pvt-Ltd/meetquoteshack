@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { availableDocumentTypes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { uploadFile, getPresignedUrl } from "@/lib/upload";
+import { getStatusColors } from "@/lib/utils";
 
 export default function ApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session } = useSession();
@@ -58,16 +59,6 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
     return <p>Loading...</p>;
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'bg-green-500';
-      case 'REJECTED':
-        return 'bg-red-500';
-      default:
-        return 'bg-yellow-500';
-    }
-  };
 
   return (
     <Section className="py-24">
@@ -102,7 +93,7 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge className={`${getStatusColor(doc.status)}`}>
+                        <Badge className={`${getStatusColors(doc.status)}`}>
                           {doc.status}
                         </Badge>
                         {doc.status !== "UPLOADED" && doc.status !== "APPROVED" && (
