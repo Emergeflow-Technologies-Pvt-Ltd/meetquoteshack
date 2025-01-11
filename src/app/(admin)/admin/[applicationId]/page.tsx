@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 import { getStatusColors } from "@/lib/utils";
-import { Eye } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 
 interface Props {
   params: Promise<{
@@ -109,6 +109,30 @@ export default function ApplicationPage({ params }: Props) {
       .catch((error) => {
         console.error("Failed to add document requirements:", error);
       });
+  };
+
+  const handleRemoveDocument = async (docId: string) => {
+    if (!application) return;
+
+    const doc = application.documents.find(d => d.id === docId);
+    if (!doc) return;
+
+    if (doc.fileKey) {
+      alert("Cannot delete document after file has been uploaded");
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/applications/${application.id}/documents/${docId}`);
+      setApplication((prev) =>
+        prev ? {
+          ...prev,
+          documents: prev.documents.filter(doc => doc.id !== docId)
+        } : null
+      );
+    } catch (error) {
+      console.error("Failed to remove document:", error);
+    }
   };
 
   if (!application) {
@@ -374,6 +398,14 @@ export default function ApplicationPage({ params }: Props) {
                               View
                             </Button>
                           )}
+                          <Button
+                            variant="outline"
+                            onClick={() => handleRemoveDocument(doc.id)}
+                            disabled={doc.fileKey !== null}
+                            className="hover:bg-red-50 border-red-200 text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     );
