@@ -15,27 +15,26 @@ import prisma from "@/lib/db";
 import Link from "next/link";
 import { getStatusColors } from "@/lib/utils";
 import { LoanStatus } from "@prisma/client";
+import { authOptions } from "@/lib/auth";
 
 export default async function ProfilePage() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
-  const mortgageApplications = session?.user?.email
-    ? await prisma.mortgageApplication.findMany({
-        where: {
-          userId: session.user.id,
-        },
-        select: {
-          id: true,
-          createdAt: true,
-          status: true,
-          downPayment: true,
-          loanAmount: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      })
-    : [];
+  const mortgageApplications = await prisma.mortgageApplication.findMany({
+    where: {
+      userId: session?.user?.id || "",
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      status: true,
+      downPayment: true,
+      loanAmount: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return (
     <Section className="py-12 max-w-7xl mx-auto px-4">
@@ -140,7 +139,9 @@ export default async function ProfilePage() {
                               <h3 className="font-medium text-gray-900">
                                 Application #{application.id.slice(0, 8)}
                               </h3>
-                              <Badge className={getStatusColors(application.status)}>
+                              <Badge
+                                className={getStatusColors(application.status)}
+                              >
                                 {application.status === LoanStatus.ACCEPTED && (
                                   <CheckCircle className="w-3 h-3 mr-1" />
                                 )}
