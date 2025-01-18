@@ -23,5 +23,6 @@ export const config = {
     "/become-lender",
     "/profile",
     "/admin/:path*",
+    "/applications/:path*",
   ],
 };
