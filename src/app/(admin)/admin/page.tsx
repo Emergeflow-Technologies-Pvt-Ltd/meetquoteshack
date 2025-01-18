@@ -33,7 +33,7 @@ export default async function AdminPage() {
                   </p>
                   <p className="mt-2">{app.currentAddress}</p>
                   <span className={`mt-2 inline-block px-2 py-1 text-sm rounded ${
-                    app.status === LoanStatus.VERIFIED ? 'bg-green-100 text-green-800' :
+                    app.status === LoanStatus.PROCESSING ? 'bg-green-100 text-green-800' :
                     app.status === LoanStatus.REJECTED ? 'bg-red-100 text-red-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
