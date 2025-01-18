@@ -87,6 +87,7 @@ model MortgageApplication {
   downPayment       Decimal?
   status            LoanStatus            @default(PROCESSING)
   documents         ApplicationDocument[]
+  messages          Message[]
 }
 
 model ApplicationDocument {
@@ -172,4 +173,15 @@ enum DocumentStatus {
   UPLOADED @map("uploaded") // document uploaded by loanee
   APPROVED @map("approved") // document approved by admin
   REJECTED @map("rejected") // document rejected by admin
+}
+
+model Message {
+  id                  String              @id @default(cuid())
+  mortgageApplication MortgageApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId       String
+  content            String
+  senderId           String              
+  senderRole         UserRole           
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
