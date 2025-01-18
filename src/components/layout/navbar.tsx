@@ -28,9 +28,11 @@ import { Session } from "next-auth";
 import { signIn, signOut } from "next-auth/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { UserRole } from "@prisma/client";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const userRole = session?.user?.role;
 
   return (
     <header className="sticky top-2 lg:top-5 z-40">
@@ -122,6 +124,21 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {userRole === UserRole.LOANEE && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/applications">My Applications</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {userRole === UserRole.LENDER && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/lender">Lender Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {userRole === UserRole.ADMIN && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">Admin Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/profile">Profile</Link>
                   </DropdownMenuItem>
