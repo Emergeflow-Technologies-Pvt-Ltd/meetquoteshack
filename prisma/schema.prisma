@@ -179,9 +179,9 @@ model Message {
   id                  String              @id @default(cuid())
   mortgageApplication MortgageApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   applicationId       String
-  content            String
-  senderId           String              
-  senderRole         UserRole           
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  content             String
+  senderId            String
+  senderRole          UserRole
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }
