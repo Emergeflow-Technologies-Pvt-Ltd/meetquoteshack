@@ -1,7 +1,7 @@
 "use client";
 
 import { Message } from "@prisma/client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface MessagesProps {
   messages: Message[];
@@ -10,6 +10,15 @@ interface MessagesProps {
 
 export function Messages({ messages, applicationId }: MessagesProps) {
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +68,7 @@ export function Messages({ messages, applicationId }: MessagesProps) {
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSendMessage} className="p-4 border-t">
@@ -80,4 +90,4 @@ export function Messages({ messages, applicationId }: MessagesProps) {
       </form>
     </div>
   );
-} 
+}
