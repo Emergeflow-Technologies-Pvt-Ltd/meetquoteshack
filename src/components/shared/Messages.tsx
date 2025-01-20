@@ -42,7 +42,7 @@ export function Messages({ messages, applicationId }: MessagesProps) {
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-gray-50 rounded-lg">
+    <div className="flex flex-col h-[600px] bg-gray-50 rounded-lg my-4 py-4">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
