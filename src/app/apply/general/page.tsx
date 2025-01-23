@@ -140,13 +140,51 @@ export default function GeneralLoanForm() {
             className="space-y-8 p-6"
           >
             {currentStep === 0 && (
-              <EligibilityStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />
+              <EligibilityStep
+                form={
+                  form as UseFormReturn<
+                    GeneralLoanFormValues | MortgageLoanFormValues
+                  >
+                }
+              />
             )}
-            {currentStep === 1 && <PersonalStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />}
-            {currentStep === 2 && <ResidenceStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />}
-            {currentStep === 3 && <EducationStep form={form as UseFormReturn<GeneralLoanFormValues>} />}
-            {currentStep === 4 && <EmploymentStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />}
-            {currentStep === 5 && <GeneralLoanStep form={form as UseFormReturn<GeneralLoanFormValues>} />}
+            {currentStep === 1 && (
+              <PersonalStep
+                form={
+                  form as UseFormReturn<
+                    GeneralLoanFormValues | MortgageLoanFormValues
+                  >
+                }
+              />
+            )}
+            {currentStep === 2 && (
+              <ResidenceStep
+                form={
+                  form as UseFormReturn<
+                    GeneralLoanFormValues | MortgageLoanFormValues
+                  >
+                }
+              />
+            )}
+            {currentStep === 3 && (
+              <EducationStep
+                form={form as UseFormReturn<GeneralLoanFormValues>}
+              />
+            )}
+            {currentStep === 4 && (
+              <EmploymentStep
+                form={
+                  form as UseFormReturn<
+                    GeneralLoanFormValues | MortgageLoanFormValues
+                  >
+                }
+              />
+            )}
+            {currentStep === 5 && (
+              <GeneralLoanStep
+                form={form as UseFormReturn<GeneralLoanFormValues>}
+              />
+            )}
 
             <div className="flex justify-between pt-4">
               <Button
@@ -157,9 +195,13 @@ export default function GeneralLoanForm() {
               >
                 Previous
               </Button>
-              <Button type="submit">
-                {currentStep === formSteps.length - 1 ? "Submit" : "Next"}
-              </Button>
+              {currentStep < formSteps.length - 1 ? (
+                <Button type="button" onClick={onNext}>
+                  Next
+                </Button>
+              ) : (
+                <Button type="submit">Submit</Button>
+              )}
             </div>
           </form>
         </Form>
