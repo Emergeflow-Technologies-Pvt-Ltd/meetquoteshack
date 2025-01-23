@@ -1,20 +1,20 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import type { Control } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import type { GeneralLoanFormValues } from "@/app/apply/general/types";
 import { EducationLevel } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
 
 interface EducationStepProps {
-  control: Control<GeneralLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues>;
 }
 
-export function EducationStep({ control }: EducationStepProps) {
+export function EducationStep({ form }: EducationStepProps) {
   return (
     <div className="space-y-6">
       <FormField
-        control={control}
+        control={form.control}
         name="generalEducationLevel"
         render={({ field }) => (
           <FormItem>
@@ -41,7 +41,7 @@ export function EducationStep({ control }: EducationStepProps) {
       />
 
       <FormField
-        control={control}
+        control={form.control}
         name="generalFieldOfStudy"
         render={({ field }) => (
           <FormItem>

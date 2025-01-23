@@ -2,15 +2,16 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { UseFormReturn } from "react-hook-form";
-import type { LoanFormValues } from "@/app/apply/mortgage/types";
+
 import { MortgageDownPayment, MortgageHousingType, MortgagePurpose, MortgageType } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
+import { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
 
-interface LoanStepProps {
-  form: UseFormReturn<LoanFormValues>;
+interface MortgageLoanStepProps {
+  form: UseFormReturn<MortgageLoanFormValues>;
 }
 
-export function LoanStep({ form }: LoanStepProps) {
+export function MortgageLoanStep({ form }: MortgageLoanStepProps) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">

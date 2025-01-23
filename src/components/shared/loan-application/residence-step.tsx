@@ -8,12 +8,16 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import type { UseFormReturn } from "react-hook-form";
-import type { LoanFormValues } from "@/app/apply/mortgage/types";
+import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
+import type { GeneralLoanFormValues } from "@/app/apply/general/types";
+
+type CombinedLoanFormValues = GeneralLoanFormValues | MortgageLoanFormValues;
+
 import { ResidencyStatus, HousingStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
 
 interface ResidenceStepProps {
-  form: UseFormReturn<LoanFormValues>;
+  form: UseFormReturn<CombinedLoanFormValues>;
 }
 
 export function ResidenceStep({ form }: ResidenceStepProps) {
