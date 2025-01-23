@@ -22,9 +22,9 @@ export async function POST(
 
     const newDocuments = await prisma.$transaction(
       documentTypes.map((documentType) =>
-        prisma.applicationDocument.create({
+        prisma.document.create({
           data: {
-            mortgageApplication: { connect: { id } },
+            application: { connect: { id } },
             documentType,
           },
         })
@@ -49,7 +49,7 @@ export async function DELETE(
   const { documentId } = await request.json();
 
   try {
-    const document = await prisma.applicationDocument.findFirst({
+    const document = await prisma.document.findFirst({
       where: {
         id: documentId,
         applicationId: applicationId
@@ -70,7 +70,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.applicationDocument.delete({
+    await prisma.document.delete({
       where: { id: documentId },
     });
 

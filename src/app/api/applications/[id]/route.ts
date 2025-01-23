@@ -18,7 +18,7 @@ export async function GET(
       return new NextResponse("Missing application ID", { status: 400 });
     }
 
-    const application = await prisma.mortgageApplication.findUnique({
+    const application = await prisma.application.findUnique({
       where: {
         id: id,
         userId: session.user.id
@@ -52,7 +52,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json();
     const { fileName, fileKey, fileUrl, docId, status } = body;
 
-    const application = await prisma.mortgageApplication.findUnique({
+    const application = await prisma.application.findUnique({
       where: {
         id: id,
         userId: status ? undefined : session.user.id // Allow admin to update status
@@ -68,14 +68,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     if (status) {
       // Handle status update (admin only)
-      const updatedApplication = await prisma.mortgageApplication.update({
+      const updatedApplication = await prisma.application.update({
         where: { id },
         data: { status }
       });
       return NextResponse.json(updatedApplication);
     } else {
       // Handle document update
-      const updatedDoc = await prisma.applicationDocument.update({
+      const updatedDoc = await prisma.document.update({
         where: {
           id: docId
         },

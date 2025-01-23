@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const application = await prisma.mortgageApplication.findUnique({
+    const application = await prisma.application.findUnique({
       where: { id: applicationId },
       select: { userId: true },
     });
