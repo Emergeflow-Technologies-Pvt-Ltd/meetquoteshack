@@ -1,7 +1,16 @@
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { UseFormReturn } from "react-hook-form";
 import type { LoanFormValues } from "@/app/apply/mortgage/types";
+import { MaritalStatus } from "@prisma/client";
+import { convertEnumValueToLabel } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PersonalStepProps {
   form: UseFormReturn<LoanFormValues>;
@@ -43,12 +52,20 @@ export function PersonalStep({ form }: PersonalStepProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
-          name="currentAddress"
+          name="dateOfBirth" 
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Address</FormLabel>
+              <FormLabel>Date of Birth</FormLabel>
               <FormControl>
-                <Input placeholder="123 Main St" {...field} />
+                <Input
+                  type="date"
+                  onChange={(e) => {
+                    const date = new Date(e.target.value);
+                    field.onChange(date);
+                  }}
+                  value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -57,21 +74,53 @@ export function PersonalStep({ form }: PersonalStepProps) {
 
         <FormField
           control={form.control}
-          name="residencyDuration"
+          name="maritalStatus"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Duration at Address</FormLabel>
+              <FormLabel>Marital Status</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="1" 
-                  {...field}
-                  value={field.value ?? ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? undefined : e.target.valueAsNumber;
-                    field.onChange(value);
-                  }}
-                />
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select marital status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(MaritalStatus).map(([value]) => (
+                      <SelectItem key={value} value={value}>
+                        {convertEnumValueToLabel(value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="personalPhone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder="(123) 456-7890" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="personalEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input placeholder="john.doe@example.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

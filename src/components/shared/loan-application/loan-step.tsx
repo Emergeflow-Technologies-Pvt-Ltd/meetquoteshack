@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { UseFormReturn } from "react-hook-form";
 import type { LoanFormValues } from "@/app/apply/mortgage/types";
+import { MortgageDownPayment, MortgageHousingType, MortgagePurpose, MortgageType } from "@prisma/client";
+import { convertEnumValueToLabel } from "@/lib/utils";
 
 interface LoanStepProps {
   form: UseFormReturn<LoanFormValues>;
@@ -11,33 +13,60 @@ interface LoanStepProps {
 export function LoanStep({ form }: LoanStepProps) {
   return (
     <div className="space-y-6">
-      <FormField
-        control={form.control}
-        name="loanAmount"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Desired Loan Amount</FormLabel>
-            <FormControl>
-              <Input 
-                type="number" 
-                placeholder="300000" 
-                {...field}
-                value={field.value ?? ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? undefined : e.target.valueAsNumber;
-                  field.onChange(value);
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="loanAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Desired Loan Amount</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="300000" 
+                  {...field}
+                  value={field.value ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? undefined : e.target.valueAsNumber;
+                    field.onChange(value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="mortgageDownPayment"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Down Payment Percentage</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select down payment percentage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(MortgageDownPayment).map(([value]) => (
+                      <SelectItem key={value} value={value}>
+                        {convertEnumValueToLabel(value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
-          name="loanPurpose"
+          name="mortgagePurpose"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Loan Purpose</FormLabel>
@@ -48,9 +77,11 @@ export function LoanStep({ form }: LoanStepProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="buying">Buying a House</SelectItem>
-                  <SelectItem value="repair">Repair</SelectItem>
-                  <SelectItem value="renovation">Renovation</SelectItem>
+                  {Object.entries(MortgagePurpose).map(([value]) => (
+                    <SelectItem key={value} value={value}>
+                      {convertEnumValueToLabel(value)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -71,10 +102,11 @@ export function LoanStep({ form }: LoanStepProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="refinance">Refinance</SelectItem>
-                  <SelectItem value="equity">Equity Mortgage</SelectItem>
-                  <SelectItem value="bridge">Bridge Financing</SelectItem>
-                  <SelectItem value="firsttime">First Time Home Buyer</SelectItem>
+                  {Object.entries(MortgageType).map(([value]) => (
+                    <SelectItem key={value} value={value}>
+                      {convertEnumValueToLabel(value)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -85,7 +117,7 @@ export function LoanStep({ form }: LoanStepProps) {
 
       <FormField
         control={form.control}
-        name="housingType"
+        name="mortgageHousingType"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Desired Housing Type</FormLabel>
@@ -96,41 +128,11 @@ export function LoanStep({ form }: LoanStepProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="condo">Condo</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="duplex">Duplex</SelectItem>
-                <SelectItem value="townhouse">Town House</SelectItem>
-                <SelectItem value="detached">Detached House</SelectItem>
-                <SelectItem value="semidetached">Semi-detached House</SelectItem>
-                <SelectItem value="container">Container Home</SelectItem>
-                <SelectItem value="mobile">Mobile Home</SelectItem>
-                <SelectItem value="bungalow">Bungalow</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="downPayment"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Down Payment Percentage</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select down payment percentage" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="5">5%</SelectItem>
-                <SelectItem value="10">10%</SelectItem>
-                <SelectItem value="15">15%</SelectItem>
-                <SelectItem value="20">20%</SelectItem>
-                <SelectItem value="more">More than 20%</SelectItem>
+                {Object.entries(MortgageHousingType).map(([value]) => (
+                  <SelectItem key={value} value={value}>
+                    {convertEnumValueToLabel(value)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
