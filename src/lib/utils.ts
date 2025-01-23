@@ -19,3 +19,7 @@ export const getStatusColors = (status: string) => {
   };
   return colors[status as keyof typeof colors] || colors.default;
 };
+
+export const convertEnumValueToLabel = (value: string) => {
+  return value.split('_').map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(' ');
+};
