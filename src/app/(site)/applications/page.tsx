@@ -19,7 +19,7 @@ import { Eye } from "lucide-react";
 export default async function ApplicationsPage() {
   const session = await getServerSession(authOptions);
 
-  const applications = await prisma.mortgageApplication.findMany({
+  const applications = await prisma.application.findMany({
     where: {
       userId: session?.user?.id || "",
     },

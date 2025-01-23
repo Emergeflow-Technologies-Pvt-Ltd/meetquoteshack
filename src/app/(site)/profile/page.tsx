@@ -20,7 +20,7 @@ import { authOptions } from "@/lib/auth";
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
 
-  const mortgageApplications = await prisma.mortgageApplication.findMany({
+  const applications = await prisma.application.findMany({
     where: {
       userId: session?.user?.id || "",
     },
@@ -28,7 +28,7 @@ export default async function ProfilePage() {
       id: true,
       createdAt: true,
       status: true,
-      downPayment: true,
+      mortgageDownPayment: true,
       loanAmount: true,
     },
     orderBy: {
@@ -124,9 +124,9 @@ export default async function ProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {mortgageApplications.length > 0 ? (
+              {applications.length > 0 ? (
                 <div className="space-y-4">
-                  {mortgageApplications.map((application) => (
+                  {applications.map((application) => (
                     <Link
                       key={application.id}
                       href={`/applications/${application.id}`}

@@ -31,31 +31,62 @@ export default function LoanForm() {
       firstName: "",
       lastName: "",
       currentAddress: "",
-      residencyDuration: undefined,
+      yearsAtCurrentAddress: undefined,
       housingStatus: undefined,
       housingPayment: undefined,
-      canadianStatus: undefined,
+      dateOfBirth: undefined,
+      maritalStatus: undefined,
+      residencyStatus: undefined,
+      personalPhone: "",
+      personalEmail: "",
       employmentStatus: undefined,
       grossIncome: undefined,
       workplaceName: "",
+      workplaceAddress: "",
       workplacePhone: "",
       workplaceEmail: "",
       loanAmount: undefined,
-      loanPurpose: undefined,
+      mortgagePurpose: undefined,
       mortgageType: undefined,
-      housingType: undefined,
-      downPayment: undefined,
+      mortgageHousingType: undefined,
+      mortgageDownPayment: undefined,
     },
-    mode: "onBlur",
+    mode: "all",
   });
 
   async function onNext() {
     const fieldsToValidate: Record<number, (keyof LoanFormValues)[]> = {
       0: ["isAdult", "hasBankruptcy"],
-      1: ["firstName", "lastName", "currentAddress", "residencyDuration"],
-      2: ["housingStatus", "housingPayment", "canadianStatus"],
-      3: ["employmentStatus", "grossIncome", "workplaceName", "workplacePhone", "workplaceEmail"],
-      4: ["loanAmount", "loanPurpose", "mortgageType", "housingType", "downPayment"],
+      1: [
+        "firstName",
+        "lastName",
+        "maritalStatus",
+        "dateOfBirth",
+        "personalPhone",
+        "personalEmail",
+      ],
+      2: [
+        "residencyStatus",
+        "currentAddress",
+        "yearsAtCurrentAddress",
+        "housingStatus",
+        "housingPayment",
+      ],
+      3: [
+        "employmentStatus",
+        "grossIncome",
+        "workplaceName",
+        "workplaceAddress",
+        "workplacePhone",
+        "workplaceEmail",
+      ],
+      4: [
+        "loanAmount",
+        "mortgagePurpose",
+        "mortgageType",
+        "mortgageHousingType",
+        "mortgageDownPayment",
+      ],
     };
 
     const isValid = await form.trigger(fieldsToValidate[currentStep] ?? []);
@@ -75,8 +106,7 @@ export default function LoanForm() {
     } else {
       const payload = {
         ...data,
-        residencyDuration: Number(data.residencyDuration),
-        housingPayment: Number(data.housingPayment),
+        yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
         grossIncome: Number(data.grossIncome),
         loanAmount: data.loanAmount ? Number(data.loanAmount) : undefined,
       };

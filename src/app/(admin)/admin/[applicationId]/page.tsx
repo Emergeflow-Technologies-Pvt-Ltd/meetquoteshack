@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   LoanStatus,
-  MortgageApplication,
+  Application,
   User,
-  ApplicationDocument,
+  Document,
   DocumentType,
 } from "@prisma/client";
 import { availableDocumentTypes } from "@/lib/constants";
@@ -30,9 +30,9 @@ interface Props {
   }>;
 }
 
-type ApplicationWithUser = MortgageApplication & {
+type ApplicationWithUser = Application & {
   user: User;
-  documents: ApplicationDocument[];
+  documents: Document[];
   documentKey?: string;
   estimatedPropertyValue?: number;
   intendedPropertyAddress?: string;
@@ -59,7 +59,7 @@ export default function ApplicationPage({ params }: Props) {
           if (app.documents?.length > 0) {
             const urlMap = new Map<string, string>();
             Promise.all(
-              app.documents.map(async (doc: ApplicationDocument) => {
+              app.documents.map(async (doc: Document) => {
                 if (doc.fileKey) {
                   return axios
                     .get(`/api/documents/${doc.id}`)
@@ -243,7 +243,7 @@ export default function ApplicationPage({ params }: Props) {
                       Down Payment
                     </label>
                     <p className="text-sm text-gray-900">
-                      ${application.downPayment?.toLocaleString() || "N/A"}
+                      ${application.mortgageDownPayment?.toLocaleString() || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -252,7 +252,7 @@ export default function ApplicationPage({ params }: Props) {
                     Purpose
                   </label>
                   <p className="text-sm text-gray-900 capitalize">
-                    {application.loanPurpose?.toLowerCase() || "Not specified"}
+                    {application.mortgagePurpose?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
                 <div>
@@ -268,7 +268,7 @@ export default function ApplicationPage({ params }: Props) {
                     Property
                   </label>
                   <p className="text-sm text-gray-900 capitalize">
-                    {application.housingType?.toLowerCase() || "Not specified"}
+                    {application.mortgageHousingType?.toLowerCase() || "Not specified"}
                   </p>
                 </div>
               </CardContent>

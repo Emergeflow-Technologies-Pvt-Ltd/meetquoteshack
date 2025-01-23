@@ -4,7 +4,7 @@ import { LoanStatus } from "@prisma/client";
 import Section from "@/components/shared/section";
 
 export default async function AdminPage() {
-  const applications = await prisma.mortgageApplication.findMany({
+  const applications = await prisma.application.findMany({
     where: {
       status: {
         in: [LoanStatus.PROCESSING, LoanStatus.PROGRESSING]

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Section from "@/components/shared/section";
 import { Home, FileText, Upload } from "lucide-react";
 import axios from 'axios';
-import { MortgageApplication, ApplicationDocument } from "@prisma/client";
+import { Application, Document } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { availableDocumentTypes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { getStatusColors } from "@/lib/utils";
 export default function ApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session } = useSession();
   const { id } = use(params);
-  const [application, setApplication] = useState<MortgageApplication & { documents: ApplicationDocument[] } | null>(null);
+  const [application, setApplication] = useState<Application & { documents: Document[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

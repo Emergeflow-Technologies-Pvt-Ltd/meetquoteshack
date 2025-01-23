@@ -7,7 +7,7 @@ import { LoanStatus } from "@prisma/client";
 import Section from "@/components/shared/section";
 
 export default async function LenderPoolPage() {
-  const acceptedApplications = await prisma.mortgageApplication.findMany({
+  const acceptedApplications = await prisma.application.findMany({
     where: {
       status: LoanStatus.ACCEPTED
     },
@@ -18,7 +18,7 @@ export default async function LenderPoolPage() {
       loanAmount: true,
       firstName: true,
       lastName: true,
-      loanPurpose: true,
+      mortgagePurpose: true,
       mortgageType: true
     },
     orderBy: {
@@ -61,7 +61,7 @@ export default async function LenderPoolPage() {
                             <span>
                               Loan Amount: ${application.loanAmount?.toLocaleString()}
                             </span>
-                            <span>Purpose: {application.loanPurpose}</span>
+                            <span>Purpose: {application.mortgagePurpose}</span>
                             <span>Type: {application.mortgageType}</span>
                           </div>
                         </div>
