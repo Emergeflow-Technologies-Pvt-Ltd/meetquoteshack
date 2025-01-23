@@ -11,10 +11,8 @@ import type { UseFormReturn } from "react-hook-form";
 import type { GeneralLoanFormValues } from "@/app/apply/general/types";
 import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
 
-type CombinedLoanFormValues = GeneralLoanFormValues | MortgageLoanFormValues;
-
 interface EligibilityStepProps {
-  form: UseFormReturn<CombinedLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>;
 }
 
 export function EligibilityStep({ form }: EligibilityStepProps) {

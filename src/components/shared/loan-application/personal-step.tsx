@@ -10,14 +10,12 @@ import type { UseFormReturn } from "react-hook-form";
 import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
 import type { GeneralLoanFormValues } from "@/app/apply/general/types";
 
-type CombinedLoanFormValues = GeneralLoanFormValues | MortgageLoanFormValues;
-
 import { MaritalStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PersonalStepProps {
-  form: UseFormReturn<CombinedLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>;
 }
 
 export function PersonalStep({ form }: PersonalStepProps) {

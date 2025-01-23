@@ -17,13 +17,11 @@ import type { UseFormReturn } from "react-hook-form";
 import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
 import type { GeneralLoanFormValues } from "@/app/apply/general/types";
 
-type CombinedLoanFormValues = MortgageLoanFormValues | GeneralLoanFormValues;
-
 import { EmploymentStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
 
 interface EmploymentStepProps {
-  form: UseFormReturn<CombinedLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>;
 }
 
 export function EmploymentStep({ form }: EmploymentStepProps) {
