@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -18,6 +18,7 @@ import Section from "@/components/shared/section";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { GeneralLoanFormValues } from "../general/types";
 
 export default function LoanForm() {
   const router = useRouter();
@@ -139,11 +140,11 @@ export default function LoanForm() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {currentStep === 0 && <EligibilityStep form={form} />}
-              {currentStep === 1 && <PersonalStep form={form} />}
-              {currentStep === 2 && <ResidenceStep form={form} />}
-              {currentStep === 3 && <EmploymentStep form={form} />}
-              {currentStep === 4 && <MortgageLoanStep form={form} />}
+              {currentStep === 0 && <EligibilityStep form={form as UseFormReturn<MortgageLoanFormValues | GeneralLoanFormValues>} />}
+              {currentStep === 1 && <PersonalStep form={form as UseFormReturn<MortgageLoanFormValues | GeneralLoanFormValues>} />}
+              {currentStep === 2 && <ResidenceStep form={form as UseFormReturn<MortgageLoanFormValues | GeneralLoanFormValues>} />}
+              {currentStep === 3 && <EmploymentStep form={form as UseFormReturn<MortgageLoanFormValues | GeneralLoanFormValues>} />}
+              {currentStep === 4 && <MortgageLoanStep form={form as UseFormReturn<MortgageLoanFormValues>} />}
 
               <div className="flex justify-between">
                 <Button

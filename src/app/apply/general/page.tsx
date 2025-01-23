@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -21,6 +21,7 @@ import { ResidenceStep } from "@/components/shared/loan-application/residence-st
 import { EducationStep } from "@/components/shared/loan-application/education-step";
 import { EmploymentStep } from "@/components/shared/loan-application/employment-step";
 import { GeneralLoanStep } from "@/components/shared/loan-application/general-loan-step";
+import { MortgageLoanFormValues } from "../mortgage/types";
 
 export default function GeneralLoanForm() {
   const router = useRouter();
@@ -138,12 +139,14 @@ export default function GeneralLoanForm() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-8 p-6"
           >
-            {currentStep === 0 && <EligibilityStep form={form} />}
-            {currentStep === 1 && <PersonalStep form={form} />}
-            {currentStep === 2 && <ResidenceStep form={form} />}
-            {currentStep === 3 && <EducationStep form={form} />}
-            {currentStep === 4 && <EmploymentStep form={form} />}
-            {currentStep === 5 && <GeneralLoanStep form={form} />}
+            {currentStep === 0 && (
+              <EligibilityStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />
+            )}
+            {currentStep === 1 && <PersonalStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />}
+            {currentStep === 2 && <ResidenceStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />}
+            {currentStep === 3 && <EducationStep form={form as UseFormReturn<GeneralLoanFormValues>} />}
+            {currentStep === 4 && <EmploymentStep form={form as UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>} />}
+            {currentStep === 5 && <GeneralLoanStep form={form as UseFormReturn<GeneralLoanFormValues>} />}
 
             <div className="flex justify-between pt-4">
               <Button
