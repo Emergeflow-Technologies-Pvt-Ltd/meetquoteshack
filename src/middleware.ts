@@ -21,8 +21,10 @@ export default withAuth(
 export const config = {
   matcher: [
     "/become-lender",
-    "/profile",
+    "/profile", 
     "/admin/:path*",
     "/applications/:path*",
+    "/apply/mortgage",
+    "/apply/general", 
   ],
 };
