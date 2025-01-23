@@ -12,8 +12,8 @@ import { EligibilityStep } from "@/components/shared/loan-application/eligibilit
 import { PersonalStep } from "@/components/shared/loan-application/personal-step";
 import { ResidenceStep } from "@/components/shared/loan-application/residence-step";
 import { EmploymentStep } from "@/components/shared/loan-application/employment-step";
-import { LoanStep } from "@/components/shared/loan-application/loan-step";
-import { loanFormSchema, type LoanFormValues } from "./types";
+import { MortgageLoanStep } from "@/components/shared/loan-application/mortgage-loan-step";
+import { mortgageLoanFormSchema, type MortgageLoanFormValues } from "./types";
 import Section from "@/components/shared/section";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
@@ -23,8 +23,8 @@ export default function LoanForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
 
-  const form = useForm<LoanFormValues>({
-    resolver: zodResolver(loanFormSchema),
+  const form = useForm<MortgageLoanFormValues>({
+    resolver: zodResolver(mortgageLoanFormSchema),
     defaultValues: {
       isAdult: false,
       hasBankruptcy: false,
@@ -55,7 +55,7 @@ export default function LoanForm() {
   });
 
   async function onNext() {
-    const fieldsToValidate: Record<number, (keyof LoanFormValues)[]> = {
+    const fieldsToValidate: Record<number, (keyof MortgageLoanFormValues)[]> = {
       0: ["isAdult", "hasBankruptcy"],
       1: [
         "firstName",
@@ -100,7 +100,7 @@ export default function LoanForm() {
     setCurrentStep(currentStep - 1);
   }
 
-  function onSubmit(data: LoanFormValues) {
+  function onSubmit(data: MortgageLoanFormValues) {
     if (currentStep < formSteps.length - 1) {
       onNext();
     } else {
@@ -143,7 +143,7 @@ export default function LoanForm() {
               {currentStep === 1 && <PersonalStep form={form} />}
               {currentStep === 2 && <ResidenceStep form={form} />}
               {currentStep === 3 && <EmploymentStep form={form} />}
-              {currentStep === 4 && <LoanStep form={form} />}
+              {currentStep === 4 && <MortgageLoanStep form={form} />}
 
               <div className="flex justify-between">
                 <Button
