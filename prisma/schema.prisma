@@ -77,6 +77,7 @@ model Application {
   maritalStatus         MaritalStatus
   residencyStatus       ResidencyStatus
   personalPhone         String
+  personalEmail         String
   employmentStatus      EmploymentStatus
   grossIncome           Decimal              @db.Decimal(12, 2) // 10 digits before decimal, 2 after
   workplaceName         String
@@ -126,103 +127,103 @@ model Message {
 }
 
 enum UserRole {
-  LOANEE @map("1")
-  LENDER @map("2")
-  ADMIN  @map("3")
+  LOANEE @map("loanee")
+  LENDER @map("lender")
+  ADMIN  @map("admin")
 }
 
 enum ApplicationType {
-  GENERAL  @map("1")
-  MORTGAGE @map("2")
+  GENERAL  @map("general")
+  MORTGAGE @map("mortgage")
 }
 
 enum HousingStatus {
-  RENT @map("1")
-  OWN  @map("2")
+  RENT @map("rent")
+  OWN  @map("own")
 }
 
 enum ResidencyStatus {
-  CITIZEN            @map("1")
-  PERMANENT_RESIDENT @map("2")
-  WORK_PERMIT        @map("3")
-  STUDENT_VISA       @map("4")
-  OTHER              @map("50")
+  CITIZEN            @map("citizen")
+  PERMANENT_RESIDENT @map("permanent_resident")
+  WORK_PERMIT        @map("work_permit")
+  STUDENT_VISA       @map("student_visa")
+  OTHER              @map("other")
 }
 
 enum EmploymentStatus {
-  FULL_TIME     @map("1")
-  PART_TIME     @map("2")
-  CONTRACT      @map("3")
-  SEASONAL      @map("4")
-  SELF_EMPLOYED @map("5")
-  OTHER         @map("50")
+  FULL_TIME     @map("full_time")
+  PART_TIME     @map("part_time")
+  CONTRACT      @map("contract")
+  SEASONAL      @map("seasonal")
+  SELF_EMPLOYED @map("self_employed")
+  OTHER         @map("other")
 }
 
 enum MortgagePurpose {
-  BUYING     @map("1")
-  REPAIR     @map("2")
-  RENOVATION @map("3")
+  BUYING     @map("buying")
+  REPAIR     @map("repair")
+  RENOVATION @map("renovation")
 }
 
 enum MortgageType {
-  REFINE     @map("1")
-  EQUITY     @map("2")
-  BRIDGE     @map("3")
-  FIRST_TIME @map("4")
+  REFINE     @map("refine")
+  EQUITY     @map("equity")
+  BRIDGE     @map("bridge")
+  FIRST_TIME @map("first_time")
 }
 
 enum MortgageHousingType {
-  CONDO        @map("1")
-  APARTMENT    @map("2")
-  DUPLEX       @map("3")
-  TOWNHOUSE    @map("4")
-  DETACHED     @map("5")
-  SEMIDETACHED @map("6")
-  CONTAINER    @map("7")
-  MOBILE       @map("8")
-  BUNGALOW     @map("9")
+  CONDO        @map("condo")
+  APARTMENT    @map("apartment")
+  DUPLEX       @map("duplex")
+  TOWNHOUSE    @map("townhouse")
+  DETACHED     @map("detached")
+  SEMIDETACHED @map("semi_detached")
+  CONTAINER    @map("container")
+  MOBILE       @map("mobile")
+  BUNGALOW     @map("bungalow")
   OTHER        @map("50")
 }
 
 enum LoanStatus {
-  PROCESSING  @map("1") // admin processing the application
-  REJECTED    @map("2") // admin rejected the application
-  PROGRESSING @map("3") // admin accepted the application, and it's on loan pool
-  ACCEPTED    @map("4") // loanee accepted the application
-  ARCHIVED    @map("5") // loanee has processed the application, and it's archived
+  PROCESSING  @map("processing") // admin processing the application
+  REJECTED    @map("rejected") // admin rejected the application
+  PROGRESSING @map("progressing") // admin accepted the application, and it's on loan pool
+  ACCEPTED    @map("accepted") // loanee accepted the application
+  ARCHIVED    @map("archived") // loanee has processed the application, and it's archived
 }
 
 enum DocumentType {
-  IDENTITY_PROOF    @map("1")
-  INCOME_PROOF      @map("2")
-  EMPLOYMENT_LETTER @map("3")
-  TAX_RETURN        @map("4")
-  BANK_STATEMENT    @map("5")
-  PROPERTY_DOCUMENT @map("6")
-  OTHER             @map("50")
+  IDENTITY_PROOF    @map("identity_proof")
+  INCOME_PROOF      @map("income_proof")
+  EMPLOYMENT_LETTER @map("employment_letter")
+  TAX_RETURN        @map("tax_return")
+  BANK_STATEMENT    @map("bank_statement")
+  PROPERTY_DOCUMENT @map("property_document")
+  OTHER             @map("other")
 }
 
 enum DocumentStatus {
-  PENDING  @map("1") // document not uploaded by loanee
-  UPLOADED @map("2") // document uploaded by loanee
-  APPROVED @map("3") // document approved by admin
-  REJECTED @map("4") // document rejected by admin
+  PENDING  @map("pending") // document not uploaded by loanee
+  UPLOADED @map("uploaded") // document uploaded by loanee
+  APPROVED @map("approved") // document approved by admin
+  REJECTED @map("rejected") // document rejected by admin
 }
 
 enum MaritalStatus {
-  SINGLE   @map("1")
-  MARRIED  @map("2")
-  DIVORCED @map("3")
-  WIDOWED  @map("4")
-  OTHER    @map("50")
+  SINGLE   @map("single")
+  MARRIED  @map("married")
+  DIVORCED @map("divorced")
+  WIDOWED  @map("widowed")
+  OTHER    @map("other")
 }
 
 enum EducationLevel {
-  HIGH_SCHOOL   @map("1")
-  COLLEGE       @map("2")
-  UNIVERSITY    @map("3")
-  POST_GRADUATE @map("4")
-  OTHER         @map("50")
+  HIGH_SCHOOL   @map("high_school")
+  COLLEGE       @map("college")
+  UNIVERSITY    @map("university")
+  POST_GRADUATE @map("post_graduate")
+  OTHER         @map("other")
 }
 
 enum MortgageDownPayment {

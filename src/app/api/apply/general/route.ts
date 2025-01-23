@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
+import type { GeneralLoanFormValues } from "@/app/apply/general/types";
 import prisma from "@/lib/db";
 import {
   ResidencyStatus,
   EmploymentStatus,
   HousingStatus,
-  MortgageHousingType,
-  MortgagePurpose,
-  MortgageType,
+  EducationLevel,
   Prisma,
   MaritalStatus,
 } from "@prisma/client";
@@ -26,7 +24,7 @@ export async function POST(request: Request) {
           id: user.id,
         },
       },
-      type: "MORTGAGE",
+      type: "GENERAL",
       hasBankruptcy: data.hasBankruptcy,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -41,23 +39,21 @@ export async function POST(request: Request) {
       workplaceAddress: data.workplaceAddress,
       workplacePhone: data.workplacePhone,
       workplaceEmail: data.workplaceEmail,
-      mortgageType: data.mortgageType as MortgageType,
-      mortgagePurpose: data.mortgagePurpose as MortgagePurpose,
-      mortgageHousingType: data.mortgageHousingType as MortgageHousingType,
-      mortgageDownPayment: data.mortgageDownPayment,
+      generalEducationLevel: data.generalEducationLevel as EducationLevel,
+      generalFieldOfStudy: data.generalFieldOfStudy,
       dateOfBirth: data.dateOfBirth,
       maritalStatus: data.maritalStatus as MaritalStatus,
       personalPhone: data.personalPhone,
       personalEmail: data.personalEmail,
       loanAmount: data.loanAmount,
     };
-    return await createMortgageApplication(formattedData);
+    return await createGeneralApplication(formattedData);
   } catch (error) {
     return handleError(error);
   }
 }
 
-async function validateRequestData(request: Request): Promise<MortgageLoanFormValues> {
+async function validateRequestData(request: Request): Promise<GeneralLoanFormValues> {
   if (!request.body) {
     throw createErrorResponse(
       "Invalid request",
@@ -66,7 +62,7 @@ async function validateRequestData(request: Request): Promise<MortgageLoanFormVa
     );
   }
 
-  const data: MortgageLoanFormValues = await request.json();
+  const data: GeneralLoanFormValues = await request.json();
   if (!data) {
     throw createErrorResponse(
       "Invalid request",
@@ -103,7 +99,7 @@ async function authenticateUser() {
   return user;
 }
 
-function validateRequiredFields(data: MortgageLoanFormValues) {
+function validateRequiredFields(data: GeneralLoanFormValues) {
   const requiredFields = [
     "firstName",
     "lastName", 
@@ -117,6 +113,7 @@ function validateRequiredFields(data: MortgageLoanFormValues) {
     "dateOfBirth",
     "maritalStatus",
     "personalPhone",
+    "personalEmail",
     "loanAmount"
   ] as const;
 
@@ -134,7 +131,7 @@ function validateRequiredFields(data: MortgageLoanFormValues) {
   }
 }
 
-function validateNumericFields(data: MortgageLoanFormValues) {
+function validateNumericFields(data: GeneralLoanFormValues) {
   const numericFields = [
     "yearsAtCurrentAddress",
     "housingPayment",
@@ -166,7 +163,7 @@ function validateNumericFields(data: MortgageLoanFormValues) {
   }
 }
 
-async function createMortgageApplication(
+async function createGeneralApplication(
   formattedData: Prisma.ApplicationCreateInput
 ) {
   try {
@@ -182,11 +179,8 @@ async function createMortgageApplication(
     throw createErrorResponse(
       "Database error",
       {
-        message: "Failed to create mortgage application",
-        error:
-          dbError instanceof Error ? dbError.message : "Unknown database error",
-        validationErrors:
-          dbError instanceof Error && "meta" in dbError ? dbError.meta : null,
+        message: "Failed to create general application",
+        error: dbError instanceof Error ? dbError.message : "Unknown database error",
       },
       500
     );
@@ -194,28 +188,18 @@ async function createMortgageApplication(
 }
 
 function createErrorResponse(
-  error: string,
-  details: Record<string, unknown>,
+  title: string,
+  error: { message: string; [key: string]: unknown },
   status: number
 ) {
-  return NextResponse.json({ error, details }, { status });
+  return NextResponse.json(error, { status });
 }
 
 function handleError(error: unknown) {
-  console.error("Mortgage application error:", error);
-
-  if (error instanceof NextResponse) {
-    return error;
-  }
-
-  return NextResponse.json(
-    {
-      error: "Internal server error",
-      details: {
-        message: "An unexpected error occurred",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-    },
-    { status: 500 }
+  console.error("Error:", error);
+  return createErrorResponse(
+    "Internal Server Error",
+    { message: "An unexpected error occurred" },
+    500
   );
 }
