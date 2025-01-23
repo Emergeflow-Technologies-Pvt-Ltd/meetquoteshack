@@ -15,14 +15,14 @@ export function EducationStep({ control }: EducationStepProps) {
     <div className="space-y-6">
       <FormField
         control={control}
-        name="educationLevel"
+        name="generalEducationLevel"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Education Level</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
-                defaultValue={field.value}
+                defaultValue={field.value as string}
                 className="flex flex-col space-y-2"
               >
                 {Object.entries(EducationLevel).map(([value]) => (
@@ -42,7 +42,7 @@ export function EducationStep({ control }: EducationStepProps) {
 
       <FormField
         control={control}
-        name="fieldOfStudy"
+        name="generalFieldOfStudy"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Field of Study</FormLabel>
