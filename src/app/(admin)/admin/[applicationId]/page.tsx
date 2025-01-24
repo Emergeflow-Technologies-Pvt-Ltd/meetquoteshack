@@ -422,9 +422,9 @@ export default function ApplicationPage({ params }: Props) {
                 {isLoading ? "Processing..." : "Reject"}
               </Button>
               <Button
-                onClick={() => handleStatusUpdate(LoanStatus.ACCEPTED)}
+                onClick={() => handleStatusUpdate(LoanStatus.PROGRESSING)}
                 disabled={
-                  isLoading || application.status === LoanStatus.ACCEPTED
+                  isLoading || application.status === LoanStatus.PROGRESSING
                 }
                 className="bg-green-600 hover:bg-green-700 text-white"
               >

@@ -189,8 +189,8 @@ enum LoanStatus {
   PROCESSING  @map("processing") // admin processing the application
   REJECTED    @map("rejected") // admin rejected the application
   PROGRESSING @map("progressing") // admin accepted the application, and it's on loan pool
-  ACCEPTED    @map("accepted") // loanee accepted the application
-  ARCHIVED    @map("archived") // loanee has processed the application, and it's archived
+  ACCEPTED    @map("accepted") // lender accepted the application
+  ARCHIVED    @map("archived") // lender has processed the application, and it's archived
 }
 
 enum DocumentType {
