@@ -8,6 +8,8 @@ import { Toaster } from "@/components/ui/toaster";
 import Providers from "./providers";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"] });
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -47,6 +49,8 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
             {children}
           </ThemeProvider>
           <Toaster />
+          <Analytics />
+          <SpeedInsights />
         </Providers>
       </body>
     </html>
