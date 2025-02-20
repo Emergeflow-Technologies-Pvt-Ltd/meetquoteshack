@@ -20,7 +20,6 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/become-lender",
     "/profile", 
     "/admin/:path*",
     "/applications/:path*",
