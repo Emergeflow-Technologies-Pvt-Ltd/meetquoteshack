@@ -47,15 +47,15 @@ export default function ChooseUs() {
   const cards: CardProps[] = [
     {
       Icon: CheckCheck,
-      title: "Easy Loan Approvals",
+      title: "Easy Application",
       description:
-        "Our streamlined process ensures quick and hassle-free loan approvals, making it easier for you to get the funds you need without unnecessary delays. Apply with confidence and receive your decision in record time.",
+        "Our streamlined process ensures easy application process and quick loan processing. Also giving you the option to choose and apply different types of loans and mortgages. Making it easier for you to get funds you need without unnecessary delays. Apply with confidence and receive your decision in record time.",
     },
     {
       Icon: TrendingDown,
-      title: "Low Interest Rate",
+      title: "Best Interest Rates",
       description:
-        "We offer some of the most competitive interest rates in the market. Our commitment to affordability means you can achieve your financial goals without the burden of high interest costs, keeping your repayments manageable.",
+        "Applying through QuoteShack can help you get the best rates in the market. Our commitment to affordability means you can achieve your financial goals without the burden of high interest costs, keeping your repayments manageable.",
     },
     {
       Icon: Lock,

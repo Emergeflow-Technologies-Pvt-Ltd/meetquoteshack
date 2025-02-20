@@ -7,19 +7,19 @@ import React from "react";
 const benefits = [
   {
     imgSrc: "https://cdn-icons-png.freepik.com/256/17001/17001578.png",
-    title: "Quick and easy application",
+    title: "Easy and Quick Application",
     description:
-      "Our application process is simple and can be completed in minutes.",
+      "Our application is very simple and can competed within few minutes.",
   },
   {
     imgSrc: "https://cdn-icons-png.freepik.com/256/12473/12473067.png",
-    title: "Competitive rates",
-    description: "We offer competitive rates and terms for personal loans.",
+    title: "Get the best rates",
+    description: "Our system helps you to find the best loan rate based on your financial behavior.",
   },
   {
     imgSrc: "https://cdn-icons-png.freepik.com/256/17045/17045915.png",
-    title: "No hidden fees",
-    description: "We don’t charge any prepayment penalties or hidden fees.",
+    title: "Track your application status",
+    description: "We help you track every stage of loan processing from application till approval.",
   },
 ];
 
