@@ -18,6 +18,8 @@ model User {
   accounts      Account[]
   role          UserRole      @default(LOANEE)
   applications  Application[]
+  password      String?
+  lender        Lender?
 }
 
 model Account {
@@ -50,13 +52,16 @@ model Session {
 }
 
 model Lender {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   name       String
   business   String
   phone      String
   investment String
   email      String
   province   String
+  userId     String? @unique
+  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  approved   Boolean @default(false)
 }
 
 model Application {

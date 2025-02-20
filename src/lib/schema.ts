@@ -10,6 +10,8 @@ export const BecomeLenderSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   province: z.string().min(1, { message: "Province is required" }),
   investment: z.string().min(1, { message: "Investment amount is required" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
+  confirmPassword: z.string().min(8, { message: "Confirm password must be at least 8 characters long" }),
 });
 
 export type BecomeLenderProps = z.infer<typeof BecomeLenderSchema>;

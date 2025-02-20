@@ -36,6 +36,8 @@ export default function RegisterAsLender() {
       email: "",
       province: "",
       investment: "",
+      password: "",
+      confirmPassword: "",
     }
   });
 
@@ -47,6 +49,15 @@ export default function RegisterAsLender() {
   } = form;
 
   const onSubmit: SubmitHandler<BecomeLenderProps> = async (data) => {
+    if (data.password !== data.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     axios.post("/api/lender/register", data)
       .then((res) => {
         toast({
@@ -58,7 +69,7 @@ export default function RegisterAsLender() {
       .catch((error) => {
         toast({
           title: "Error",
-          description: "Something went wrong. Please try again.",
+          description: error.response.data,
           variant: "destructive",
         });
         console.error(error);
@@ -195,6 +206,35 @@ export default function RegisterAsLender() {
                     </FormItem>
                   )}
                   name="investment"
+                  control={control}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Enter your password" {...field} />
+                      </FormControl>
+                      <FormMessage>{errors.password?.message}</FormMessage>
+                    </FormItem>
+                  )}
+                  name="password"
+                  control={control}
+                />
+                <FormField
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Confirm your password" {...field} />
+                      </FormControl>
+                      <FormMessage>{errors.confirmPassword?.message}</FormMessage>
+                    </FormItem>
+                  )}
+                  name="confirmPassword"
                   control={control}
                 />
               </div>
