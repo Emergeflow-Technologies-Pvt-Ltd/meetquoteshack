@@ -131,7 +131,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   )}
                   {userRole === UserRole.LENDER && (
                     <DropdownMenuItem asChild>
-                      <Link href="/lender">Lender Dashboard</Link>
+                      <Link href="/lender/dashboard">Lender Dashboard</Link>
                     </DropdownMenuItem>
                   )}
                   {userRole === UserRole.ADMIN && (

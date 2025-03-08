@@ -8,6 +8,11 @@ export default withAuth(
         return Response.redirect(new URL('/', req.nextUrl));
       }
     }
+    if(req.nextUrl.pathname.startsWith('/lender')){
+      if(req.nextauth.token?.role !== UserRole.LENDER){
+        return Response.redirect(new URL('/', req.nextUrl));
+      }
+    }
   },
   {
     callbacks: {
@@ -25,5 +30,7 @@ export const config = {
     "/applications/:path*",
     "/apply/mortgage",
     "/apply/general", 
+    "/lender/dashboard",
+    "/lender/applications",
   ],
 };
