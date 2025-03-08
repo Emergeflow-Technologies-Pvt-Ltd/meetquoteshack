@@ -3,7 +3,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
   Form,
@@ -28,6 +28,14 @@ type LenderLoginProps = z.infer<typeof LenderLoginSchema>;
 
 export default function LenderLogin() {
   const router = useRouter();
+  const { status } = useSession();
+  
+  React.useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/lender/dashboard");
+    }
+  }, [status, router]);
+
   const form = useForm<LenderLoginProps>({
     resolver: zodResolver(LenderLoginSchema),
     defaultValues: {
