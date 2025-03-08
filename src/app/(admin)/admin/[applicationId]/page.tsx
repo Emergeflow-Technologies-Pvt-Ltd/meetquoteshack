@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { notFound } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { use } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,8 @@ import {
 import axios from "axios";
 import { getStatusColors } from "@/lib/utils";
 import { Eye, Trash2 } from "lucide-react";
+import DocumentReview from "@/components/admin/DocumentReview";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   params: Promise<{
@@ -47,43 +49,45 @@ export default function ApplicationPage({ params }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
 
-      axios
-        .get(`/api/applications/${applicationId}`)
-        .then(({ data: app }) => {
-          setApplication(app);
+    axios
+      .get(`/api/applications/${applicationId}`)
+      .then(({ data: app }) => {
+        setApplication(app);
 
-          if (app.documents?.length > 0) {
-            const urlMap = new Map<string, string>();
-            Promise.all(
-              app.documents.map(async (doc: Document) => {
-                if (doc.fileKey) {
-                  return axios
-                    .get(`/api/documents/${doc.id}`)
-                    .then(({ data }) => {
-                      urlMap.set(doc.id, data.url);
-                    });
-                }
-              })
-            );
-          }
-        })
-        .catch((error) => {
-          if (error.response?.status === 404) {
-            notFound();
-          }
-          console.error("Failed to fetch application:", error);
-        })
-        .finally(() => {
-          setIsLoading(false);
+        if (app.documents?.length > 0) {
+          const urlMap = new Map<string, string>();
+          Promise.all(
+            app.documents.map(async (doc: Document) => {
+              if (doc.fileKey) {
+                return axios
+                  .get(`/api/documents/${doc.id}`)
+                  .then(({ data }) => {
+                    urlMap.set(doc.id, data.url);
+                  });
+              }
+            })
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching application:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch application data",
+          variant: "destructive",
         });
-    }
-
-    fetchData();
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [applicationId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [applicationId, fetchData]);
 
   const handleAddDocument = async () => {
     if (!selectedDocTypes.length || !application) return;
@@ -403,6 +407,11 @@ export default function ApplicationPage({ params }: Props) {
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
+                        <DocumentReview 
+                          document={doc} 
+                          applicationId={application.id} 
+                          onStatusChange={fetchData} 
+                        />
                       </div>
                     );
                   })}
