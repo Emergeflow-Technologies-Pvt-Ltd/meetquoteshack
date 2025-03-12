@@ -12,8 +12,8 @@ export const routeList: RouteProps[] = [
     href: "/lender",
     label: "For Lenders",
   },
-  {
-    href: "/about",
-    label: "About",
-  },
+  // {
+  //   href: "/about",
+  //   label: "About",
+  // },
 ];

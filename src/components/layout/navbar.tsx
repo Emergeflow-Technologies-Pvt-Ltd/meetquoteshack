@@ -72,6 +72,70 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                         <Link href={href}>{label}</Link>
                       </Button>
                     ))}
+                    
+                    {session ? (
+                      <>
+                        {userRole === UserRole.LOANEE && (
+                          <Button
+                            onClick={() => setIsOpen(false)}
+                            asChild
+                            variant="ghost"
+                            className="justify-start text-base"
+                          >
+                            <Link href="/applications">My Applications</Link>
+                          </Button>
+                        )}
+                        {userRole === UserRole.LENDER && (
+                          <Button
+                            onClick={() => setIsOpen(false)}
+                            asChild
+                            variant="ghost"
+                            className="justify-start text-base"
+                          >
+                            <Link href="/lender/dashboard">Lender Dashboard</Link>
+                          </Button>
+                        )}
+                        {userRole === UserRole.ADMIN && (
+                          <Button
+                            onClick={() => setIsOpen(false)}
+                            asChild
+                            variant="ghost"
+                            className="justify-start text-base"
+                          >
+                            <Link href="/admin">Admin Dashboard</Link>
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => setIsOpen(false)}
+                          asChild
+                          variant="ghost"
+                          className="justify-start text-base"
+                        >
+                          <Link href="/profile">Profile</Link>
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            signOut();
+                            setIsOpen(false);
+                          }}
+                          variant="ghost"
+                          className="justify-start text-base"
+                        >
+                          Log out
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          signIn('google');
+                          setIsOpen(false);
+                        }}
+                        variant="default"
+                        className="justify-start text-base mt-2"
+                      >
+                        Login
+                      </Button>
+                    )}
                   </div>
                 </div>
 
