@@ -1,6 +1,6 @@
 import { Inter, Bricolage_Grotesque } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
-import { ThemeProvider } from "@/components/layout/theme-provider";
+// import { ThemeProvider } from "@/components/layout/theme-provider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 import { Metadata } from "next";
@@ -33,21 +33,21 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background",
+          "min-h-screen bg-background light",
           inter.className,
           bricolageGrotesque.variable
         )}
       >
         <Providers>
-          <ThemeProvider
+          {/* <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-          >
+          > */}
             <Navbar session={session} />
             {children}
-          </ThemeProvider>
+          {/* </ThemeProvider> */}
           <Toaster />
           <Analytics />
           <SpeedInsights />

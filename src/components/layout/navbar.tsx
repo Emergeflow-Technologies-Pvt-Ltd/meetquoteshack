@@ -21,7 +21,7 @@ import {
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { ToggleTheme } from "./toggle-theme";
+// import { ToggleTheme } from "./toggle-theme";
 import Logo from "./logo";
 import { routeList } from "@/data/navbar";
 import { Session } from "next-auth";
@@ -77,7 +77,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
                 <SheetFooter className="flex-col sm:flex-col justify-start items-start">
                   <Separator className="mb-2" />
-                  <ToggleTheme />
+                  {/* <ToggleTheme /> */}
                 </SheetFooter>
               </SheetContent>
             </Sheet>
@@ -103,7 +103,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
           </NavigationMenu>
 
           <div className="hidden lg:flex items-center gap-2">
-            <ToggleTheme />
+            {/* <ToggleTheme /> */}
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
