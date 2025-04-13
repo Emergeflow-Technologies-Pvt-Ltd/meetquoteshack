@@ -52,19 +52,19 @@ export default function Contact() {
           Icon={Mail as React.ComponentType<unknown>}
           title="Email"
           content="Our friendly team is here to help."
-          email="quoteshack@gmail.com"
+          email="admin@meetquoteshack.com"
         />
         <ContactCard
           Icon={MapPin as React.ComponentType<unknown>}
           title="Office"
           content="Come say hello at our office HQ."
-          email="100 Smith Street Collingwood VIC 3066 AU"
+          email="777 Hornby St Suite 600 Vancouver BC V6Z 1S4"
         />
         <ContactCard
           Icon={PhoneOutgoing as React.ComponentType<unknown>}
           title="Phone"
-          content="Mon-Fri from 8am to 5pm."
-          email="+1 (555) 000-0000"
+          content="Coming soon - Toll-free number will be available in a few months."
+          email="TBD"
         />
       </div>
     </Section>

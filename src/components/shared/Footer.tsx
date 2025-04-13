@@ -16,41 +16,41 @@ const aboutUsLinks = [
     label: "Privacy Policy",
   },
 ];
-const loanLinks = [
-  {
-    href: "/",
-    label: "Instant loans",
-  },
-  {
-    href: "/",
-    label: "Payday loans",
-  },
-  {
-    href: "/",
-    label: "E-transfer loans",
-  },
-  {
-    href: "/",
-    label: "Bad credit loans",
-  },
-  {
-    href: "/",
-    label: "Government benefit loans",
-  },
-];
+// const loanLinks = [
+//   {
+//     href: "/",
+//     label: "Instant loans",
+//   },
+//   {
+//     href: "/",
+//     label: "Payday loans",
+//   },
+//   {
+//     href: "/",
+//     label: "E-transfer loans",
+//   },
+//   {
+//     href: "/",
+//     label: "Bad credit loans",
+//   },
+//   {
+//     href: "/",
+//     label: "Government benefit loans",
+//   },
+// ];
 const provinceLinks = [
-  {
-    href: "/",
-    label: "Nova Scotia",
-  },
+  // {
+  //   href: "/",
+  //   label: "Nova Scotia",
+  // },
   {
     href: "/",
     label: "Ontario",
   },
-  {
-    href: "/",
-    label: "Manitoba",
-  },
+  // {
+  //   href: "/",
+  //   label: "Manitoba",
+  // },
   {
     href: "/",
     label: "British Coloumbia",
@@ -62,26 +62,30 @@ const provinceLinks = [
 ];
 const socialLinks = [
   {
-    href: "/",
-    label: "Facebook",
+    href: "https://x.com/dhanrhak",
+    label: "X",
+    target: "_blank", 
   },
   {
-    href: "/",
+    href: "https://www.linkedin.com/company/35930667/admin/dashboard/",
     label: "LinkedIn",
+    target: "_blank",
   },
   {
-    href: "/",
-    label: "Twitter",
+    href: "https://www.facebook.com/MeetQuoteShack",
+    label: "Facebook",
+    target: "_blank",
   },
 ];
 
-const Section = ({ title, items }: { title: string; items: { href: string; label: string }[] }) => (
+const Section = ({ title, items }: { title: string; items: { href: string; label: string, target?: string }[] }) => (
   <div className="mb-4 md:mb-0">
     <p className="font-bold mb-2 text-xl">{title}</p>
     {items.map((item, i) => (
       <Link
         key={i}
         href={item.href}
+        target={item.target}
         className="flex text-sm font-normal my-2 md:my-3 hover:underline underline-offset-4 transition duration-300 ease-in-out"
       >
         {item.label}
@@ -96,7 +100,7 @@ function Footer() {
         <Container>
         <div className="flex flex-col md:flex-row justify-between">
           <Section title="About us" items={aboutUsLinks} />
-          <Section title="Loans" items={loanLinks} />
+          {/* <Section title="Loans" items={loanLinks} /> */}
           <Section title="Provinces" items={provinceLinks} />
           <Section title="Social" items={socialLinks} />
         </div>
