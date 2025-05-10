@@ -1,6 +1,5 @@
 "use client";
 import Section from "@/components/shared/section";
-import HowBenefit from "./HowBenefit";
 import Faq from "@/components/shared/Faq";
 import faqData from "@/data/faq";
 import Link from "next/link";
@@ -28,24 +27,18 @@ export default function Lenders() {
           className="text-center max-w-5xl mx-auto space-y-6 px-4"
         >
           <p className="inline-block font-semibold text-sm md:text-base bg-violet-100 text-violet-700 px-4 py-1.5 rounded-full">
-            For Lender Applicants
+            FOR LENDERS
           </p>
 
           <div className="mt-5">
             <h1 className="qs-heading block font-bold opacity-90 text-2xl md:text-3xl lg:text-4xl bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent">
-              <span>Quoteshack</span> is a groundbreaking loan platform designed
-              to help lenders or investors secure an efficient lending system
-              using Artificial intelligence, Machine learning &amp; Blockchain.
+              Lend Smarter, Not Harder With Our Lender Platform
             </h1>
           </div>
 
           <p className="opacity-70 md:text-lg lg:text-xl max-w-4xl mx-auto leading-relaxed">
-            QUOTESHACK is an innovative B2B fintech startup committed to
-            transforming the traditional lending system. Bringing Artificial
-            intelligence, Machine learning, and Blockchain to tackle the
-            challenges, then minimize credit risk, and processing within
-            minutes. Lenders can use it to generate leads, create loan
-            applications, collect documents and analyze loan risks.
+            QuoteShack allows digital lenders to open a smarter, more profitable lending pipeline by
+            matching them to pre-qualified borrowers that align with their lending criteria.
           </p>
 
           <div className="pt-6 flex flex-col sm:flex-row gap-5 justify-center">
@@ -53,7 +46,7 @@ export default function Lenders() {
               href="/lender/register"
               className="group flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-violet-200 transition duration-300 ease-in-out"
             >
-              Become a Lender
+              Get Started, It&apos;s Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
@@ -66,8 +59,119 @@ export default function Lenders() {
         </motion.div>
       </Section>
 
-      {/* Benefits Section */}
-      <HowBenefit />
+      {/* Main Value Proposition */}
+      <Section className="py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="max-w-6xl mx-auto text-center px-4"
+        >
+          <h2 className="qs-heading text-3xl lg:text-4xl font-bold mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent">
+            Accelerate Decision-Making & Skyrocket Your ROI
+          </h2>
+          <p className="text-gray-600 md:text-lg max-w-4xl mx-auto mb-12">
+            Are manual reviews, poor-quality leads and complicated systems choking your landing
+            pipeline? Our lender platform delivers pre-qualified, borrower-ready applicants, automates the
+            heavy lifting, and speeds up decision-making — all while protecting your bottom line. Whether
+            you are a financial institution, credit union, fintech lender, auto lender or personal loan
+            provider, our lender AI tool was built for you.
+          </p>
+        </motion.div>
+      </Section>
+
+      {/* Benefits Grid */}
+      <Section className="py-16 bg-gradient-to-b from-white to-violet-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-xl shadow-sm"
+            >
+              <h3 className="text-xl font-semibold mb-4 text-violet-700">Plug Into a Borrower-Ready Pipeline</h3>
+              <p className="text-gray-600">
+                We connect you with qualified applicants who are not only ready to borrow but also fit your
+                credit parameters.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-xl shadow-sm"
+            >
+              <h3 className="text-xl font-semibold mb-4 text-violet-700">Streamline Risk And Decision-Making</h3>
+              <p className="text-gray-600">
+                Our lender AI tool pre-analyzes risk profiles so you can approve faster without compromising
+                due diligence.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-xl shadow-sm"
+            >
+              <h3 className="text-xl font-semibold mb-4 text-violet-700">Maximize Your Lending ROI</h3>
+              <p className="text-gray-600">
+                Expand your personal, auto, and home loan offerings and scale your lending capacity without
+                growing your back office.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-xl shadow-sm"
+            >
+              <h3 className="text-xl font-semibold mb-4 text-violet-700">Stay Secure & In Control</h3>
+              <p className="text-gray-600">
+                Whether you&apos;re a digital lender or investor looking for leads, you get to set the lending criteria,
+                and we ensure every applicant we deliver matches your specific requirements. With our secure
+                lender platform, all data is encrypted end-to-end, giving you full oversight and control while
+                protecting sensitive borrower and business information.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Final CTA Section */}
+      <Section className="py-16 bg-gradient-to-b from-violet-50 to-white">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="max-w-6xl mx-auto text-center px-4"
+        >
+          <h2 className="qs-heading text-3xl lg:text-4xl font-bold mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent">
+            We Make It Easy To Stay Ahead
+          </h2>
+          <p className="text-gray-600 md:text-lg max-w-4xl mx-auto mb-12">
+            Track loan performance, communicate with applicants, and manage every stage from a
+            centralized dashboard. Our lender AI platform does the heavy lifting so you can focus on scaling
+            your business and maximizing returns.
+          </p>
+          <Link
+            href="/lender/register"
+            className="group inline-flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-violet-200 transition duration-300 ease-in-out"
+          >
+            Sign Up Now
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </motion.div>
+      </Section>
 
       {/* FAQ Section */}
       <Section className="py-16 bg-gradient-to-b from-white to-violet-50">
