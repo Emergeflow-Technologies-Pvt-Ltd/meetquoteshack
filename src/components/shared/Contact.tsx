@@ -63,8 +63,8 @@ export default function Contact() {
         <ContactCard
           Icon={PhoneOutgoing as React.ComponentType<unknown>}
           title="Phone"
-          content="Coming soon - Toll-free number will be available in a few months."
-          email="TBD"
+          content="Call us directly at our toll-free number."
+          email="(639) 309-6004"
         />
       </div>
     </Section>

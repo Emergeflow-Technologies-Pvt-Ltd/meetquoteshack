@@ -1,6 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { Calculator, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function BorrowCalculator() {
   return (
@@ -13,38 +16,60 @@ export default function BorrowCalculator() {
       </div>
       <div className="container mx-auto px-4 relative">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-12 shadow-2xl relative">
+          <Card className="bg-white/90 backdrop-blur-lg rounded-3xl p-12 shadow-2xl relative">
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl rotate-12"></div>
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl -rotate-12"></div>
             <div className="relative">
               <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
                 <div className="text-left flex-1">
+                  <Badge variant="secondary" className="mb-6">
+                    <Calculator className="w-4 h-4 mr-2" />
+                    Loan Calculator
+                  </Badge>
                   <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    How Much Can You Borrow?
+                    Calculate Your Loan
                   </h2>
                   <p className="text-xl text-gray-600 leading-relaxed">
-                    Get pre-approved to discover how much you can borrow, interest rates, monthly payments and
-                    more.
+                    Get instant estimates for your loan payments, interest rates, and total costs. 
+                    Make informed decisions about your borrowing options.
                   </p>
                 </div>
-                <div className="flex-shrink-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
-                  <svg className="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
+                <div className="flex-shrink-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+                  <Calculator className="w-16 h-16 text-blue-600" />
                 </div>
               </div>
-              <Link
-                href="/calculator"
-                className="inline-flex items-center px-10 py-5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
-              >
-                Get Started
-                <svg className="w-6 h-6 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Loan Amount</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-blue-600">$5K - $50K</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Interest Rates</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-purple-600">5.99% APR</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Terms</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-pink-600">1-5 Years</p>
+                  </CardContent>
+                </Card>
+              </div>
+              <Button disabled className="w-full md:w-auto">
+                Calculate Your Rate (Coming Soon)
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
       <style jsx>{`
@@ -66,4 +91,4 @@ export default function BorrowCalculator() {
       `}</style>
     </section>
   );
-} 
+}

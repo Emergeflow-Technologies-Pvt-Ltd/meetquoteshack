@@ -6,16 +6,15 @@ import Faq from "@/components/shared/Faq";
 import LoanTypes from "./LoanTypes";
 import { Clock, DollarSign, Shield, ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Prequalify In Minutes & Find the Best Loan Options | QuoteShack",
-  description: "Pre-qualify without impacting your credit score, compare offers, and get funded fast with QuoteShack, the #1 loan matching platform.",
-};
+import Head from "next/head";
 
 export default function Loanee() {
   return (
     <div className="py-10 xl:py-20">
+      <Head>
+        <title>Prequalify In Minutes & Find the Best Loan Options | QuoteShack</title>
+        <meta name="description" content="Pre-qualify without impacting your credit score, compare offers, and get funded fast with QuoteShack, the #1 loan matching platform." />
+      </Head>
       <Section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-violet-50 opacity-50" />
         <div className="relative">

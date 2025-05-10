@@ -1,85 +1,108 @@
 import Link from "next/link";
+import { ArrowRight, BarChart2, ShieldCheck, Users } from "lucide-react";
 
 export default function Lenders() {
+  const benefits = [
+    {
+      icon: Users,
+      title: "Quality Borrowers",
+      description: "Access pre-screened borrowers with verified income and employment"
+    },
+    {
+      icon: ShieldCheck,
+      title: "Reduced Risk",
+      description: "Advanced fraud detection and risk assessment tools"
+    },
+    {
+      icon: BarChart2,
+      title: "Higher ROI",
+      description: "Optimize your lending portfolio with data-driven matches"
+    }
+  ];
+
   return (
     <section className="py-20 bg-gradient-to-bl from-purple-50 to-pink-50">
       <div className="container mx-auto px-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="hidden md:block">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-pink-400 rounded-2xl opacity-20 blur-xl"></div>
-                <div className="relative bg-white p-8 rounded-2xl shadow-xl">
-                  <div className="flex flex-col gap-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                      </div>
-                      <div className="h-4 bg-gray-200 rounded flex-1"></div>
+            <div className="relative order-2 md:order-1">
+              <div className="absolute -inset-4 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-3xl blur-xl"></div>
+              <div className="relative bg-white p-8 rounded-2xl shadow-xl">
+                <div className="space-y-8">
+                  <div className="flex items-center justify-between pb-6 border-b">
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">Active Borrowers</p>
+                      <p className="text-3xl font-bold text-purple-600">10,000+</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">Avg. Loan Size</p>
+                      <p className="text-3xl font-bold text-purple-600">$35K</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="h-4 bg-gray-200 rounded flex-1"></div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Approval Rate</span>
+                      <span className="font-semibold text-gray-900">85%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Avg. Credit Score</span>
+                      <span className="font-semibold text-gray-900">720+</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Default Rate</span>
+                      <span className="font-semibold text-gray-900">&lt; 2%</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="text-left md:order-last">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                For Lenders
-              </h2>
-              <h3 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-800">
-                More Leads. More Closes. Less Fraud
-              </h3>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Still making borrowers go through hoops to access your loan services? QuoteShack delivers
-                verified, risk-scored and ready-to-go loan applications, allowing you to approve loans faster and
-                close more deals.
-              </p>
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-purple-600 text-lg">✓</span>
-                  </div>
-                  <span className="text-gray-700">Get Pre-Qualified Leads</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-purple-600 text-lg">✓</span>
-                  </div>
-                  <span className="text-gray-700">Cut Processing Times</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-purple-600 text-lg">✓</span>
-                  </div>
-                  <span className="text-gray-700">Maximize Your Bottom Line</span>
-                </div>
+
+            <div className="text-left space-y-8 order-1 md:order-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-700">
+                <span className="text-sm font-medium">For Lenders</span>
               </div>
-              <Link
-                href="/for-lenders"
-                className="inline-flex items-center px-8 py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                Learn More
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+              
+              <div>
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Grow Your Lending Business
+                </h2>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  Access a steady stream of qualified borrowers and maximize your returns with our 
+                  intelligent matching platform and comprehensive risk assessment tools.
+                </p>
+              </div>
+
+              <div className="grid gap-6">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="flex items-start gap-4 p-4 rounded-xl bg-white/80 backdrop-blur shadow-sm">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <benefit.icon className="w-6 h-6 text-purple-600" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{benefit.title}</h3>
+                      <p className="text-gray-600">{benefit.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-6">
+                <Link
+                  href="/for-lenders"
+                  className="inline-flex items-center px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl group"
+                >
+                  Join as Lender
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/lender"
+                  className="text-purple-600 font-semibold hover:text-purple-700 transition-colors"
+                >
+                  Learn More →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
