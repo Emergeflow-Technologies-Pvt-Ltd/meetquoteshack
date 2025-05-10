@@ -63,19 +63,18 @@ export default function Hero() {
 
             <div className="mt-5">
               <h1 className="qs-heading block font-bold opacity-90 text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-black dark:text-white">
-                Simplify Your Finances by
+                The World&apos;s Smartest Quick
                 <span className="inline-block text-primary px-2">
-                  Applying for a loan
+                  Loan Matching
                 </span>
-                with quoteshack
+                Platform
               </h1>
             </div>
 
             <div className="my-5">
               <p className="max-w-2xl md:text-lg opacity-70 text-gray-700 dark:text-gray-300">
-                At QuoteShack we help you find loans faster and get the best
-                rates by matching with the appropriate lenders based on your
-                credit behavior.
+                QuoteShack matches borrowers with the best quick loan types,
+                lenders and rates based on their financial behaviour.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
@@ -84,7 +83,7 @@ export default function Hero() {
                   className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
                   size="lg"
                 >
-                  Apply for loan
+                 Find A Loan  
                 </Button>
               </Link>
               <Link href="/lender/register">

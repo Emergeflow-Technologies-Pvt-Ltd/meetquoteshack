@@ -7,12 +7,18 @@ import Footer from "@/components/shared/Footer";
 import Hero from "@/components/shared/Hero";
 import Security from "@/components/shared/Security";
 import { ServicesSection } from "@/components/shared/Services";
+import Borrowers from "@/components/shared/Borrowers";
+import Lenders from "@/components/shared/Lenders";
+import BorrowCalculator from "@/components/shared/BorrowCalculator";
 import faq from "@/data/faq";
 
 export default function Home() {
   return (
     <div>
       <Hero />
+      <Borrowers />
+      <Lenders />
+      <BorrowCalculator />
       <ChooseUs />
       <Security />
       <ServicesSection />

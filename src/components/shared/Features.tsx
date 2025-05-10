@@ -1,8 +1,8 @@
 "use client";
 import React, { FC, ElementType } from "react";
-import { CheckCheck, Lock, TrendingDown } from "lucide-react";
+import { Zap, Network, FileText, LayoutDashboard, Bell, HeadphonesIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import Section from "@/components/shared/section";
 
 interface CardProps {
@@ -16,61 +16,86 @@ const InfoCard: FC<CardProps> = ({ Icon, title, description, index = 0 }) => (
   <motion.div
     initial={{
       opacity: 0,
-      x: index % 2 === 0 ? 10 : -50,
-      scale: index % 2 === 0 ? 1 : 1.07,
+      y: 20,
     }}
     whileInView={{
       opacity: 1,
-      x: 0,
-      transition: { duration: 0.8, delay: 0.2 },
+      y: 0,
+      transition: { duration: 0.5, delay: index * 0.1 },
     }}
-    whileTap={{ scale: 0.95 }}
-    whileHover={{ scale: 1.1 }}
+    whileHover={{ y: -5 }}
     viewport={{ once: true }}
   >
-    <Card className="flex flex-col items-center p-8 space-y-4 text-center h-full cursor-pointer shadow-md transition-transform transform hover:scale-105">
-      <CardHeader className="bg-violet-200 text-dark rounded-full ">
-        <Icon className="w-8 h-8" />
-      </CardHeader>
-      <CardContent>
-        <h1 className="qs-heading text-xl md:text-2xl font-semibold dark:text-gray-300 capitalize">
-          {title}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
-      </CardContent>
+    <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 p-6 transition-all duration-300 hover:shadow-xl dark:shadow-none">
+      <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      <div className="relative flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/25">
+            <Icon className="w-6 h-6" />
+          </div>
+          <h3 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+            {title}
+          </h3>
+        </div>
+        
+        <CardContent className="p-0">
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            {description}
+          </p>
+        </CardContent>
+      </div>
     </Card>
   </motion.div>
 );
 
-
 export default function ChooseUs() {
   const cards: CardProps[] = [
     {
-      Icon: CheckCheck,
-      title: "Easy Application",
+      Icon: Zap,
+      title: "Super-Fast Processing",
       description:
-        "Our streamlined process ensures easy application process and quick loan processing. Also giving you the option to choose and apply different types of loans and mortgages. Making it easier for you to get funds you need without unnecessary delays. Apply with confidence and receive your decision in record time.",
+        "Our powerful AI engine eliminates the bottlenecks in application processes, allowing for quicker decision-making for loan companies and faster approvals for borrowers.",
     },
     {
-      Icon: TrendingDown,
-      title: "Best Interest Rates",
+      Icon: Network,
+      title: "A Network That Works For You",
       description:
-        "Applying through QuoteShack can help you get the best rates in the market. Our commitment to affordability means you can achieve your financial goals without the burden of high interest costs, keeping your repayments manageable.",
+        "We've built a massive, growing network of lenders across the United States and Canada to give you access to a wider range of quick loan options for your needs.",
     },
     {
-      Icon: Lock,
-      title: "100% Safe and Secure",
+      Icon: FileText,
+      title: "Frictionless Application Experience",
       description:
-        "Your security is our top priority. We use advanced encryption and secure protocols to protect your personal and financial information, ensuring a completely safe and secure loan experience. Trust us to keep your data confidential and secure at all times.",
+        "No more confusing paperwork or hard credit pulls that hurt your score. At QuoteShack, we keep our application process straightforward.",
+    },
+    {
+      Icon: LayoutDashboard,
+      title: "Everything In One Place",
+      description:
+        "QuoteShack eliminates the need to bounce between platforms by allowing you to apply, track approvals, manage applications and communicate in one place.",
+    },
+    {
+      Icon: Bell,
+      title: "Stay Updated, Every Second",
+      description:
+        "Our real-time updates keep you in the loop with instant notifications on your application status and next steps so you never miss out on what matters.",
+    },
+    {
+      Icon: HeadphonesIcon,
+      title: "World-Class Customer Support",
+      description:
+        "Our dedicated, highly responsive support team is always available around the clock to provide you with the support you need when you need it.",
     },
   ];
 
   return (
     <Section
-      className="bg-white dark:bg-black mt-40 md:py-20"
-      header="Reasons to Choose Us"
+      className="bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-950 py-24"
+      header="Why Choose QuoteShack"
+      subHeader="Experience the future of loan applications with our innovative platform"
     >
-      <div className="grid grid-cols-1 gap-10 mt-8 xl:mt-12 xl:gap-16 md:grid-cols-2 xl:grid-cols-3 items-stretch">
+      <div className="grid grid-cols-1 gap-6 mt-16 md:grid-cols-2 lg:grid-cols-3">
         {cards.map((card, index) => (
           <InfoCard key={index} {...card} index={index} />
         ))}

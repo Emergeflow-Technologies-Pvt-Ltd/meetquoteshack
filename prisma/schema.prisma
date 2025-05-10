@@ -9,17 +9,15 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
   image         String?
-  email         String?       @unique
+  email         String?   @unique
   emailVerified DateTime?
-  sessions      Session[]
+  role          UserRole  @default(LOANEE)
   accounts      Account[]
-  role          UserRole      @default(LOANEE)
-  applications  Application[]
-  password      String?
-  lender        Lender?
+  Loan          Loan[]
+  sessions      Session[]
 }
 
 model Account {
@@ -38,7 +36,6 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId])
 }
 
 model Session {
@@ -47,88 +44,58 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
-model Lender {
-  id         String  @id @default(cuid())
-  name       String
-  business   String
-  phone      String
-  investment String
-  email      String
-  province   String
-  userId     String? @unique
-  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  approved   Boolean @default(false)
+model Investor {
+  id          String  @id
+  name        String
+  business    String
+  phone       String
+  investment  String
+  email       String
+  province    String
+  eligibility Boolean
 }
 
-model Application {
-  id                    String               @id @default(cuid())
-  userId                String
-  type                  ApplicationType      @default(GENERAL)
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
-  status                LoanStatus           @default(PROCESSING)
-  hasBankruptcy         Boolean
-  firstName             String
-  lastName              String
-  currentAddress        String
-  yearsAtCurrentAddress Int
-  housingStatus         HousingStatus
-  housingPayment        Decimal              @db.Decimal(10, 2) // 8 digits before decimal, 2 after
-  dateOfBirth           DateTime
-  maritalStatus         MaritalStatus
-  residencyStatus       ResidencyStatus
-  personalPhone         String
-  personalEmail         String
-  employmentStatus      EmploymentStatus
-  grossIncome           Decimal              @db.Decimal(12, 2) // 10 digits before decimal, 2 after
-  workplaceName         String
-  workplaceAddress      String
-  workplacePhone        String
-  workplaceEmail        String
-  loanAmount            Decimal              @db.Decimal(12, 2) // 10 digits before decimal, 2 after
-  // Fields for general loans
-  generalEducationLevel EducationLevel?
-  generalFieldOfStudy   String?
-  // Fields for mortgage loans
-  mortgageBusinessPhone String?
-  mortgagePurpose       MortgagePurpose?
-  mortgageType          MortgageType?
-  mortgageHousingType   MortgageHousingType?
-  mortgageDownPayment   MortgageDownPayment?
-  // Related models
-  documents             Document[]
-  messages              Message[]
-  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+model Loan {
+  id               String     @id
+  userId           String
+  age              String
+  bankruptcy       String
+  amount           Int
+  purpose          String
+  vehicle          String?
+  name             Json
+  number           String
+  dob              DateTime
+  marriage         String
+  residenceStatus  String
+  address          String
+  housingStatus    String
+  monthlyPayment   String
+  employment       String
+  income           String
+  otherIncome      String
+  childBenefit     String
+  creditScore      String
+  houseExpenditure String
+  companyName      String
+  position         String
+  debt             String
+  sin              String?
+  payDayLoans      String
+  owe              String
+  status           LoanStatus @default(PROCESSING)
+  emailVerified    Boolean    @default(false)
+  tasks            Json[]
+  User             User       @relation(fields: [userId], references: [id])
 }
 
-model Document {
-  id            String         @id @default(cuid())
-  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId String
-  documentType  DocumentType
-  fileUrl       String?
-  fileKey       String?
-  fileType      String?
-  fileName      String?
-  uploadedAt    DateTime       @default(now())
-  status        DocumentStatus @default(PENDING)
-}
-
-model Message {
-  id            String      @id @default(cuid())
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  applicationId String
-  content       String
-  senderId      String
-  senderRole    UserRole
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+model Newsletter {
+  id     String   @id
+  email  String   @unique
+  date   DateTime @default(now())
+  active Boolean  @default(true)
 }
 
 enum UserRole {
@@ -137,104 +104,18 @@ enum UserRole {
   ADMIN  @map("admin")
 }
 
-enum ApplicationType {
-  GENERAL  @map("general")
-  MORTGAGE @map("mortgage")
-}
-
-enum HousingStatus {
-  RENT @map("rent")
-  OWN  @map("own")
-}
-
-enum ResidencyStatus {
-  CITIZEN            @map("citizen")
-  PERMANENT_RESIDENT @map("permanent_resident")
-  WORK_PERMIT        @map("work_permit")
-  STUDENT_VISA       @map("student_visa")
-  OTHER              @map("other")
-}
-
-enum EmploymentStatus {
-  FULL_TIME     @map("full_time")
-  PART_TIME     @map("part_time")
-  CONTRACT      @map("contract")
-  SEASONAL      @map("seasonal")
-  SELF_EMPLOYED @map("self_employed")
-  OTHER         @map("other")
-}
-
-enum MortgagePurpose {
-  BUYING     @map("buying")
-  REPAIR     @map("repair")
-  RENOVATION @map("renovation")
-}
-
-enum MortgageType {
-  REFINE     @map("refine")
-  EQUITY     @map("equity")
-  BRIDGE     @map("bridge")
-  FIRST_TIME @map("first_time")
-}
-
-enum MortgageHousingType {
-  CONDO        @map("condo")
-  APARTMENT    @map("apartment")
-  DUPLEX       @map("duplex")
-  TOWNHOUSE    @map("townhouse")
-  DETACHED     @map("detached")
-  SEMIDETACHED @map("semi_detached")
-  CONTAINER    @map("container")
-  MOBILE       @map("mobile")
-  BUNGALOW     @map("bungalow")
-  OTHER        @map("50")
-}
-
 enum LoanStatus {
-  PROCESSING  @map("processing") // admin processing the application
-  REJECTED    @map("rejected") // admin rejected the application
-  PROGRESSING @map("progressing") // admin accepted the application, and it's on loan pool
-  ACCEPTED    @map("accepted") // lender accepted the application
-  ARCHIVED    @map("archived") // lender has processed the application, and it's archived
+  PROCESSING  @map("processing")
+  REJECTED    @map("rejected")
+  PROGRESSING @map("progressing")
+  ACCEPTED    @map("accepted")
+  ARCHIVED    @map("archived")
+  verified
 }
 
-enum DocumentType {
-  IDENTITY_PROOF    @map("identity_proof")
-  INCOME_PROOF      @map("income_proof")
-  EMPLOYMENT_LETTER @map("employment_letter")
-  TAX_RETURN        @map("tax_return")
-  BANK_STATEMENT    @map("bank_statement")
-  PROPERTY_DOCUMENT @map("property_document")
-  OTHER             @map("other")
-}
-
-enum DocumentStatus {
-  PENDING  @map("pending") // document not uploaded by loanee
-  UPLOADED @map("uploaded") // document uploaded by loanee
-  APPROVED @map("approved") // document approved by admin
-  REJECTED @map("rejected") // document rejected by admin
-}
-
-enum MaritalStatus {
-  SINGLE   @map("single")
-  MARRIED  @map("married")
-  DIVORCED @map("divorced")
-  WIDOWED  @map("widowed")
-  OTHER    @map("other")
-}
-
-enum EducationLevel {
-  HIGH_SCHOOL   @map("high_school")
-  COLLEGE       @map("college")
-  UNIVERSITY    @map("university")
-  POST_GRADUATE @map("post_graduate")
-  OTHER         @map("other")
-}
-
-enum MortgageDownPayment {
-  FIVE    @map("5")
-  TEN     @map("10")
-  FIFTEEN @map("15")
-  TWENTY  @map("20")
-  MORE    @map("more")
+enum TaskStatus {
+  pending
+  completed
+  approved
+  rejected
 }
