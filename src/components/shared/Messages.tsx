@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@prisma/client";
+import { Message, UserRole } from "@prisma/client";
 import { useState, useRef, useEffect } from "react";
 
 interface MessagesProps {
@@ -48,12 +48,12 @@ export function Messages({ messages, applicationId }: MessagesProps) {
           <div
             key={message.id}
             className={`flex ${
-              message.senderRole === "LOANEE" ? "justify-start" : "justify-end"
+              message.senderRole === UserRole.LOANEE ? "justify-start" : "justify-end"
             }`}
           >
             <div
               className={`max-w-[70%] rounded-lg p-3 ${
-                message.senderRole === "LOANEE"
+                message.senderRole === UserRole.LOANEE
                   ? "bg-gray-200"
                   : "bg-blue-500 text-white"
               }`}
