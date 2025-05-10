@@ -22,9 +22,8 @@ interface LayoutProps {
 }
 
 export const metadata: Metadata = {
-  title: "Quoteshack",
-  description:
-    "Quick and Easy Loans. Apply for your loan with ease and get quick approvals. Secure and reliable loan application process.",
+  title: "Intelligent Quick Loan Matching for Borrowers and Lenders | QuoteShack",
+  description: "QuoteShack uses the power of AI to connect borrowers to top-rated lenders and streamline the loan application and approval process.",
 };
 
 const Layout: React.FC<LayoutProps> = async ({ children }) => {

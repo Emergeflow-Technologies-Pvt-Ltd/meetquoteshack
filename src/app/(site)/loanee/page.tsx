@@ -6,6 +6,12 @@ import Faq from "@/components/shared/Faq";
 import LoanTypes from "./LoanTypes";
 import { Clock, DollarSign, Shield, ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Prequalify In Minutes & Find the Best Loan Options | QuoteShack",
+  description: "Pre-qualify without impacting your credit score, compare offers, and get funded fast with QuoteShack, the #1 loan matching platform.",
+};
 
 export default function Loanee() {
   return (

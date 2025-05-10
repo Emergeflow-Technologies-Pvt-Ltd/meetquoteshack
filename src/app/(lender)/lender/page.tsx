@@ -5,6 +5,8 @@ import faqData from "@/data/faq";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Head from "next/head";
+
 
 export default function Lenders() {
   const fadeIn = {
@@ -14,7 +16,10 @@ export default function Lenders() {
 
   return (
     <div className="py-10 xl:py-20">
-      {/* Hero Section */}
+      <Head>
+        <title>Lend Smarter & Grow Your ROI With Our AI Lender Platform | QuoteShack</title>
+        <meta name="description" content="Join QuoteShack's lender network and access prequalified, risk-assessed borrowers that match your lending criteria." />
+      </Head>
       <Section className="relative overflow-hidden">
         {/* Background decorations */}
         <div className="absolute -z-10 w-[500px] h-[500px] rounded-full bg-violet-100/50 blur-3xl top-0 -right-64" />
