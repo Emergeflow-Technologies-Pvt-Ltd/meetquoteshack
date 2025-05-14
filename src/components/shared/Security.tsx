@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Section from "@/components/shared/section";
-import { Fingerprint, ShieldCheck } from "lucide-react";
 
 const images = [
   {
@@ -57,28 +56,6 @@ function Security() {
             audits, our team is dedicated to safeguarding against potential
             threats and vulnerabilities.
           </p>
-
-          <div className="flex flex-col gap-4 mt-4 opacity-80 md:text-lg">
-            <div className="flex items-center gap-2">
-              <div className="p-3 rounded-lg bg-primary-100 hover:bg-primary-200 transition duration-300">
-                <Fingerprint className="text-primary-500" size={20} />
-              </div>
-              <div>
-                <h4>Pay Online Securely With Instant Notifications</h4>
-                <p></p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="p-3 rounded-lg bg-primary-100 hover:bg-primary-200 transition duration-300">
-                <ShieldCheck className="text-primary-500" size={20} />
-              </div>
-              <div>
-                <h4>Convert Your Money In Seconds</h4>
-                <p></p>
-              </div>
-            </div>
-          </div>
         </section>
       </Section>
     </div>
