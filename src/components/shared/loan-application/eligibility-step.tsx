@@ -25,10 +25,14 @@ export function EligibilityStep({ form }: EligibilityStepProps) {
           <FormItem className="flex flex-col md:flex-row items-center justify-between rounded-lg border p-4 md:p-6 lg:p-8">
             <div className="space-y-0.5 md:space-y-1 lg:space-y-2 w-full md:w-2/3 lg:w-3/4">
               <FormLabel className="text-base md:text-lg lg:text-xl">
-                Age and Privacy Policy Agreement
+                Terms, Age and Privacy Agreement
               </FormLabel>
               <FormDescription>
-                Confirm you are 19+ and agree to our privacy policy
+                By clicking this button, you are accepting the terms and
+                conditions, as well as the privacy policy, of MeetQuoteShack
+                Inc. This also allows us to obtain your credit information from
+                credit reporting agencies (credit bureaus) and confirms that you
+                are 19 years of age or older.
               </FormDescription>
               <FormMessage />
             </div>
