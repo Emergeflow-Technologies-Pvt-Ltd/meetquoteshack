@@ -1,23 +1,24 @@
 import Link from "next/link";
-import { ArrowRight, BarChart2, ShieldCheck, Users } from "lucide-react";
+import { BarChart2, ShieldCheck, Users } from "lucide-react";
 
 export default function Lenders() {
   const benefits = [
     {
       icon: Users,
       title: "Quality Borrowers",
-      description: "Access pre-screened borrowers with verified income and employment"
+      description:
+        "Access pre-screened borrowers with verified income and employment",
     },
     {
       icon: ShieldCheck,
       title: "Reduced Risk",
-      description: "Advanced fraud detection and risk assessment tools"
+      description: "Advanced fraud detection and risk assessment tools",
     },
     {
       icon: BarChart2,
       title: "Higher ROI",
-      description: "Optimize your lending portfolio with data-driven matches"
-    }
+      description: "Optimize your lending portfolio with data-driven matches",
+    },
   ];
 
   return (
@@ -31,11 +32,17 @@ export default function Lenders() {
                 <div className="space-y-8">
                   <div className="flex items-center justify-between pb-6 border-b">
                     <div>
-                      <p className="text-lg font-semibold text-gray-900">Active Borrowers</p>
-                      <p className="text-3xl font-bold text-purple-600">10,000+</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        Active Borrowers
+                      </p>
+                      <p className="text-3xl font-bold text-purple-600">
+                        10,000+
+                      </p>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-gray-900">Avg. Loan Size</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        Avg. Loan Size
+                      </p>
                       <p className="text-3xl font-bold text-purple-600">$35K</p>
                     </div>
                   </div>
@@ -50,7 +57,9 @@ export default function Lenders() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Default Rate</span>
-                      <span className="font-semibold text-gray-900">&lt; 2%</span>
+                      <span className="font-semibold text-gray-900">
+                        &lt; 2%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -61,27 +70,33 @@ export default function Lenders() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-700">
                 <span className="text-sm font-medium">For Lenders</span>
               </div>
-              
+
               <div>
                 <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Grow Your Lending Business
                 </h2>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Access a steady stream of qualified borrowers and maximize your returns with our 
-                  intelligent matching platform and comprehensive risk assessment tools.
+                  Access a steady stream of qualified borrowers and maximize
+                  your returns with our intelligent matching platform and
+                  comprehensive risk assessment tools.
                 </p>
               </div>
 
               <div className="grid gap-6">
                 {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start gap-4 p-4 rounded-xl bg-white/80 backdrop-blur shadow-sm">
+                  <div
+                    key={index}
+                    className="flex items-start gap-4 p-4 rounded-xl bg-white/80 backdrop-blur shadow-sm"
+                  >
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
                         <benefit.icon className="w-6 h-6 text-purple-600" />
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{benefit.title}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {benefit.title}
+                      </h3>
                       <p className="text-gray-600">{benefit.description}</p>
                     </div>
                   </div>
@@ -89,13 +104,6 @@ export default function Lenders() {
               </div>
 
               <div className="flex items-center gap-6">
-                <Link
-                  href="/for-lenders"
-                  className="inline-flex items-center px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl group"
-                >
-                  Join as Lender
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
                 <Link
                   href="/lender"
                   className="text-purple-600 font-semibold hover:text-purple-700 transition-colors"
@@ -109,4 +117,4 @@ export default function Lenders() {
       </div>
     </section>
   );
-} 
+}

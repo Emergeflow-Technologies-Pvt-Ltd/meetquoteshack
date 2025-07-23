@@ -263,7 +263,13 @@ export default function RegisterAsLender() {
                   />
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-6 space-y-4">
+                  <p className="text-sm text-gray-600 bg-gray-100 border border-gray-300 p-3 rounded-md">
+                    <strong className="text-purple-700">Important:</strong>{" "}
+                    Please make sure to remember the <strong>email</strong> and{" "}
+                    <strong>password</strong> you just entered. You’ll need them
+                    to log in.
+                  </p>
                   <Button
                     type="submit"
                     disabled={isSubmitting}

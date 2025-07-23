@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -25,14 +25,31 @@ import { cn } from "@/lib/utils";
 import Logo from "./logo";
 import { routeList } from "@/data/navbar";
 import { Session } from "next-auth";
-import { signIn, signOut } from "next-auth/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { signOut } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { UserRole } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const userRole = session?.user?.role;
+  const router = useRouter();
 
   return (
     <header className="sticky top-2 lg:top-5 z-40">
@@ -72,7 +89,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                         <Link href={href}>{label}</Link>
                       </Button>
                     ))}
-                    
+
                     {session ? (
                       <>
                         {userRole === UserRole.LOANEE && (
@@ -92,7 +109,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             variant="ghost"
                             className="justify-start text-base"
                           >
-                            <Link href="/lender/dashboard">Lender Dashboard</Link>
+                            <Link href="/lender/dashboard">
+                              Lender Dashboard
+                            </Link>
                           </Button>
                         )}
                         {userRole === UserRole.ADMIN && (
@@ -115,7 +134,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                         </Button>
                         <Button
                           onClick={() => {
-                            signOut();
+                            signOut({ callbackUrl: "/" });
                             setIsOpen(false);
                           }}
                           variant="ghost"
@@ -125,16 +144,57 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                         </Button>
                       </>
                     ) : (
-                      <Button
-                        onClick={() => {
-                          signIn('google');
-                          setIsOpen(false);
-                        }}
-                        variant="default"
-                        className="justify-start text-base mt-2"
-                      >
-                        Login
-                      </Button>
+                      <>
+                        <Dialog open={open} onOpenChange={setOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="default"
+                              className="justify-start text-base mt-2"
+                              onClick={() => setOpen(true)}
+                            >
+                              Login
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle>Select your role</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex flex-col gap-4 mt-2">
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  router.push("/lender/login");
+                                  setIsOpen(false);
+                                  setOpen(false);
+                                }}
+                              >
+                                Login as Lender
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setOpen(false);
+                                }}
+                              >
+                                Login as Loanee
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="outline"
+                          className="justify-start text-base"
+                          onClick={() => {
+                            router.push("/lender/register");
+                            setIsOpen(false);
+                            setOpen(false);
+                          }}
+                        >
+                          Sign up as Lender
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -171,17 +231,28 @@ export const Navbar = ({ session }: { session: Session | null }) => {
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full border-2 border-violet-500">
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full border-2 border-violet-500"
+                  >
                     <Avatar className="h-8 w-8 rounded-full ring-2 ring-violet-500">
-                      <AvatarImage src={session.user?.image ?? ""} alt={session.user?.name ?? ""} className="rounded-full" />
-                      <AvatarFallback className="rounded-full">{session.user?.name?.[0]}</AvatarFallback>
+                      <AvatarImage
+                        src={session.user?.image ?? ""}
+                        alt={session.user?.name ?? ""}
+                        className="rounded-full"
+                      />
+                      <AvatarFallback className="rounded-full">
+                        {session.user?.name?.[0]}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{session.user?.name}</p>
+                      <p className="text-sm font-medium leading-none">
+                        {session.user?.name}
+                      </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {session.user?.email}
                       </p>
@@ -206,15 +277,39 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   <DropdownMenuItem asChild>
                     <Link href="/profile">Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => signOut()}>
+                  <DropdownMenuItem
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  >
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => signIn('google')} variant="default">
-                Login
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="default">Login</Button>
+                </DropdownMenuTrigger>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/lender/register")}
+                >
+                  Sign up as Lender
+                </Button>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => router.push("/loanee/login")}
+                  >
+                    As Loanee
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      router.push("/lender/login");
+                    }}
+                  >
+                    As Lender
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
