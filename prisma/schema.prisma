@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -52,16 +52,17 @@ model Session {
 }
 
 model Lender {
-  id         String  @id @default(cuid())
-  name       String
-  business   String
-  phone      String
-  investment String
-  email      String
-  province   String
-  userId     String? @unique
-  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  approved   Boolean @default(false)
+  id          String        @id @default(cuid())
+  name        String
+  business    String
+  phone       String
+  investment  String
+  email       String
+  province    String
+  userId      String?       @unique
+  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  approved    Boolean       @default(false)
+  Application Application[]
 }
 
 model Application {
@@ -103,8 +104,11 @@ model Application {
   documents             Document[]
   messages              Message[]
   user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lenderId              String?
+  lender                Lender?              @relation(fields: [lenderId], references: [id])
 
   @@index([userId])
+  @@index([lenderId])
 }
 
 model Document {

@@ -26,13 +26,13 @@ const LenderLoginSchema = z.object({
 
 type LenderLoginProps = z.infer<typeof LenderLoginSchema>;
 
-export default function LenderLogin() {
+export default function AdminLogin() {
   const router = useRouter();
   const { status } = useSession();
 
   React.useEffect(() => {
     if (status === "authenticated") {
-      router.push("/lender/dashboard");
+      router.push("/admin");
     }
   }, [status, router]);
 
@@ -50,17 +50,17 @@ export default function LenderLogin() {
     const result = await signIn("credentials", {
       email: data.email,
       password: data.password,
-      redirect: true,
     });
 
     if (result?.error) {
+      console.error("Login error:", result.error);
       toast({
         title: "Error",
         description: "Invalid email or password",
         variant: "destructive",
       });
     } else {
-      router.push("/lender/applications");
+      router.push("/admin");
       router.refresh();
     }
   };
@@ -71,7 +71,7 @@ export default function LenderLogin() {
         <Card className="p-6">
           <CardHeader className="mb-8">
             <CardTitle className="text-center text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
-              Lender Login
+              Admin Login
             </CardTitle>
           </CardHeader>
           <CardContent>
