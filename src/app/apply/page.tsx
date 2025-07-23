@@ -1,10 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import Section from "@/components/shared/section";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { toast } from "@/hooks/use-toast";
 
 interface LoanPlan {
   action: string;
@@ -17,14 +19,56 @@ interface LoanPlanCardProps extends LoanPlan {
   index: number;
 }
 
-const LoanPlanCard: React.FC<LoanPlanCardProps> = ({ action, buttonText, features, description, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: index * 0.2 }}
-    whileHover={{ scale: 1.02 }}
-  >
-    <Link href={action}>
+const LoanPlanCard: React.FC<LoanPlanCardProps> = ({
+  action,
+  buttonText,
+  features,
+  description,
+  index,
+}) => {
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleClick = () => {
+    if (!session?.user) {
+      router.push("/loanee/login");
+      return;
+    }
+
+    const role = session.user.role;
+
+    if (role === "LOANEE") {
+      router.push(action);
+    } else if (role === "LENDER") {
+      toast({
+        title: "Access Denied",
+        description:
+          "You are logged in as a lender and cannot apply for a loan.",
+        variant: "destructive",
+      });
+    } else if (role === "ADMIN") {
+      toast({
+        title: "Access Denied",
+        description:
+          "You are logged in as an admin and cannot apply for a loan.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "Your role is not permitted to apply for a loan.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.2 }}
+      whileHover={{ scale: 1.02 }}
+    >
       <Card className="relative flex-1 flex items-stretch flex-col p-8 bg-white dark:bg-black hover:border-primary-500 transition-all duration-300">
         <div className="mb-4">
           <h3 className="text-2xl font-bold">{buttonText}</h3>
@@ -34,29 +78,32 @@ const LoanPlanCard: React.FC<LoanPlanCardProps> = ({ action, buttonText, feature
           {features.map((feature, idx) => (
             <li key={idx} className="flex items-center gap-5 text-lg group">
               <BadgeCheck className="text-primary-500 group-hover:scale-110 transition-transform" />
-              <span className="group-hover:text-primary-500 transition-colors">{feature}</span>
+              <span className="group-hover:text-primary-500 transition-colors">
+                {feature}
+              </span>
             </li>
           ))}
         </ul>
         <div>
           <Button
-            color="primary"
+            onClick={handleClick}
             className="bg-violet-500 font-bold text-lg hover:bg-violet-600 transition-colors"
           >
             Apply for {buttonText}
           </Button>
         </div>
       </Card>
-    </Link>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 export default function ApplyPage() {
   const plans: LoanPlan[] = [
     {
       action: "/apply/general",
       buttonText: "General Loan",
-      description: "Perfect for personal expenses, education, vehicles, or business needs with flexible terms and competitive rates.",
+      description:
+        "Perfect for personal expenses, education, vehicles, or business needs with flexible terms and competitive rates.",
       features: [
         "Quick personal loans up to $50,000",
         "Competitive car loan rates",
@@ -68,7 +115,8 @@ export default function ApplyPage() {
     {
       action: "/apply/mortgage",
       buttonText: "Mortgage",
-      description: "Find your dream home with our comprehensive mortgage solutions and expert guidance.",
+      description:
+        "Find your dream home with our comprehensive mortgage solutions and expert guidance.",
       features: [
         "Low-interest home mortgages",
         "Efficient refinancing options",
@@ -80,14 +128,19 @@ export default function ApplyPage() {
   ];
 
   return (
-    <Section className="py-20 mt-20 bg-violet-50 dark:bg-violet-900" fullWidth={true}>
+    <Section
+      className="py-20 mt-20 bg-violet-50 dark:bg-violet-900"
+      fullWidth={true}
+    >
       <div className="max-w-screen-xl mx-auto px-4 md:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h3 className="text-4xl font-semibold mb-4">
-            What type of <span className="text-violet-500">loan</span> are you looking for?
+            What type of <span className="text-violet-500">loan</span> are you
+            looking for?
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            Choose from our range of flexible loan options tailored to meet your specific needs
+            Choose from our range of flexible loan options tailored to meet your
+            specific needs
           </p>
         </div>
 

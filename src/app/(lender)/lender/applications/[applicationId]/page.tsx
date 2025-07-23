@@ -73,7 +73,7 @@ export default function ApplicationDetailsPage({
     setLoading(true);
     try {
       await axios.patch(`/api/applications/${applicationId}`, {
-        status: LoanStatus.PROGRESSING,
+        status: LoanStatus.ACCEPTED,
       });
       toast({
         title: "Success",
@@ -128,9 +128,13 @@ export default function ApplicationDetailsPage({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
-                  <p>Name: {application.firstName} {application.lastName}</p>
+                  <p>
+                    Name: {application.firstName} {application.lastName}
+                  </p>
                   <p>Current Address: {application.currentAddress}</p>
-                  <p>Residency Duration: {application.residencyDuration} years</p>
+                  <p>
+                    Residency Duration: {application.residencyDuration} years
+                  </p>
                   <p>Housing Status: {application.housingStatus}</p>
                   <p>Canadian Status: {application.canadianStatus}</p>
                 </div>
@@ -147,10 +151,20 @@ export default function ApplicationDetailsPage({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
-                  <p>Housing Payment: ${application.housingPayment.toLocaleString()}</p>
-                  <p>Gross Income: ${application.grossIncome.toLocaleString()}</p>
-                  <p>Loan Amount Requested: ${application.loanAmount?.toLocaleString()}</p>
-                  <p>Down Payment: ${application.downPayment?.toLocaleString()}</p>
+                  <p>
+                    Housing Payment: $
+                    {application.housingPayment.toLocaleString()}
+                  </p>
+                  <p>
+                    Gross Income: ${application.grossIncome.toLocaleString()}
+                  </p>
+                  <p>
+                    Loan Amount Requested: $
+                    {application.loanAmount?.toLocaleString()}
+                  </p>
+                  <p>
+                    Down Payment: ${application.downPayment?.toLocaleString()}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -215,11 +229,13 @@ export default function ApplicationDetailsPage({
                 {application.documents.map((doc) => (
                   <div key={doc.id} className="p-4 border rounded-lg">
                     <p className="font-medium">{doc.documentType}</p>
-                    <p className="text-sm text-gray-600">Status: {doc.status}</p>
+                    <p className="text-sm text-gray-600">
+                      Status: {doc.status}
+                    </p>
                     {doc.fileUrl && (
-                      <a 
-                        href={doc.fileUrl} 
-                        target="_blank" 
+                      <a
+                        href={doc.fileUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:underline"
                       >

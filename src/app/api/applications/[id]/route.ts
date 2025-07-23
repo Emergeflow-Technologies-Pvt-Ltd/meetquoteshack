@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import prisma from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const id = (await params).id;
 
     if (!session?.user?.email) {
@@ -17,11 +18,12 @@ export async function GET(
     if (!id) {
       return new NextResponse("Missing application ID", { status: 400 });
     }
+    console.log("tksdjhfjksdfhjksdhf", session.user.id);
 
     const application = await prisma.application.findUnique({
       where: {
         id: id,
-        userId: session.user.id
+        status: "PROGRESSING"
       },
       include: {
         documents: true
@@ -29,7 +31,7 @@ export async function GET(
     });
 
     if (!application) {
-      return new NextResponse("Not found", { status: 404 }); 
+      return new NextResponse("Not found", { status: 404 });
     }
 
     return NextResponse.json(application);
@@ -40,9 +42,9 @@ export async function GET(
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string; lenderId?: string; }>; }) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const id = (await params).id;
 
     if (!session?.user?.email) {
@@ -55,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const application = await prisma.application.findUnique({
       where: {
         id: id,
-        userId: status ? undefined : session.user.id // Allow admin to update status
+
       },
       include: {
         documents: true
@@ -70,9 +72,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       // Handle status update (admin only)
       const updatedApplication = await prisma.application.update({
         where: { id },
-        data: { status }
+        data: {
+          status,
+          // Connect to particular lender based on userId
+          lender: {
+            connect: {
+              userId: session?.user?.id
+            }
+          }
+        }
       });
       return NextResponse.json(updatedApplication);
+
     } else {
       // Handle document update
       const updatedDoc = await prisma.document.update({
@@ -81,7 +92,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         },
         data: {
           fileName,
-          fileKey, 
+          fileKey,
           fileUrl,
           status: "UPLOADED"
         }
