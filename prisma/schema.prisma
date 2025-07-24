@@ -66,46 +66,57 @@ model Lender {
 }
 
 model Application {
-  id                    String               @id @default(cuid())
-  userId                String
-  type                  ApplicationType      @default(GENERAL)
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
-  status                LoanStatus           @default(PROCESSING)
-  hasBankruptcy         Boolean
-  firstName             String
-  lastName              String
-  currentAddress        String
-  yearsAtCurrentAddress Int
-  housingStatus         HousingStatus
-  housingPayment        Decimal              @db.Decimal(10, 2) // 8 digits before decimal, 2 after
-  dateOfBirth           DateTime
-  maritalStatus         MaritalStatus
-  residencyStatus       ResidencyStatus
-  personalPhone         String
-  personalEmail         String
-  employmentStatus      EmploymentStatus
-  grossIncome           Decimal              @db.Decimal(12, 2) // 10 digits before decimal, 2 after
-  workplaceName         String
-  workplaceAddress      String
-  workplacePhone        String
-  workplaceEmail        String
-  loanAmount            Decimal              @db.Decimal(12, 2) // 10 digits before decimal, 2 after
+  id                     String           @id @default(cuid())
+  userId                 String
+  loanType               LoanType
+  estimatedPropertyValue Decimal?         @db.Decimal(12, 2) // conditional
+  houseType              PropertyType? // NEW ENUM
+  downPayment            DownPayment? // NEW ENUM
+  tradeInCurrentVehicle  Boolean? // for Car Loans
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  status                 LoanStatus       @default(PROCESSING)
+  hasBankruptcy          Boolean
+  firstName              String
+  lastName               String
+  previousAddress        String?
+  currentAddress         String
+  yearsAtCurrentAddress  Int
+  housingStatus          HousingStatus
+  housingPayment         Decimal          @db.Decimal(10, 2) // 8 digits before decimal, 2 after
+  dateOfBirth            DateTime
+  maritalStatus          MaritalStatus
+  residencyStatus        ResidencyStatus
+  personalPhone          String
+  personalEmail          String
+  employmentStatus       EmploymentStatus
+  grossIncome            Decimal          @db.Decimal(12, 2) // 10 digits before decimal, 2 after
+  workplaceName          String
+  workplaceAddress       String
+  workplacePhone         String
+  workplaceEmail         String
+  workplaceDuration      Int
+  monthlyDebts           Decimal          @db.Decimal(12, 2)
+  savings                Decimal          @db.Decimal(12, 2)
+  otherIncome            Boolean
+  childCareBenefit       Boolean
+  sin                    Int?
+  hasCoApplicant         Boolean
+  coApplicantFullName    String?
+  coApplicantDateOfBirth DateTime?
+  coApplicantAddress     String?
+  coApplicantPhone       Int?
+  coApplicantEmail       String?
+  loanAmount             Decimal          @db.Decimal(12, 2) // 10 digits before decimal, 2 after
   // Fields for general loans
-  generalEducationLevel EducationLevel?
-  generalFieldOfStudy   String?
-  // Fields for mortgage loans
-  mortgageBusinessPhone String?
-  mortgagePurpose       MortgagePurpose?
-  mortgageType          MortgageType?
-  mortgageHousingType   MortgageHousingType?
-  mortgageDownPayment   MortgageDownPayment?
+  generalEducationLevel  EducationLevel?
+  generalFieldOfStudy    String?
   // Related models
-  documents             Document[]
-  messages              Message[]
-  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lenderId              String?
-  lender                Lender?              @relation(fields: [lenderId], references: [id])
+  documents              Document[]
+  messages               Message[]
+  user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lenderId               String?
+  lender                 Lender?          @relation(fields: [lenderId], references: [id])
 
   @@index([userId])
   @@index([lenderId])
@@ -194,6 +205,34 @@ enum MortgageHousingType {
   OTHER        @map("50")
 }
 
+enum LoanType {
+  FIRST_TIME_HOME
+  MORTGAGE_REFINANCE
+  INVESTMENT_PROPERTY
+  HELOC
+  HOME_REPAIR
+  COMMERCIAL
+  CAR
+  PERSONAL
+  LINE_OF_CREDIT
+  BUSINESS
+  OTHER
+}
+
+enum PropertyType {
+  CONDO
+  APARTMENT
+  DUPLEX
+  TOWNHOUSE
+  DETACHED
+  SEMI_DETACHED
+  HOUSE
+  CONTAINER
+  MOBILE
+  BUNGALOW
+  OTHER
+}
+
 enum LoanStatus {
   PROCESSING  @map("processing") // admin processing the application
   REJECTED    @map("rejected") // admin rejected the application
@@ -236,6 +275,14 @@ enum EducationLevel {
 }
 
 enum MortgageDownPayment {
+  FIVE    @map("5")
+  TEN     @map("10")
+  FIFTEEN @map("15")
+  TWENTY  @map("20")
+  MORE    @map("more")
+}
+
+enum DownPayment {
   FIVE    @map("5")
   TEN     @map("10")
   FIFTEEN @map("15")
