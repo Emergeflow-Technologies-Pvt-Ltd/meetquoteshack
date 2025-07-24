@@ -14,14 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { UseFormReturn } from "react-hook-form";
-import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
-import type { GeneralLoanFormValues } from "@/app/apply/general/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
 
 import { EmploymentStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
 
 interface EmploymentStepProps {
-  form: UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues>;
 }
 
 export function EmploymentStep({ form }: EmploymentStepProps) {
@@ -32,7 +31,9 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
         name="employmentStatus"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Employment Status</FormLabel>
+            <FormLabel>
+              Employment Status <span className="text-red-500">*</span>
+            </FormLabel>
             <FormControl>
               <Select onValueChange={field.onChange} value={field.value || ""}>
                 <SelectTrigger>
@@ -56,7 +57,9 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
         name="grossIncome"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Gross Annual Income</FormLabel>
+            <FormLabel>
+              Gross Annual Income <span className="text-red-500">*</span>
+            </FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -64,7 +67,8 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
                 {...field}
                 value={field.value || ""}
                 onChange={(e) => {
-                  const value = e.target.value === "" ? "" : e.target.valueAsNumber;
+                  const value =
+                    e.target.value === "" ? "" : e.target.valueAsNumber;
                   field.onChange(value);
                 }}
               />
@@ -81,7 +85,9 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
             name="workplaceName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Workplace Name</FormLabel>
+                <FormLabel>
+                  Current Employer <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} value={field.value || ""} />
                 </FormControl>
@@ -94,7 +100,9 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
             name="workplaceAddress"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Workplace Address</FormLabel>
+                <FormLabel>
+                  Company Address <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input {...field} value={field.value || ""} />
                 </FormControl>
@@ -109,9 +117,15 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
             name="workplacePhone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Workplace Phone</FormLabel>
+                <FormLabel>
+                  Work Phone <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="(555) 555-5555" {...field} value={field.value || ""} />
+                  <Input
+                    placeholder="(555) 555-5555"
+                    {...field}
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -123,13 +137,48 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
             name="workplaceEmail"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Workplace Email</FormLabel>
+                <FormLabel>
+                  Work Email <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input type="email" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
+          />
+          <FormField
+            control={form.control}
+            name="workplaceDuration"
+            render={({ field }) => {
+              const inputValue =
+                field.value === undefined || field.value === null
+                  ? ""
+                  : field.value.toString();
+
+              return (
+                <FormItem>
+                  <FormLabel>
+                    Employment Duration <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      value={inputValue}
+                      onChange={(e) => {
+                        const value =
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value);
+                        field.onChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
       </div>

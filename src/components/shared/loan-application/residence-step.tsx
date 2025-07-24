@@ -5,57 +5,70 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import type { UseFormReturn } from "react-hook-form";
-import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
-import type { GeneralLoanFormValues } from "@/app/apply/general/types";
-
+import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
 import { ResidencyStatus, HousingStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
 
 interface ResidenceStepProps {
-  form: UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues>;
 }
 
 export function ResidenceStep({ form }: ResidenceStepProps) {
+  const watchYearsAtAddress = form.watch("yearsAtCurrentAddress");
+
   return (
     <div className="space-y-6">
+      {/* Residency Status */}
       <FormField
         control={form.control}
         name="residencyStatus"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Status in Canada</FormLabel>
+            <FormLabel>
+              Status in Canada <span className="text-red-500">*</span>
+            </FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                value={field.value}
-                className="flex flex-row space-x-4"
-              >
+              <div className="grid grid-cols-2 gap-4">
                 {Object.entries(ResidencyStatus).map(([value]) => (
-                  <FormItem key={value} className="flex items-center space-x-2">
-                    <FormControl>
-                      <RadioGroupItem value={value} />
-                    </FormControl>
-                    <FormLabel className="font-normal">
+                  <label
+                    key={value}
+                    className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${
+                      field.value === value
+                        ? "border-gray-400 bg-gray-100"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      value={value}
+                      checked={field.value === value}
+                      onChange={() => field.onChange(value)}
+                      className="accent-violet-600"
+                    />
+                    <span className="text-sm">
                       {convertEnumValueToLabel(value)}
-                    </FormLabel>
-                  </FormItem>
+                    </span>
+                  </label>
                 ))}
-              </RadioGroup>
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      {/* Current Address and Years */}
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="currentAddress"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Current Address</FormLabel>
+              <FormLabel>
+                Current Address <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input placeholder="123 Main St, City, Province" {...field} />
               </FormControl>
@@ -69,7 +82,9 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
           name="yearsAtCurrentAddress"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Years at Current Address</FormLabel>
+              <FormLabel>
+                Years at Current Address <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -83,33 +98,60 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
           )}
         />
       </div>
+
+      {/* Previous Address - if < 2 years */}
+      {watchYearsAtAddress !== undefined && watchYearsAtAddress < 2 && (
+        <FormField
+          control={form.control}
+          name="previousAddress"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Previous Address <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input placeholder="456 Old St, City, Province" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {/* Housing Status and Monthly Payment */}
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="housingStatus"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Housing Status</FormLabel>
+              <FormLabel>
+                Housing Status <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  className="flex flex-row space-x-4"
-                >
+                <div className="grid grid-cols-2 gap-4">
                   {Object.entries(HousingStatus).map(([value]) => (
-                    <FormItem
+                    <label
                       key={value}
-                      className="flex items-center space-x-2"
+                      className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${
+                        field.value === value
+                          ? "border-gray-400 bg-gray-100"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
                     >
-                      <FormControl>
-                        <RadioGroupItem value={value} />
-                      </FormControl>
-                      <FormLabel className="font-normal">
+                      <input
+                        type="radio"
+                        value={value}
+                        checked={field.value === value}
+                        onChange={() => field.onChange(value)}
+                        className="accent-violet-600"
+                      />
+                      <span className="text-sm">
                         {convertEnumValueToLabel(value)}
-                      </FormLabel>
-                    </FormItem>
+                      </span>
+                    </label>
                   ))}
-                </RadioGroup>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,7 +163,10 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
           name="housingPayment"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Monthly Housing Payment (CAD)</FormLabel>
+              <FormLabel>
+                Monthly Housing Payment (CAD){" "}
+                <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"

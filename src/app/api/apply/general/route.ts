@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { GeneralLoanFormValues } from "@/app/apply/general/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
 import prisma from "@/lib/db";
 import {
   ResidencyStatus,
@@ -24,7 +24,19 @@ export async function POST(request: Request) {
           id: user.id,
         },
       },
-      type: "GENERAL",
+
+      loanType: data.loanType,
+      hasCoApplicant: data.hasCoApplicant,
+      monthlyDebts: data.monthlyDebts,
+      childCareBenefit: data.childCareBenefit,
+      coApplicantFullName: data.coApplicantFullName || null,
+      coApplicantDateOfBirth: data.coApplicantDateOfBirth || null,
+      coApplicantPhone: data.coApplicantPhone || null,
+      coApplicantAddress: data.coApplicantAddress || null,
+      coApplicantEmail: data.coApplicantEmail || null,
+      otherIncome: data.otherIncome,
+      savings: data.savings,
+      workplaceDuration: data.workplaceDuration,
       hasBankruptcy: data.hasBankruptcy,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -102,7 +114,7 @@ async function authenticateUser() {
 function validateRequiredFields(data: GeneralLoanFormValues) {
   const requiredFields = [
     "firstName",
-    "lastName", 
+    "lastName",
     "currentAddress",
     "employmentStatus",
     "housingStatus",
@@ -189,7 +201,7 @@ async function createGeneralApplication(
 
 function createErrorResponse(
   title: string,
-  error: { message: string; [key: string]: unknown },
+  error: { message: string;[key: string]: unknown; },
   status: number
 ) {
   return NextResponse.json(error, { status });
