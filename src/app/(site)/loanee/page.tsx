@@ -72,7 +72,7 @@ export default function Loanee() {
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
               <Link
-                href="/apply"
+                href="/loan-application"
                 className="w-full sm:w-auto flex items-center justify-center gap-2 py-4 px-10 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200"
               >
                 <span className="text-center">
@@ -166,7 +166,7 @@ export default function Loanee() {
               </p>
               <div>
                 <Link
-                  href="/apply"
+                  href="/loan-application"
                   className="inline-flex items-center py-4 px-8 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200 group"
                 >
                   <span>Calculate Loan or Pre-Approval</span>

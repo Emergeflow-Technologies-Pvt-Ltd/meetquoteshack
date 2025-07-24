@@ -107,7 +107,7 @@ export default function Hero() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Link href="/apply">
+              <Link href="/loan-application">
                 <Button
                   className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
                   size="lg"

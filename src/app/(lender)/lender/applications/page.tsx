@@ -21,9 +21,7 @@ export default async function LenderPoolPage() {
       loanAmount: true,
       firstName: true,
       lastName: true,
-      mortgagePurpose: true,
-      mortgageType: true,
-      type: true,
+      loanType: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -44,9 +42,7 @@ export default async function LenderPoolPage() {
       loanAmount: true,
       firstName: true,
       lastName: true,
-      mortgagePurpose: true,
-      mortgageType: true,
-      type: true,
+      loanType: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -99,17 +95,8 @@ export default async function LenderPoolPage() {
                               Loan Amount: $
                               {application.loanAmount?.toLocaleString()}
                             </span>
-                            {application.type === "MORTGAGE" && (
-                              <>
-                                <span>
-                                  Purpose: {application.mortgagePurpose}
-                                </span>
-                                <span className="text-sm text-gray-600">
-                                  Mortgage Type: {application.mortgageType}
-                                </span>
-                              </>
-                            )}
-                            <span>Loan Type: {application.type}</span>
+
+                            <span>Loan Type: {application.loanType}</span>
                           </div>
                         </div>
                       </div>
@@ -165,12 +152,6 @@ export default async function LenderPoolPage() {
                               Loan Amount: $
                               {application.loanAmount?.toLocaleString()}
                             </span>
-                            {application.type === "MORTGAGE" && (
-                              <span>
-                                Purpose: {application.mortgagePurpose}
-                              </span>
-                            )}
-                            <span>Type: {application.mortgageType}</span>
                           </div>
                         </div>
                         <p className="text-sm text-gray-500">
