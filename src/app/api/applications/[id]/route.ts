@@ -18,23 +18,31 @@ export async function GET(
     if (!id) {
       return new NextResponse("Missing application ID", { status: 400 });
     }
-    console.log("tksdjhfjksdfhjksdhf", session.user.id);
 
     const application = await prisma.application.findUnique({
       where: {
         id: id,
-        status: "PROGRESSING"
+        status: { in: ["OPEN", "ASSIGNED_TO_LENDER"] }
       },
       include: {
         documents: true
       }
     });
 
+
+    const lenderList = await prisma.lender.findMany({
+      select: {
+        name: true,
+        id: true
+      }
+
+    });
+
     if (!application) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    return NextResponse.json(application);
+    return NextResponse.json({ application, lenderList });
 
   } catch (error) {
     console.error("[APPLICATION_GET]", error);
@@ -52,7 +60,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const body = await request.json();
-    const { fileName, fileKey, fileUrl, docId, status } = body;
+    const { fileName, fileKey, fileUrl, docId, status, lenderId } = body;
 
     const application = await prisma.application.findUnique({
       where: {
@@ -77,7 +85,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           // Connect to particular lender based on userId
           lender: {
             connect: {
-              userId: session?.user?.id
+              id: lenderId
             }
           }
         }
