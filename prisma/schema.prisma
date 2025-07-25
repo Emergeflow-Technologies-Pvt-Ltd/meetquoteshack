@@ -75,7 +75,7 @@ model Application {
   tradeInCurrentVehicle  Boolean? // for Car Loans
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
-  status                 LoanStatus       @default(PROCESSING)
+  status                 LoanStatus       @default(OPEN)
   hasBankruptcy          Boolean
   firstName              String
   lastName               String
@@ -234,11 +234,12 @@ enum PropertyType {
 }
 
 enum LoanStatus {
-  PROCESSING  @map("processing") // admin processing the application
-  REJECTED    @map("rejected") // admin rejected the application
-  PROGRESSING @map("progressing") // admin accepted the application, and it's on loan pool
-  ACCEPTED    @map("accepted") // lender accepted the application
-  ARCHIVED    @map("archived") // lender has processed the application, and it's archived
+  OPEN
+  ASSIGNED_TO_LENDER
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  ARCHIVED
 }
 
 enum DocumentType {
