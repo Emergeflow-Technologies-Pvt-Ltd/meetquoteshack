@@ -11,11 +11,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
 } from "@/components/shared/chips";
+import {
+  employmentTypeLabels,
+  loanTypeLabels,
+} from "@/components/shared/general.const";
 
 export default async function AdminPage() {
   // Fetch applications that need review
@@ -34,7 +38,7 @@ export default async function AdminPage() {
   const assignedApplications = await prisma.application.findMany({
     where: {
       status: {
-        in: [LoanStatus.ASSIGNED_TO_LENDER],
+        in: [LoanStatus.ASSIGNED_TO_LENDER, LoanStatus.IN_PROGRESS],
       },
     },
     orderBy: {
@@ -116,11 +120,16 @@ export default async function AdminPage() {
                         </div>
                         <div>
                           <span className="text-gray-500">Loan Type</span>
-                          <p className="font-medium">{app.loanType}</p>
+                          <p className="font-medium">
+                            {" "}
+                            {loanTypeLabels[app.loanType]}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-500">Employment</span>
-                          <p className="font-medium">{app.employmentStatus}</p>
+                          <p className="font-medium">
+                            {employmentTypeLabels[app.employmentStatus]}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-500">Gross Income</span>
@@ -215,11 +224,15 @@ export default async function AdminPage() {
                         </div>
                         <div>
                           <span className="text-gray-500">Loan Type</span>
-                          <p className="font-medium">{app.loanType}</p>
+                          <p className="font-medium">
+                            {loanTypeLabels[app.loanType]}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-500">Employment</span>
-                          <p className="font-medium">{app.employmentStatus}</p>
+                          <p className="font-medium">
+                            {employmentTypeLabels[app.employmentStatus]}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-500">Gross Income</span>

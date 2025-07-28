@@ -160,6 +160,19 @@ export default function ApplicationPage({ params }: Props) {
       </div>
     );
   }
+
+  const handleRejectApplication = async () => {
+    try {
+      await axios.patch(`/api/applications/${application.id}/reject`);
+
+      // Update local state
+      setApplication((prev) => (prev ? { ...prev, status: "REJECTED" } : null));
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Failed to update application status");
+    }
+  };
+
   const handleStatusUpdate = async (newStatus: LoanStatus) => {
     try {
       await axios.patch(`/api/applications/${application.id}`, {
@@ -204,14 +217,8 @@ export default function ApplicationPage({ params }: Props) {
 
             {application?.lenderId ? (
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                <div className="text-gray-700 font-medium sm:mr-2">
-                  Assigned to:{" "}
-                  {lenders.find((l) => l.id === application.lenderId)?.name ||
-                    "Unknown Lender"}
-                </div>
-
                 <Select
-                  value={selectedLenderId || ""}
+                  value={selectedLenderId || application?.lenderId || ""}
                   onValueChange={(value) => setSelectedLenderId(value)}
                 >
                   <SelectTrigger className="w-[250px]">
@@ -604,6 +611,16 @@ export default function ApplicationPage({ params }: Props) {
                 </div>
               </CardContent>
             </Card>
+            <div className="flex w-full justify-end mt-6">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  handleRejectApplication();
+                }}
+              >
+                Reject Application
+              </Button>
+            </div>
           </div>
         </div>
       </div>
