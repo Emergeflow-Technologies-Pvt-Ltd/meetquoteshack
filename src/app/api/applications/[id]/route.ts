@@ -22,7 +22,7 @@ export async function GET(
     const application = await prisma.application.findUnique({
       where: {
         id: id,
-        status: { in: ["OPEN", "ASSIGNED_TO_LENDER"] }
+        status: { in: ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS"] }
       },
       include: {
         documents: true

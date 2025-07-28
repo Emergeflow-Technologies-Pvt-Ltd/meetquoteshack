@@ -24,7 +24,7 @@ import {
 
 import {
   downPaymentLabels,
-  profileTypeLabels,
+  loanTypeLabels,
   propertyTypeLabels,
 } from "../general.const";
 
@@ -75,7 +75,7 @@ const TypeofApplication = ({ form }: Props) => {
             <SelectContent>
               {Object.values(LoanType).map((type) => (
                 <SelectItem key={type} value={type}>
-                  {profileTypeLabels[type]}
+                  {loanTypeLabels[type]}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -1,6 +1,6 @@
-import { DownPayment, LoanType, PropertyType } from "@prisma/client";
+import { DownPayment, EmploymentStatus, LoanType, PropertyType } from "@prisma/client";
 
-export const profileTypeLabels: Record<string, string> = {
+export const loanTypeLabels: Record<string, string> = {
     [LoanType.BUSINESS]: "Business Loan",
     [LoanType.CAR]: "Car Loan",
     [LoanType.COMMERCIAL]: "Commercial Loan",
@@ -34,4 +34,14 @@ export const downPaymentLabels: Record<string, string> = {
     [DownPayment.FIFTEEN]: "15%",
     [DownPayment.TWENTY]: "20%",
     [DownPayment.MORE]: "More than 20%",
+};
+
+export const employmentTypeLabels: Record<string, string> = {
+    [EmploymentStatus.CONTRACT]: "Contract",
+    [EmploymentStatus.FULL_TIME]: "Full time",
+    [EmploymentStatus.OTHER]: "Other",
+    [EmploymentStatus.PART_TIME]: "Part time",
+    [EmploymentStatus.SEASONAL]: "Seasonal",
+    [EmploymentStatus.SELF_EMPLOYED]: "Self Employed",
+
 };

@@ -28,7 +28,6 @@ export default async function ProfilePage() {
       id: true,
       createdAt: true,
       status: true,
-      mortgageDownPayment: true,
       loanAmount: true,
     },
     orderBy: {
