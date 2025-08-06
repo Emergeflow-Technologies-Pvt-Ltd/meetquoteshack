@@ -1,17 +1,19 @@
 export const getTextColorLoanStatus = (status: string) => {
     switch (status) {
         case "OPEN":
-            return "#0057B5"; // Blue (like published)
+            return "#0057B5"; // Blue
         case "ASSIGNED_TO_LENDER":
-            return "#DBB10B"; // Yellow (like pending)
+            return "#DBB10B"; // Yellow 
         case "IN_PROGRESS":
-            return "#6100A1"; // Purple (like ended)
+            return "#6100A1"; // Purple 
+        case "IN_CHAT":
+            return "#804000"; // Brown (chat in progress)
         case "APPROVED":
             return "#1E7B43"; // Green
         case "REJECTED":
             return "#DD221C"; // Red
         case "ARCHIVED":
-            return "#4C4C4C"; // Gray (like unpublished)
+            return "#4C4C4C"; // Gray 
         default:
             return "transparent";
     }
@@ -25,6 +27,8 @@ export const getBackgroundColorLoanStatus = (status: string) => {
             return "#FFF7D7"; // Light yellow
         case "IN_PROGRESS":
             return "#F7EAFF"; // Light purple
+        case "IN_CHAT":
+            return "#F5E3D7"; // Light brown/beige
         case "APPROVED":
             return "#D2F9E0"; // Light green
         case "REJECTED":
