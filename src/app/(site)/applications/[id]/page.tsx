@@ -2,10 +2,24 @@
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import Section from "@/components/shared/section";
-import { Home, FileText, Upload, AlertCircle, CheckCircle, Clock, Link } from "lucide-react";
-import axios from 'axios';
+import {
+  Home,
+  FileText,
+  Upload,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Link,
+} from "lucide-react";
+import axios from "axios";
 import { Application, Document } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { availableDocumentTypes } from "@/lib/constants";
@@ -14,22 +28,46 @@ import { uploadFile, getPresignedUrl } from "@/lib/upload";
 import { getStatusColors } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-export default function ApplicationPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ApplicationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { data: session } = useSession();
   const { id } = use(params);
-  const [application, setApplication] = useState<Application & { documents: Document[] } | null>(null);
+
+  const [application, setApplication] = useState<
+    (Application & { documents: Document[] }) | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Chat States
+  const [messages, setMessages] = useState<any[]>([]);
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+
+  // Fetch Application + Messages
   useEffect(() => {
     const fetchApplication = async () => {
       if (session?.user?.email) {
         try {
           const { data } = await axios.get(`/api/applications/${id}`);
-          setApplication(data);
+          setApplication(data.application);
+
+          // Fetch messages if in chat
+          if (data.application.status === "IN_CHAT") {
+            const res = await axios.get(`/api/messages?applicationId=${id}`);
+            setMessages(res.data);
+          }
         } catch (error) {
           console.error("Error fetching application:", error);
         }
@@ -46,35 +84,35 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
     try {
       setUploadingDocId(docId);
       setUploadProgress(0);
-      
+
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           const newProgress = prev + Math.random() * 15;
           return newProgress >= 90 ? 90 : newProgress;
         });
       }, 300);
-      
+
       const key = await uploadFile(session.user.email, file);
-      
-      if (typeof key === 'string') {
+
+      if (typeof key === "string") {
         const signedUrl = await getPresignedUrl(key);
-        
+
         await axios.patch(`/api/applications/${id}`, {
           fileName: file.name,
           fileKey: key,
           fileUrl: signedUrl,
-          docId: docId
+          docId: docId,
         });
 
         // Set progress to 100% when complete
         setUploadProgress(100);
         clearInterval(progressInterval);
-        
+
         // Refresh application data
         const { data } = await axios.get(`/api/applications/${id}`);
         setApplication(data);
-        
+
         // Reset upload state after a short delay
         setTimeout(() => {
           setUploadingDocId(null);
@@ -82,14 +120,14 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
         }, 1000);
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error("Error uploading file:", error);
       setUploadingDocId(null);
       setUploadProgress(0);
     }
   };
 
   const getStatusIcon = (status: string) => {
-    switch(status) {
+    switch (status) {
       case "PENDING":
         return <Clock className="w-4 h-4 text-yellow-500" />;
       case "APPROVED":
@@ -138,7 +176,11 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
               </CardDescription>
             </div>
             {application && (
-              <Badge className={`mt-2 md:mt-0 ${getStatusColors(application.status)}`}>
+              <Badge
+                className={`mt-2 md:mt-0 ${getStatusColors(
+                  application.status
+                )}`}
+              >
                 {application.status}
               </Badge>
             )}
@@ -147,107 +189,226 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
         <CardContent className="space-y-8 pt-6">
           {application ? (
             <>
+              {/* Application Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground">Application Details</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Application Details
+                  </h3>
                   <div className="flex items-center gap-2">
                     <Home className="w-4 h-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">
-                        Application ID: <span className="font-mono">{application.id}</span>
+                        Application ID:{" "}
+                        <span className="font-mono">{application.id}</span>
                       </p>
                     </div>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Submitted on: {new Date(application.createdAt).toLocaleDateString()}
+                      Submitted on:{" "}
+                      {new Date(application.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
               </div>
-              
+
+              {/* Documents */}
               <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">Required Documents</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Required Documents
+                </h3>
                 <div className="space-y-4">
                   {application.documents.map((doc) => (
-                    <div 
-                      key={doc.id} 
+                    <div
+                      key={doc.id}
                       className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${
-                        doc.status === "APPROVED" ? "bg-green-50 border-green-200" : 
-                        doc.status === "UPLOADED" ? "bg-blue-50 border-blue-200" : 
-                        "hover:border-primary/50"
+                        doc.status === "APPROVED"
+                          ? "bg-green-50 border-green-200"
+                          : doc.status === "UPLOADED"
+                          ? "bg-blue-50 border-blue-200"
+                          : "hover:border-primary/50"
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-3 md:mb-0">
-                        <FileText className={`w-5 h-5 ${
-                          doc.status === "APPROVED" ? "text-green-500" : 
-                          doc.status === "UPLOADED" ? "text-blue-500" : 
-                          "text-muted-foreground"
-                        }`} />
+                        <FileText
+                          className={`w-5 h-5 ${
+                            doc.status === "APPROVED"
+                              ? "text-green-500"
+                              : doc.status === "UPLOADED"
+                              ? "text-blue-500"
+                              : "text-muted-foreground"
+                          }`}
+                        />
                         <div>
                           <p className="font-medium">
-                            {availableDocumentTypes.find(type => type.type === doc.documentType)?.label}
+                            {
+                              availableDocumentTypes.find(
+                                (type) => type.type === doc.documentType
+                              )?.label
+                            }
                           </p>
                           {doc.fileName && (
-                            <p className="text-sm text-blue-600">{doc.fileName}</p>
+                            <p className="text-sm text-blue-600">
+                              {doc.fileName}
+                            </p>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge className={`${getStatusColors(doc.status)} flex items-center gap-1`}>
+                              <Badge
+                                className={`${getStatusColors(
+                                  doc.status
+                                )} flex items-center gap-1`}
+                              >
                                 {getStatusIcon(doc.status)}
                                 {doc.status}
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {doc.status === "PENDING" && "Document needs to be uploaded"}
-                              {doc.status === "UPLOADED" && "Document is under review"}
-                              {doc.status === "APPROVED" && "Document has been approved"}
-                              {doc.status === "REJECTED" && "Document was rejected and needs to be re-uploaded"}
+                              {doc.status === "PENDING" &&
+                                "Document needs to be uploaded"}
+                              {doc.status === "UPLOADED" &&
+                                "Document is under review"}
+                              {doc.status === "APPROVED" &&
+                                "Document has been approved"}
+                              {doc.status === "REJECTED" &&
+                                "Document was rejected and needs to be re-uploaded"}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        
-                        {doc.status !== "UPLOADED" && doc.status !== "APPROVED" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={uploadingDocId === doc.id}
-                            onClick={() => {
-                              const input = document.createElement('input');
-                              input.type = 'file';
-                              input.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx';
-                              input.onchange = (e) => {
-                                const file = (e.target as HTMLInputElement).files?.[0];
-                                if (file) {
-                                  handleFileUpload(doc.id, file);
-                                }
-                              };
-                              input.click();
-                            }}
-                          >
-                            {uploadingDocId === doc.id ? (
-                              <>
-                                <span className="mr-2">Uploading...</span>
-                                <Progress value={uploadProgress} className="h-1 w-12" />
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload
-                              </>
-                            )}
-                          </Button>
-                        )}
+
+                        {doc.status !== "UPLOADED" &&
+                          doc.status !== "APPROVED" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={uploadingDocId === doc.id}
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept =
+                                  ".pdf,.jpg,.jpeg,.png,.doc,.docx";
+                                input.onchange = (e) => {
+                                  const file = (e.target as HTMLInputElement)
+                                    .files?.[0];
+                                  if (file) {
+                                    handleFileUpload(doc.id, file);
+                                  }
+                                };
+                                input.click();
+                              }}
+                            >
+                              {uploadingDocId === doc.id ? (
+                                <>
+                                  <span className="mr-2">Uploading...</span>
+                                  <Progress
+                                    value={uploadProgress}
+                                    className="h-1 w-12"
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  Upload
+                                </>
+                              )}
+                            </Button>
+                          )}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Chat Section */}
+              {application.status === "IN_CHAT" && (
+                <div className="mt-8 w-full md:w-2/3 mx-auto bg-white rounded-lg shadow-md flex flex-col relative">
+                  {/* Chat Header */}
+                  <div className="p-4 border-b font-semibold text-gray-700">
+                    Chat with Lender
+                  </div>
+
+                  {/* Messages */}
+                  <div className="flex-1 p-4 overflow-y-auto text-gray-600">
+                    <div className="space-y-2">
+                      {messages.length === 0 ? (
+                        <p className="text-gray-500 text-center">
+                          No messages yet...
+                        </p>
+                      ) : (
+                        messages.map((msg) => {
+                          const isOwnMessage =
+                            msg.senderId === session?.user?.id;
+
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`p-2 rounded-md max-w-[80%] ${
+                                isOwnMessage
+                                  ? "bg-purple-100 ml-auto text-right"
+                                  : "bg-blue-100 mr-auto text-left"
+                              }`}
+                            >
+                              <p className="text-sm font-medium">
+                                {msg.content}
+                              </p>
+                              <span className="block text-xs text-gray-500 mt-1">
+                                {msg.senderRole} •{" "}
+                                {new Date(msg.createdAt).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="p-4 border-t flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Type a message..."
+                      className="flex-1 border rounded-md px-3 py-2 text-sm"
+                      disabled={application.status !== "IN_CHAT"}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                    />
+                    <Button
+                      variant="default"
+                      disabled={sending || !message.trim()}
+                      onClick={async () => {
+                        if (!message.trim()) return;
+                        try {
+                          setSending(true);
+                          const res = await axios.post("/api/messages", {
+                            content: message,
+                            applicationId: id,
+                          });
+                          setMessages((prev) => [...prev, res.data]);
+                          setMessage("");
+                        } catch (error) {
+                          console.error("Error sending message:", error);
+                        } finally {
+                          setSending(false);
+                        }
+                      }}
+                    >
+                      {sending ? "..." : "Send"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12">
@@ -256,7 +417,8 @@ export default function ApplicationPage({ params }: { params: Promise<{ id: stri
                 No application found
               </p>
               <p className="text-muted-foreground mt-2">
-                The application you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
+                The application you&apos;re looking for doesn&apos;t exist or
+                you don&apos;t have permission to view it.
               </p>
               <Button className="mt-6" asChild>
                 <Link href="/applications">View All Applications</Link>

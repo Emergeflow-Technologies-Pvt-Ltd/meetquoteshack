@@ -36,7 +36,11 @@ export default async function LenderPoolPage() {
   const acceptedApplications = await prisma.application.findMany({
     where: {
       status: {
-        in: [LoanStatus.ASSIGNED_TO_LENDER, LoanStatus.IN_PROGRESS],
+        in: [
+          LoanStatus.ASSIGNED_TO_LENDER,
+          LoanStatus.IN_PROGRESS,
+          LoanStatus.IN_CHAT,
+        ],
       },
       lender: {
         userId: session?.user?.id,
