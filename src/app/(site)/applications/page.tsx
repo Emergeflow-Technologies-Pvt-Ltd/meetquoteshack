@@ -15,6 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
+import {
+  getBackgroundColorLoanStatus,
+  getTextColorLoanStatus,
+} from "@/components/shared/chips";
 
 export default async function ApplicationsPage() {
   const session = await getServerSession(authOptions);
@@ -50,7 +54,18 @@ export default async function ApplicationsPage() {
                   <TableRow key={application.id}>
                     <TableCell>{application.id}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{application.status}</Badge>
+                      <Badge
+                        variant="outline"
+                        style={{
+                          color: getTextColorLoanStatus(application.status),
+                          backgroundColor: getBackgroundColorLoanStatus(
+                            application.status
+                          ),
+                          border: "none",
+                        }}
+                      >
+                        {application.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {new Date(application.createdAt).toLocaleDateString()}

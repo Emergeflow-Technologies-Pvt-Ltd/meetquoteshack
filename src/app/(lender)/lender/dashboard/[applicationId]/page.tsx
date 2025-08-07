@@ -3,14 +3,18 @@
 import { useEffect, useState, use } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, DollarSign, FileText, Home } from "lucide-react";
+import { User, DollarSign, FileText, Home, Plus } from "lucide-react";
 import Section from "@/components/shared/section";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { LoanStatus } from "@prisma/client";
 import { toast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
-import { loanTypeLabels } from "@/components/shared/general.const";
+import {
+  documentTypeLabels,
+  loanTypeLabels,
+} from "@/components/shared/general.const";
+import LenderChat from "./components/LenderChat";
 
 type Document = {
   id: string;
@@ -99,8 +103,6 @@ export default function ApplicationDetailsPage({
   const [loading, setLoading] = useState(false);
   const { applicationId } = use(params);
   const { data: session } = useSession();
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState<
     { id: string; content: string; senderRole: string; createdAt: string }[]
   >([]);
@@ -130,7 +132,6 @@ export default function ApplicationDetailsPage({
           `/api/messages?applicationId=${applicationId}`
         );
         setMessages(res.data);
-        console.log("THESE ARE YOUR======", res.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
       }
@@ -171,13 +172,20 @@ export default function ApplicationDetailsPage({
     );
   }
 
+  const submittedTypes = new Set(
+    application.documents.map((doc) => doc.documentType)
+  );
+  const missingDocumentTypes = Object.keys(documentTypeLabels).filter(
+    (type) => !submittedTypes.has(type)
+  );
+
   return (
     <Section className="py-12">
       <div
         className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
           application.status === LoanStatus.IN_PROGRESS ||
           application.status === LoanStatus.IN_CHAT
-            ? "h-auto lg:h-[88vh]" // auto height on mobile, fixed height on large screens
+            ? "h-auto lg:h-[88vh]"
             : ""
         }`}
       >
@@ -477,7 +485,9 @@ export default function ApplicationDetailsPage({
                   {application.documents.length > 0 ? (
                     application.documents.map((doc) => (
                       <div key={doc.id} className="p-4 border rounded-lg">
-                        <p className="font-medium">{doc.documentType}</p>
+                        <p className="font-medium">
+                          {documentTypeLabels[doc.documentType]}
+                        </p>
                         <p className="text-sm text-gray-600">
                           Status: {doc.status}
                         </p>
@@ -503,125 +513,16 @@ export default function ApplicationDetailsPage({
         </div>
 
         {/* RIGHT SIDE: Chat Box */}
-        {(application.status === LoanStatus.IN_PROGRESS ||
-          application.status === "IN_CHAT") && (
-          <div className="lg:w-1/3 bg-white rounded-lg shadow-md flex flex-col relative">
-            {/* Overlay when not in chat */}
-            {application.status !== "IN_CHAT" && (
-              <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center">
-                <Button
-                  onClick={async () => {
-                    try {
-                      await axios.patch(
-                        `/api/applications/${applicationId}/startchat`,
-                        { status: "IN_CHAT" }
-                      );
-                      setApplication((prev) =>
-                        prev ? { ...prev, status: "IN_CHAT" } : prev
-                      );
-                      toast({
-                        title: "Chat started",
-                        description: "You can now chat with the applicant",
-                      });
-                    } catch (error) {
-                      console.error("Error starting chat:", error);
-                      toast({
-                        title: "Error",
-                        description: "Failed to start chat",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                  variant="default"
-                  className="px-6 py-2 text-lg"
-                >
-                  Chat Now
-                </Button>
-              </div>
-            )}
-
-            {/* Chat Header */}
-            <div className="p-4 border-b font-semibold text-gray-700">
-              Chat with Applicant
-            </div>
-
-            {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto text-gray-600">
-              <div className="space-y-2">
-                {messages.length === 0 ? (
-                  <p className="text-gray-500 text-center">
-                    No messages yet...
-                  </p>
-                ) : (
-                  messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`p-2 rounded-md max-w-[80%] ${
-                        msg.senderRole === "LENDER"
-                          ? "bg-purple-100 ml-auto text-right"
-                          : "bg-blue-100 mr-auto text-left"
-                      }`}
-                    >
-                      <p className="text-sm font-medium">{msg.content}</p>
-                      <span className="block text-xs text-gray-500 mt-1">
-                        {msg.senderRole} •{" "}
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Chat Input */}
-            <div className="p-4 border-t flex gap-2">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="flex-1 border rounded-md px-3 py-2 text-sm"
-                disabled={application.status !== "IN_CHAT"}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <Button
-                variant="default"
-                disabled={
-                  application.status !== "IN_CHAT" || sending || !message.trim()
-                }
-                onClick={async () => {
-                  if (!message.trim()) return;
-                  try {
-                    setSending(true);
-                    const res = await axios.post("/api/messages", {
-                      content: message,
-                      applicationId,
-                    });
-
-                    // Push new message to UI directly
-                    setMessages((prev) => [...prev, res.data]);
-                    setMessage("");
-
-                    toast({ title: "Message Sent" });
-                  } catch (error) {
-                    console.error("Error sending message:", error);
-                    toast({
-                      title: "Error",
-                      description: "Failed to send message",
-                      variant: "destructive",
-                    });
-                  } finally {
-                    setSending(false);
-                  }
-                }}
-              >
-                {sending ? "..." : "Send"}
-              </Button>
-            </div>
-          </div>
-        )}
+        <LenderChat
+          application={application}
+          setApplication={setApplication}
+          applicationId={applicationId}
+          messages={messages}
+          setMessages={setMessages}
+          missingDocumentTypes={missingDocumentTypes}
+          documentTypeLabels={documentTypeLabels}
+          LoanStatus={LoanStatus}
+        />
       </div>
     </Section>
   );
