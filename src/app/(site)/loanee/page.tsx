@@ -36,6 +36,23 @@ export default function Loanee() {
     }
   };
 
+  const handleLoanformClick = () => {
+    const role = session?.user?.role;
+
+    if (role === "LOANEE") {
+      router.push("/loan-application");
+    } else if (role === "LENDER") {
+      toast({
+        title: "Access Denied",
+        description:
+          "You're logged in as a lender. Please log out to login as a loanee.",
+        variant: "destructive",
+      });
+    } else {
+      router.push("/loanee/login");
+    }
+  };
+
   return (
     <div className="py-10 xl:py-20">
       <Head>
@@ -71,15 +88,15 @@ export default function Loanee() {
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
-              <Link
-                href="/loan-application"
+              <button
+                onClick={handleLoanformClick}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 py-4 px-10 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200"
               >
                 <span className="text-center">
                   Find A Loan Now, It&apos;s Free
                 </span>
                 <ArrowRight className="w-5 h-5" />
-              </Link>
+              </button>
 
               <button
                 onClick={handleLoginClick}
@@ -203,13 +220,13 @@ export default function Loanee() {
                 </p>
               </div>
               <div>
-                <Link
-                  href="/apply"
+                <button
+                  onClick={handleLoanformClick}
                   className="inline-flex items-center py-4 px-8 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200 group"
                 >
                   <span>Apply Now</span>
                   <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-                </Link>
+                </button>
               </div>
             </motion.div>
           </div>
@@ -237,13 +254,13 @@ export default function Loanee() {
           </h2>
 
           <div>
-            <Link
-              href="/apply"
+            <button
+              onClick={handleLoanformClick}
               className="inline-flex items-center py-4 px-10 rounded-full bg-white text-violet-600 font-bold hover:bg-violet-50 transform hover:scale-105 transition-all duration-300 shadow-lg group"
             >
               <span>Get Matched For Free!</span>
               <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-            </Link>
+            </button>
           </div>
         </motion.div>
       </Section>

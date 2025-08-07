@@ -101,7 +101,7 @@ export const generalLoanFormSchema = z.object({
 
   coApplicantAddress: z.string().optional(),
   coApplicantPhone: z
-    .number()
+    .string()
     .optional(),
   coApplicantEmail: z.string().email().optional(),
   monthlyDebts: z.coerce.number().min(0, "Please enter your monthly debts in CAD"),

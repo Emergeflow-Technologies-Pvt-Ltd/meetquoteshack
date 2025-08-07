@@ -50,6 +50,7 @@ export default function AdminLogin() {
     const result = await signIn("credentials", {
       email: data.email,
       password: data.password,
+      redirect: false,
     });
 
     if (result?.error) {
@@ -60,8 +61,7 @@ export default function AdminLogin() {
         variant: "destructive",
       });
     } else {
-      router.push("/admin");
-      router.refresh();
+      window.location.href = "/admin";
     }
   };
 

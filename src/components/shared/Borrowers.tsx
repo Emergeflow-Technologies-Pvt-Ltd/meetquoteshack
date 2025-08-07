@@ -1,7 +1,37 @@
+"use client";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock, Shield } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Borrowers() {
+  const { data: session } = useSession();
+  const { toast } = useToast();
+
+  const handleApplyNowClick = () => {
+    const role = session?.user?.role;
+
+    if (!session || role === "LOANEE") {
+      // Not logged in or LOANEE: allow to apply
+      window.location.href = "/loan-application";
+    } else if (role === "LENDER") {
+      // Lender trying to apply as a loanee
+      toast({
+        title: "Switch Account",
+        description:
+          "Please logout of your Lender account before applying as a loanee.",
+        variant: "destructive",
+      });
+    } else {
+      // Other roles
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the loan application.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const benefits = [
     {
       icon: Clock,
@@ -63,13 +93,13 @@ export default function Borrowers() {
               </div>
 
               <div className="flex items-center gap-6">
-                <Link
-                  href="/loan-application"
+                <button
+                  onClick={handleApplyNowClick}
                   className="inline-flex items-center px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl group"
                 >
                   Apply Now
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                </button>
                 <Link
                   href="/loanee"
                   className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"

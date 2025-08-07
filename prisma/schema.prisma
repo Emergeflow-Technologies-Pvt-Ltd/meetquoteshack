@@ -105,7 +105,7 @@ model Application {
   coApplicantFullName    String?
   coApplicantDateOfBirth DateTime?
   coApplicantAddress     String?
-  coApplicantPhone       Int?
+  coApplicantPhone       String?
   coApplicantEmail       String?
   loanAmount             Decimal          @db.Decimal(12, 2) // 10 digits before decimal, 2 after
   // Fields for general loans
