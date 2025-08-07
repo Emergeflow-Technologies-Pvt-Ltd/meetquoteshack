@@ -34,7 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
 import { UserRole } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import {
@@ -44,6 +44,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import ProfileIcon from "../assets/profile_icon.svg";
+import Image from "next/image";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -231,21 +233,12 @@ export const Navbar = ({ session }: { session: Session | null }) => {
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full border-2 border-violet-500"
-                  >
-                    <Avatar className="h-8 w-8 rounded-full ring-2 ring-violet-500">
-                      <AvatarImage
-                        src={session.user?.image ?? ""}
-                        alt={session.user?.name ?? ""}
-                        className="rounded-full"
-                      />
-                      <AvatarFallback className="rounded-full">
-                        {session.user?.name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
+                  <Image
+                    width={45}
+                    src={ProfileIcon}
+                    alt={ProfileIcon}
+                    className="rounded-full"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
