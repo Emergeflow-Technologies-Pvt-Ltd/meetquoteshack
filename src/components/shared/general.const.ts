@@ -1,4 +1,4 @@
-import { DownPayment, EmploymentStatus, LoanType, PropertyType } from "@prisma/client";
+import { DocumentType, DownPayment, EmploymentStatus, LoanType, PropertyType } from "@prisma/client";
 
 export const loanTypeLabels: Record<string, string> = {
     [LoanType.BUSINESS]: "Business Loan",
@@ -45,3 +45,14 @@ export const employmentTypeLabels: Record<string, string> = {
     [EmploymentStatus.SELF_EMPLOYED]: "Self Employed",
 
 };
+
+export const documentTypeLabels: Record<string, string> = {
+    [DocumentType.IDENTITY_PROOF]: "Identity Proof",
+    [DocumentType.INCOME_PROOF]: "Income Proof",
+    [DocumentType.EMPLOYMENT_LETTER]: "Employment Letter",
+    [DocumentType.TAX_RETURN]: "Tax Return",
+    [DocumentType.BANK_STATEMENT]: "Bank Statement",
+    [DocumentType.PROPERTY_DOCUMENT]: "Property Document",
+    [DocumentType.OTHER]: "Other",
+};
+

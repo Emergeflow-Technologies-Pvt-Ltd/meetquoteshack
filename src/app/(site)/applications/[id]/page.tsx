@@ -2,13 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Section from "@/components/shared/section";
 import {
   Home,
@@ -17,10 +11,11 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Link,
+  User,
+  DollarSign,
 } from "lucide-react";
 import axios from "axios";
-import { Application, Document } from "@prisma/client";
+import { Application, Document, LoanStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { availableDocumentTypes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -34,6 +29,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { loanTypeLabels } from "@/components/shared/general.const";
+import {
+  getBackgroundColorLoanStatus,
+  getTextColorLoanStatus,
+} from "@/components/shared/chips";
+import LoaneeChat from "../components/LoaneeChat";
 
 export default function ApplicationPage({
   params,
@@ -51,9 +52,19 @@ export default function ApplicationPage({
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Chat States
-  const [messages, setMessages] = useState<any[]>([]);
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
+  const [messages, setMessages] = useState<
+    {
+      id: string;
+      content: string;
+      senderRole: string;
+      createdAt: string;
+      MessageRead: {
+        id: string;
+        userId: string;
+        readAt: string;
+      }[];
+    }[]
+  >([]);
 
   // Fetch Application + Messages
   useEffect(() => {
@@ -166,60 +177,313 @@ export default function ApplicationPage({
 
   return (
     <Section className="py-12 md:py-24">
-      <Card className="shadow-md">
-        <CardHeader className="border-b bg-muted/20">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div
+        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
+          application?.status === LoanStatus.IN_CHAT ? "h-auto lg:h-[88vh]" : ""
+        }`}
+      >
+        <div
+          className={`flex-1 space-y-8 ${
+            application?.status === LoanStatus.IN_CHAT
+              ? "overflow-y-auto lg:pr-4 mb-6"
+              : ""
+          }`}
+        >
+          <div className="flex justify-between gap-4 sticky top-0 bg-white z-10 pb-4">
             <div>
-              <CardTitle className="text-2xl">Mortgage Application</CardTitle>
-              <CardDescription className="mt-2">
-                Track your application progress and upload required documents
-              </CardDescription>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Application Details
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                ID: {application?.id}
+              </p>
             </div>
-            {application && (
-              <Badge
-                className={`mt-2 md:mt-0 ${getStatusColors(
-                  application.status
-                )}`}
-              >
-                {application.status}
-              </Badge>
-            )}
+            <Badge
+              className="px-3 py-1 text-sm font-medium"
+              style={{
+                color: getTextColorLoanStatus(application?.status),
+                backgroundColor: getBackgroundColorLoanStatus(
+                  application?.status
+                ),
+              }}
+            >
+              {application?.status.replace(/_/g, " ")}
+            </Badge>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-8 pt-6">
-          {application ? (
-            <>
-              {/* Application Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Application Details
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <Home className="w-4 h-4 text-primary" />
+
+          {/* Cards Section */}
+          <div className="grid grid-cols-1 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Personal Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    Personal Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-700">
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
                     <div>
-                      <p className="text-sm font-medium">
-                        Application ID:{" "}
-                        <span className="font-mono">{application.id}</span>
+                      <span className="text-gray-500">Name</span>
+                      <p className="font-medium">
+                        {application?.firstName} {application?.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Date of Birth</span>
+                      <p className="font-medium">
+                        {new Date(
+                          application?.dateOfBirth
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Current Address</span>
+                      <p className="font-medium">
+                        {application?.currentAddress}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Previous Address</span>
+                      <p className="font-medium">
+                        {application?.previousAddress || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">
+                        Years at Current Address
+                      </span>
+                      <p className="font-medium">
+                        {application?.yearsAtCurrentAddress}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Housing Status</span>
+                      <p className="font-medium">
+                        {application?.housingStatus}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Housing Payment</span>
+                      <p className="font-medium">
+                        ${Number(application?.housingPayment).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Canadian Status</span>
+                      <p className="font-medium">
+                        {application?.residencyStatus}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Marital Status</span>
+                      <p className="font-medium">
+                        {application?.maritalStatus}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Phone</span>
+                      <p className="font-medium">
+                        {application?.personalPhone}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Email</span>
+                      <p className="font-medium">
+                        {application?.personalEmail}
                       </p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Submitted on:{" "}
-                      {new Date(application.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* Documents */}
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">
+              {/* Financial Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-blue-600" />
+                    Financial Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-700">
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                    <div>
+                      <span className="text-gray-500">Gross Income</span>
+                      <p className="font-medium">
+                        ${Number(application?.grossIncome).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Monthly Debts</span>
+                      <p className="font-medium">
+                        ${Number(application?.monthlyDebts).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Savings</span>
+                      <p className="font-medium">
+                        ${Number(application?.savings).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Other Income</span>
+                      <p className="font-medium">
+                        {application?.otherIncome ? "Yes" : "No"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Child Care Benefit</span>
+                      <p className="font-medium">
+                        {application?.childCareBenefit ? "Yes" : "No"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">SIN</span>
+                      <p className="font-medium">{application?.sin || "N/A"}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Has Bankruptcy?</span>
+                      <p className="font-medium">
+                        {application?.hasBankruptcy ? "Yes" : "No"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Loan Amount</span>
+                      <p className="font-medium">
+                        ${Number(application?.loanAmount).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Loan Type</span>
+                      <p className="font-medium">
+                        {loanTypeLabels[application?.loanType]}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Loan Purpose</span>
+                      <p className="font-medium">
+                        {application?.loanPurpose || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Property & Mortgage Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Home className="w-5 h-5 text-blue-600" />
+                    Property & Mortgage Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-700">
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                    <div>
+                      <span className="text-gray-500">Mortgage Type</span>
+                      <p className="font-medium">
+                        {application?.mortgageType || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Property Type</span>
+                      <p className="font-medium">
+                        {application?.houseType || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">
+                        Estimated Property Value
+                      </span>
+                      <p className="font-medium">
+                        {application?.estimatedPropertyValue
+                          ? `$${Number(
+                              application.estimatedPropertyValue
+                            ).toLocaleString()}`
+                          : "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Down Payment</span>
+                      <p className="font-medium">
+                        {application?.downPayment || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">
+                        Trade-in Current Vehicle
+                      </span>
+                      <p className="font-medium">
+                        {application?.tradeInCurrentVehicle ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Co-applicant Details */}
+              {application?.hasCoApplicant && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="w-5 h-5 text-blue-600" />
+                      Co-applicant Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm text-gray-700">
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div>
+                        <span className="text-gray-500">Name</span>
+                        <p className="font-medium">
+                          {application.coApplicantFullName || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Date of Birth</span>
+                        <p className="font-medium">
+                          {application.coApplicantDateOfBirth
+                            ? new Date(
+                                application.coApplicantDateOfBirth
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Address</span>
+                        <p className="font-medium">
+                          {application.coApplicantAddress || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Phone</span>
+                        <p className="font-medium">
+                          {application.coApplicantPhone || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Email</span>
+                        <p className="font-medium">
+                          {application.coApplicantEmail || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Documents */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
                   Required Documents
-                </h3>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
-                  {application.documents.map((doc) => (
+                  {application?.documents.map((doc) => (
                     <div
                       key={doc.id}
                       className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${
@@ -323,110 +587,19 @@ export default function ApplicationPage({
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Chat Section */}
-              {application.status === "IN_CHAT" && (
-                <div className="mt-8 w-full md:w-2/3 mx-auto bg-white rounded-lg shadow-md flex flex-col relative">
-                  {/* Chat Header */}
-                  <div className="p-4 border-b font-semibold text-gray-700">
-                    Chat with Lender
-                  </div>
-
-                  {/* Messages */}
-                  <div className="flex-1 p-4 overflow-y-auto text-gray-600">
-                    <div className="space-y-2">
-                      {messages.length === 0 ? (
-                        <p className="text-gray-500 text-center">
-                          No messages yet...
-                        </p>
-                      ) : (
-                        messages.map((msg) => {
-                          const isOwnMessage =
-                            msg.senderId === session?.user?.id;
-
-                          return (
-                            <div
-                              key={msg.id}
-                              className={`p-2 rounded-md max-w-[80%] ${
-                                isOwnMessage
-                                  ? "bg-purple-100 ml-auto text-right"
-                                  : "bg-blue-100 mr-auto text-left"
-                              }`}
-                            >
-                              <p className="text-sm font-medium">
-                                {msg.content}
-                              </p>
-                              <span className="block text-xs text-gray-500 mt-1">
-                                {msg.senderRole} •{" "}
-                                {new Date(msg.createdAt).toLocaleTimeString(
-                                  [],
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Chat Input */}
-                  <div className="p-4 border-t flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Type a message..."
-                      className="flex-1 border rounded-md px-3 py-2 text-sm"
-                      disabled={application.status !== "IN_CHAT"}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                    />
-                    <Button
-                      variant="default"
-                      disabled={sending || !message.trim()}
-                      onClick={async () => {
-                        if (!message.trim()) return;
-                        try {
-                          setSending(true);
-                          const res = await axios.post("/api/messages", {
-                            content: message,
-                            applicationId: id,
-                          });
-                          setMessages((prev) => [...prev, res.data]);
-                          setMessage("");
-                        } catch (error) {
-                          console.error("Error sending message:", error);
-                        } finally {
-                          setSending(false);
-                        }
-                      }}
-                    >
-                      {sending ? "..." : "Send"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-xl font-medium text-muted-foreground">
-                No application found
-              </p>
-              <p className="text-muted-foreground mt-2">
-                The application you&apos;re looking for doesn&apos;t exist or
-                you don&apos;t have permission to view it.
-              </p>
-              <Button className="mt-6" asChild>
-                <Link href="/applications">View All Applications</Link>
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        {application?.status === "IN_CHAT" && (
+          <LoaneeChat
+            application={application}
+            applicationId={application.id}
+            messages={messages}
+            setMessages={setMessages}
+          />
+        )}
+      </div>
     </Section>
   );
 }
