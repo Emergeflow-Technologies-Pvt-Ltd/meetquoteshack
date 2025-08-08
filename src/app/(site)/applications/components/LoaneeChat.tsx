@@ -26,7 +26,7 @@ const LoaneeChat: React.FC<LoaneeChatProps> = ({
         content: message,
         applicationId,
       });
-      setMessages((prev) => [...prev, res.data]);
+      setMessages([...messages, res.data]);
       setMessage("");
       toast({ title: "Message Sent" });
     } catch (error) {

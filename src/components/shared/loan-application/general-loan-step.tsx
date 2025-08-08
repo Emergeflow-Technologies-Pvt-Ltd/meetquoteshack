@@ -103,7 +103,15 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
               <FormItem>
                 <FormLabel>Date of Birth</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    type="date"
+                    {...field}
+                    value={
+                      field.value
+                        ? new Date(field.value).toISOString().split("T")[0]
+                        : ""
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

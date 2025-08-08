@@ -58,7 +58,8 @@ const LenderChat: React.FC<LenderChatProps> = ({
         content: message,
         applicationId,
       });
-      setMessages((prev) => [...prev, res.data]);
+      setMessages([...messages, res.data]);
+
       toast({ title: "Message Sent" });
 
       // Request documents if any selected

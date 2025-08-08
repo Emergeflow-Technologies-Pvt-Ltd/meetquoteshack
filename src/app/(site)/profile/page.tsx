@@ -141,7 +141,7 @@ export default async function ProfilePage() {
                               <Badge
                                 className={getStatusColors(application.status)}
                               >
-                                {application.status === LoanStatus.ACCEPTED && (
+                                {application.status === LoanStatus.APPROVED && (
                                   <CheckCircle className="w-3 h-3 mr-1" />
                                 )}
                                 {application.status === LoanStatus.REJECTED && (

@@ -150,6 +150,17 @@ export default function ApplicationPage({ params }: Props) {
       });
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <span className="text-gray-600">Loading application details...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (!application) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">

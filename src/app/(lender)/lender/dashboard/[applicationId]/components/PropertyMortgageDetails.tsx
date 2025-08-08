@@ -6,11 +6,11 @@ import { Home } from "lucide-react";
 
 interface PropertyMortgageDetailsProps {
   application: {
-    mortgageType?: string;
-    houseType?: string;
-    estimatedPropertyValue?: number;
-    downPayment?: string;
-    tradeInCurrentVehicle: boolean;
+    mortgageType?: string | null;
+    houseType?: string | null;
+    estimatedPropertyValue?: number | null;
+    downPayment?: string | null;
+    tradeInCurrentVehicle?: boolean;
   };
 }
 
