@@ -3,13 +3,13 @@ import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
   function middleware(req) {
-    if(req.nextUrl.pathname.startsWith('/admin')){
-      if(req.nextauth.token?.role !== UserRole.ADMIN){
+    if (req.nextUrl.pathname.startsWith('/admin')) {
+      if (req.nextauth.token?.role !== UserRole.ADMIN) {
         return Response.redirect(new URL('/', req.nextUrl));
       }
     }
-    if(req.nextUrl.pathname.startsWith('/lender')){
-      if(req.nextauth.token?.role !== UserRole.LENDER){
+    if (req.nextUrl.pathname.startsWith('/lender')) {
+      if (req.nextauth.token?.role !== UserRole.LENDER) {
         return Response.redirect(new URL('/', req.nextUrl));
       }
     }
@@ -20,16 +20,19 @@ export default withAuth(
         return !!token;
       },
     },
+    pages: {
+      signIn: "/admin/login"
+    }
   }
 );
 
 export const config = {
   matcher: [
-    "/profile", 
+    "/profile",
     "/admin/:path*",
     "/applications/:path*",
     "/apply/mortgage",
-    "/apply/general", 
+    "/apply/general",
     "/lender/dashboard",
     "/lender/applications",
   ],

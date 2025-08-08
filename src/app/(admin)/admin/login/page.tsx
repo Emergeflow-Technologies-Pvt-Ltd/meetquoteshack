@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,13 +26,13 @@ const LenderLoginSchema = z.object({
 
 type LenderLoginProps = z.infer<typeof LenderLoginSchema>;
 
-export default function LenderLogin() {
+export default function AdminLogin() {
   const router = useRouter();
   const { status } = useSession();
 
   React.useEffect(() => {
     if (status === "authenticated") {
-      router.push("/lender/dashboard");
+      router.push("/admin");
     }
   }, [status, router]);
 
@@ -55,48 +54,40 @@ export default function LenderLogin() {
     });
 
     if (result?.error) {
+      console.error("Login error:", result.error);
       toast({
-        title: "Login Failed",
-        description: "Invalid email or password.",
+        title: "Error",
+        description: "Invalid email or password",
         variant: "destructive",
       });
-    } else if (result?.ok) {
-      window.location.href = "/lender/applications";
+    } else {
+      window.location.href = "/admin";
     }
   };
 
   return (
-    <Section className="mt-24">
+    <Section className="mt-20">
       <div className="max-w-md mx-auto">
-        <Card className="p-8 shadow-xl rounded-2xl border border-gray-100 bg-white">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
-              Lender Login
+        <Card className="p-6">
+          <CardHeader className="mb-8">
+            <CardTitle className="text-center text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+              Admin Login
             </CardTitle>
-            <p className="mt-4 text-sm text-gray-500">
-              Sign in to manage loan applications and offers.
-            </p>
           </CardHeader>
-
-          <CardContent className="mt-6">
+          <CardContent>
             <Form {...form}>
               <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex flex-col gap-5"
+                className="flex flex-col gap-6"
               >
                 <FormField
                   control={control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email address</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="you@example.com"
-                          {...field}
-                          className="h-10"
-                        />
+                        <Input placeholder="john@example.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -112,9 +103,8 @@ export default function LenderLogin() {
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="Enter your password"
                           {...field}
-                          className="h-10"
                         />
                       </FormControl>
                       <FormMessage />
@@ -124,7 +114,7 @@ export default function LenderLogin() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-medium py-6 rounded-lg transition-all duration-300"
                 >
                   Login
                 </Button>

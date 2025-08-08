@@ -1,13 +1,21 @@
 import {
+  DownPayment,
   EducationLevel,
   EmploymentStatus,
   HousingStatus,
+  LoanType,
   MaritalStatus,
+  PropertyType,
   ResidencyStatus,
 } from "@prisma/client";
 import * as z from "zod";
 
 export const generalLoanFormSchema = z.object({
+  // Step 0: Type of Application
+  loanType: z.nativeEnum(LoanType, {
+    required_error: "Please select a loan type",
+  }),
+
   // Step 1: Eligibility Check
   isAdult: z
     .boolean({
@@ -54,8 +62,8 @@ export const generalLoanFormSchema = z.object({
   residencyStatus: z.nativeEnum(ResidencyStatus),
 
   // Step 4: Education Details
-  generalEducationLevel: z.nativeEnum(EducationLevel),
-  generalFieldOfStudy: z.string().min(1, "Field of study is required"),
+  generalEducationLevel: z.nativeEnum(EducationLevel).optional(),
+  generalFieldOfStudy: z.string().min(1, "Field of study is required").optional(),
 
   // Step 5: Employment Details
   employmentStatus: z.nativeEnum(EmploymentStatus),
@@ -66,9 +74,46 @@ export const generalLoanFormSchema = z.object({
   workplaceAddress: z.string().min(1, "Workplace address is required"),
   workplacePhone: z.string().min(10, "Please enter a valid workplace phone"),
   workplaceEmail: z.string().email("Please enter a valid workplace email"),
+  workplaceDuration: z
+    .number()
+    .min(1, "Please enter your workplace duration in years"),
 
   // Step 6: Loan Details
   loanAmount: z.number().min(1, "Please specify how much you need in CAD"),
+  previousAddress: z.string().min(1, "Previous address is required").optional(),
+  estimatedPropertyValue: z.number().min(1).optional(),
+  propertyType: z.nativeEnum(PropertyType).optional(),
+  downPayment: z.nativeEnum(DownPayment).optional(),
+  tradeInCurrentVehicle: z.boolean().optional(),
+  sin: z
+    .string()
+    .min(9, "SIN must be at least 9 digits").optional(),
+  hasCoApplicant: z.boolean(),
+  coApplicantFullName: z.string().optional(),
+  coApplicantDateOfBirth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .transform((str) => new Date(str))
+    .refine((date) => !isNaN(date.getTime()), {
+      message: "Invalid date",
+    })
+    .optional(),
+
+  coApplicantAddress: z.string().optional(),
+  coApplicantPhone: z
+    .string()
+    .optional(),
+  coApplicantEmail: z.string().email().optional(),
+  monthlyDebts: z.coerce.number().min(0, "Please enter your monthly debts in CAD"),
+  savings: z.coerce.number().min(0, "Please enter your savings in CAD"),
+
+  otherIncome: z.boolean({
+    required_error: "Please specify if you have other income",
+  }),
+  childCareBenefit: z.boolean({
+    required_error: "Please specify if you receive child care benefit",
+  }),
 });
+
 
 export type GeneralLoanFormValues = z.infer<typeof generalLoanFormSchema>;

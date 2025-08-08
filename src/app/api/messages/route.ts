@@ -61,3 +61,36 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const applicationId = searchParams.get("applicationId");
+
+    if (!applicationId) {
+      return NextResponse.json(
+        { error: "applicationId is required" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch all messages for the application
+    const messages = await prisma.message.findMany({
+      where: { applicationId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return NextResponse.json(messages);
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    return NextResponse.json(
+      { error: "Error fetching messages" },
+      { status: 500 }
+    );
+  }
+}

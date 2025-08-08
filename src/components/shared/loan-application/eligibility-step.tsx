@@ -8,11 +8,10 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import type { UseFormReturn } from "react-hook-form";
-import type { GeneralLoanFormValues } from "@/app/apply/general/types";
-import type { MortgageLoanFormValues } from "@/app/apply/mortgage/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
 
 interface EligibilityStepProps {
-  form: UseFormReturn<GeneralLoanFormValues | MortgageLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues>;
 }
 
 export function EligibilityStep({ form }: EligibilityStepProps) {

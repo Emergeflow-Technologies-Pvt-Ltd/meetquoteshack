@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import prisma from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const id = (await params).id;
 
     if (!session?.user?.email) {
@@ -21,18 +22,27 @@ export async function GET(
     const application = await prisma.application.findUnique({
       where: {
         id: id,
-        userId: session.user.id
+        status: { in: ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT"] }
       },
       include: {
         documents: true
       }
     });
 
+
+    const lenderList = await prisma.lender.findMany({
+      select: {
+        name: true,
+        id: true
+      }
+
+    });
+
     if (!application) {
-      return new NextResponse("Not found", { status: 404 }); 
+      return new NextResponse("Not found", { status: 404 });
     }
 
-    return NextResponse.json(application);
+    return NextResponse.json({ application, lenderList });
 
   } catch (error) {
     console.error("[APPLICATION_GET]", error);
@@ -40,9 +50,9 @@ export async function GET(
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string; lenderId?: string; }>; }) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const id = (await params).id;
 
     if (!session?.user?.email) {
@@ -50,12 +60,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const body = await request.json();
-    const { fileName, fileKey, fileUrl, docId, status } = body;
+    const { fileName, fileKey, fileUrl, docId, status, lenderId } = body;
 
     const application = await prisma.application.findUnique({
       where: {
         id: id,
-        userId: status ? undefined : session.user.id // Allow admin to update status
+
       },
       include: {
         documents: true
@@ -70,9 +80,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       // Handle status update (admin only)
       const updatedApplication = await prisma.application.update({
         where: { id },
-        data: { status }
+        data: {
+          status,
+          // Connect to particular lender based on userId
+          lender: {
+            connect: {
+              id: lenderId
+            }
+          }
+        }
       });
       return NextResponse.json(updatedApplication);
+
     } else {
       // Handle document update
       const updatedDoc = await prisma.document.update({
@@ -81,7 +100,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         },
         data: {
           fileName,
-          fileKey, 
+          fileKey,
           fileUrl,
           status: "UPLOADED"
         }

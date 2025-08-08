@@ -6,12 +6,12 @@ import prisma from "@/lib/db";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
   const id = (await params).id;
   try {
     const session = await getServerSession(authOptions);
-    if (session?.user?.role !== UserRole.ADMIN) {
+    if (session?.user?.role !== UserRole.ADMIN && session?.user?.role !== UserRole.LENDER) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -43,7 +43,7 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
   const applicationId = (await params).id;
   const { documentId } = await request.json();

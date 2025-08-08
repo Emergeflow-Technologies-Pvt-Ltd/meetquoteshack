@@ -1,13 +1,18 @@
 export const formSteps = [
   {
     id: "eligibility",
-    title: "Eligibility Check", 
+    title: "Eligibility Check",
     description: "Basic eligibility requirements",
   },
   {
+    id: "type",
+    title: " Application Type",
+    description: "What type of loan are you applying for?",
+  },
+  {
     id: "personal",
-    title: "Personal Information",
-    description: "Your personal and contact details",
+    title: "Employment Details",
+    description: "Your current workplace details details",
   },
   {
     id: "residence",
