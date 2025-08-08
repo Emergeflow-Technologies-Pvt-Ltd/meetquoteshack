@@ -15,6 +15,10 @@ import {
   loanTypeLabels,
 } from "@/components/shared/general.const";
 import LenderChat from "./components/LenderChat";
+import PersonalDetails from "./components/PersonalDetails";
+import FinancialOverview from "./components/FinancialOverview";
+import PropertyMortgageDetails from "./components/PropertyMortgageDetails";
+import CoApplicantDetails from "./components/CoApplicantDetails";
 
 type Document = {
   id: string;
@@ -207,6 +211,26 @@ export default function ApplicationDetailsPage({
               <p className="mt-1 text-sm text-gray-500">ID: {application.id}</p>
             </div>
 
+            {(application.status === LoanStatus.IN_PROGRESS ||
+              application.status === LoanStatus.IN_CHAT) && (
+              <div className="flex space-x-4">
+                <Button
+                  variant="default"
+                  onClick={handleAcceptApplication}
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Approve Loan"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleAcceptApplication}
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Reject Loan"}
+                </Button>
+              </div>
+            )}
+
             {/* Hide Accept button if IN_PROGRESS */}
             {application.status !== LoanStatus.IN_PROGRESS &&
               application.status !== LoanStatus.IN_CHAT && (
@@ -224,251 +248,20 @@ export default function ApplicationDetailsPage({
           <div className="grid grid-cols-1 gap-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Personal Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-600" />
-                    Personal Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                    <div>
-                      <span className="text-gray-500">Name</span>
-                      <p className="font-medium">
-                        {application.firstName} {application.lastName}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Date of Birth</span>
-                      <p className="font-medium">
-                        {new Date(application.dateOfBirth).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Current Address</span>
-                      <p className="font-medium">
-                        {application.currentAddress}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Previous Address</span>
-                      <p className="font-medium">
-                        {application.previousAddress || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">
-                        Years at Current Address
-                      </span>
-                      <p className="font-medium">
-                        {application.yearsAtCurrentAddress}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Housing Status</span>
-                      <p className="font-medium">{application.housingStatus}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Housing Payment</span>
-                      <p className="font-medium">
-                        ${Number(application.housingPayment).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Canadian Status</span>
-                      <p className="font-medium">
-                        {application.residencyStatus}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Marital Status</span>
-                      <p className="font-medium">{application.maritalStatus}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Phone</span>
-                      <p className="font-medium">{application.personalPhone}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Email</span>
-                      <p className="font-medium">{application.personalEmail}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <PersonalDetails application={application} />
 
               {/* Financial Overview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
-                    Financial Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                    <div>
-                      <span className="text-gray-500">Gross Income</span>
-                      <p className="font-medium">
-                        ${Number(application.grossIncome).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Monthly Debts</span>
-                      <p className="font-medium">
-                        ${Number(application.monthlyDebts).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Savings</span>
-                      <p className="font-medium">
-                        ${Number(application.savings).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Other Income</span>
-                      <p className="font-medium">
-                        {application.otherIncome ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Child Care Benefit</span>
-                      <p className="font-medium">
-                        {application.childCareBenefit ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">SIN</span>
-                      <p className="font-medium">{application.sin || "N/A"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Has Bankruptcy?</span>
-                      <p className="font-medium">
-                        {application.hasBankruptcy ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Loan Amount</span>
-                      <p className="font-medium">
-                        ${Number(application.loanAmount).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Loan Type</span>
-                      <p className="font-medium">
-                        {loanTypeLabels[application.loanType]}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Loan Purpose</span>
-                      <p className="font-medium">
-                        {application.loanPurpose || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <FinancialOverview
+                application={application}
+                loanTypeLabels={loanTypeLabels}
+              />
 
               {/* Property & Mortgage Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Home className="w-5 h-5 text-blue-600" />
-                    Property & Mortgage Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                    <div>
-                      <span className="text-gray-500">Mortgage Type</span>
-                      <p className="font-medium">
-                        {application.mortgageType || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Property Type</span>
-                      <p className="font-medium">
-                        {application.houseType || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">
-                        Estimated Property Value
-                      </span>
-                      <p className="font-medium">
-                        {application.estimatedPropertyValue
-                          ? `$${Number(
-                              application.estimatedPropertyValue
-                            ).toLocaleString()}`
-                          : "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Down Payment</span>
-                      <p className="font-medium">
-                        {application.downPayment || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">
-                        Trade-in Current Vehicle
-                      </span>
-                      <p className="font-medium">
-                        {application.tradeInCurrentVehicle ? "Yes" : "No"}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <PropertyMortgageDetails application={application} />
 
               {/* Co-applicant Details */}
               {application.hasCoApplicant && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-blue-600" />
-                      Co-applicant Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm text-gray-700">
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                      <div>
-                        <span className="text-gray-500">Name</span>
-                        <p className="font-medium">
-                          {application.coApplicantFullName || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Date of Birth</span>
-                        <p className="font-medium">
-                          {application.coApplicantDateOfBirth
-                            ? new Date(
-                                application.coApplicantDateOfBirth
-                              ).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Address</span>
-                        <p className="font-medium">
-                          {application.coApplicantAddress || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Phone</span>
-                        <p className="font-medium">
-                          {application.coApplicantPhone || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Email</span>
-                        <p className="font-medium">
-                          {application.coApplicantEmail || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CoApplicantDetails application={application} />
               )}
             </div>
 
