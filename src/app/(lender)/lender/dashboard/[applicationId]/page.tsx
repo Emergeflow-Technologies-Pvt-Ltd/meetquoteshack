@@ -3,99 +3,19 @@
 import { useEffect, useState, use } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, DollarSign, FileText, Home, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 import Section from "@/components/shared/section";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { LoanStatus } from "@prisma/client";
+import { DocumentType, LoanStatus, Prisma } from "@prisma/client";
 import { toast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
-import {
-  documentTypeLabels,
-  loanTypeLabels,
-} from "@/components/shared/general.const";
+import { documentTypeLabels } from "@/components/shared/general.const";
 import LenderChat from "./components/LenderChat";
 import PersonalDetails from "./components/PersonalDetails";
 import FinancialOverview from "./components/FinancialOverview";
 import PropertyMortgageDetails from "./components/PropertyMortgageDetails";
 import CoApplicantDetails from "./components/CoApplicantDetails";
-
-type Document = {
-  id: string;
-  documentType: string;
-  status: string;
-  fileUrl: string | null;
-};
-
-type Application = {
-  id: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-
-  // Address and residency
-  currentAddress: string;
-  previousAddress?: string;
-  yearsAtCurrentAddress: number;
-  residencyStatus: string;
-
-  // Personal info
-  dateOfBirth: string;
-  maritalStatus: string;
-  personalPhone: string;
-  personalEmail: string;
-  hasBankruptcy: boolean;
-
-  // Housing info
-  housingStatus: string;
-  housingPayment: number;
-
-  // Employment info
-  employmentStatus: string;
-  workplaceName: string;
-  workplaceAddress: string;
-  workplacePhone: string;
-  workplaceEmail: string;
-  workplaceDuration: number;
-
-  // Financials
-  grossIncome: number;
-  monthlyDebts: number;
-  savings: number;
-  otherIncome: boolean;
-  childCareBenefit: boolean;
-  sin?: number;
-
-  // Co-applicant
-  hasCoApplicant: boolean;
-  coApplicantFullName?: string;
-  coApplicantDateOfBirth?: string;
-  coApplicantAddress?: string;
-  coApplicantPhone?: number;
-  coApplicantEmail?: string;
-
-  // Loan details
-  loanType: string;
-  loanAmount: number;
-  loanPurpose?: string | null;
-  mortgageType?: string | null;
-  estimatedPropertyValue?: number;
-  houseType?: string | null;
-  downPayment?: string | null;
-  tradeInCurrentVehicle?: boolean;
-
-  // General loans
-  generalEducationLevel?: string | null;
-  generalFieldOfStudy?: string | null;
-
-  // Status
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-
-  // Relations
-  documents: Document[];
-};
 
 export default function ApplicationDetailsPage({
   params,
@@ -103,13 +23,18 @@ export default function ApplicationDetailsPage({
   params: Promise<{ applicationId: string }>;
 }) {
   const router = useRouter();
-  const [application, setApplication] = useState<Application | null>(null);
+  const [application, setApplication] = useState<Prisma.ApplicationGetPayload<{
+    include: {
+      documents: true;
+      messages: true;
+    };
+  }> | null>(null);
   const [loading, setLoading] = useState(false);
   const { applicationId } = use(params);
   const { data: session } = useSession();
-  const [messages, setMessages] = useState<
-    { id: string; content: string; senderRole: string; createdAt: string }[]
-  >([]);
+  const [messages, setMessages] = useState<Prisma.MessageGetPayload<object>[]>(
+    []
+  );
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -179,9 +104,9 @@ export default function ApplicationDetailsPage({
   const submittedTypes = new Set(
     application.documents.map((doc) => doc.documentType)
   );
-  const missingDocumentTypes = Object.keys(documentTypeLabels).filter(
-    (type) => !submittedTypes.has(type)
-  );
+  const missingDocumentTypes = (
+    Object.keys(documentTypeLabels) as unknown as DocumentType[]
+  ).filter((type) => !submittedTypes.has(type as DocumentType));
 
   return (
     <Section className="py-12">
@@ -251,10 +176,7 @@ export default function ApplicationDetailsPage({
               <PersonalDetails application={application} />
 
               {/* Financial Overview */}
-              <FinancialOverview
-                application={application}
-                loanTypeLabels={loanTypeLabels}
-              />
+              <FinancialOverview application={application} />
 
               {/* Property & Mortgage Details */}
               <PropertyMortgageDetails application={application} />

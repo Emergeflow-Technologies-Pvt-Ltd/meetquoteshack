@@ -1,13 +1,15 @@
+"use client";
 import React, { useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import type { Message, Application } from "@prisma/client";
 
 interface LoaneeChatProps {
-  application: any;
+  application: Application | null;
   applicationId: string;
-  messages: any[];
-  setMessages: (msgs: any[]) => void;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const LoaneeChat: React.FC<LoaneeChatProps> = ({

@@ -137,6 +137,7 @@ export default function GeneralLoanForm() {
       }
       return false;
     } catch (error) {
+      console.log(error);
       toast({
         title: "Error",
         description: "An error occurred during validation",
@@ -174,10 +175,23 @@ export default function GeneralLoanForm() {
 
       // Redirect on success
       router.push("/loan-application/success");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let description = "Failed to submit form";
+
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { error?: string } } }).response
+          ?.data?.error === "string"
+      ) {
+        description = (error as { response: { data: { error: string } } })
+          .response.data.error;
+      }
+
       toast({
         title: "Submission Error",
-        description: error.response?.data?.error || "Failed to submit form",
+        description,
         variant: "destructive",
       });
     } finally {
