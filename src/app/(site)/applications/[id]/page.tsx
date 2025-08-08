@@ -201,9 +201,11 @@ export default function ApplicationPage({
             <Badge
               className="px-3 py-1 text-sm font-medium"
               style={{
-                color: getTextColorLoanStatus(application?.status),
+                color: getTextColorLoanStatus(
+                  application?.status as LoanStatus
+                ),
                 backgroundColor: getBackgroundColorLoanStatus(
-                  application?.status
+                  application?.status as LoanStatus
                 ),
               }}
             >
@@ -233,9 +235,11 @@ export default function ApplicationPage({
                     <div>
                       <span className="text-gray-500">Date of Birth</span>
                       <p className="font-medium">
-                        {new Date(
-                          application?.dateOfBirth
-                        ).toLocaleDateString()}
+                        {application?.dateOfBirth
+                          ? new Date(
+                              application.dateOfBirth
+                            ).toLocaleDateString()
+                          : "N/A"}
                       </p>
                     </div>
                     <div>
@@ -357,13 +361,9 @@ export default function ApplicationPage({
                     <div>
                       <span className="text-gray-500">Loan Type</span>
                       <p className="font-medium">
-                        {loanTypeLabels[application?.loanType]}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Loan Purpose</span>
-                      <p className="font-medium">
-                        {application?.loanPurpose || "N/A"}
+                        {application?.loanType
+                          ? loanTypeLabels[application.loanType]
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
@@ -380,12 +380,6 @@ export default function ApplicationPage({
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
                   <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                    <div>
-                      <span className="text-gray-500">Mortgage Type</span>
-                      <p className="font-medium">
-                        {application?.mortgageType || "N/A"}
-                      </p>
-                    </div>
                     <div>
                       <span className="text-gray-500">Property Type</span>
                       <p className="font-medium">

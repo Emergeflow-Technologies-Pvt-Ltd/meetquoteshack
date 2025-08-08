@@ -11,11 +11,11 @@ interface FinancialOverviewProps {
     savings: number;
     otherIncome: boolean;
     childCareBenefit: boolean;
-    sin?: string;
+    sin?: number;
     hasBankruptcy: boolean;
     loanAmount: number;
     loanType: string;
-    loanPurpose?: string;
+    loanPurpose?: string | null;
   };
   loanTypeLabels: Record<string, string>;
 }

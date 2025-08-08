@@ -6,11 +6,11 @@ import { User } from "lucide-react";
 
 interface CoApplicantDetailsProps {
   application: {
-    coApplicantFullName?: string;
-    coApplicantDateOfBirth?: string | Date;
-    coApplicantAddress?: string;
-    coApplicantPhone?: string;
-    coApplicantEmail?: string;
+    coApplicantFullName?: string | null;
+    coApplicantDateOfBirth?: string | Date | null;
+    coApplicantAddress?: string | null;
+    coApplicantPhone?: string | number | null;
+    coApplicantEmail?: string | null;
   };
 }
 
