@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { LoanStatus } from "@prisma/client";
 
-export async function PATCH(request: Request, { params }: { params: { id: string; }; }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string; }>; }) {
     try {
 
 
@@ -15,7 +15,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        const { id } = params;
+        const resolvedParams = await params;  // await the Promise here
+        const id = resolvedParams.id;          // then access id
 
         const application = await prisma.application.findUnique({
             where: { id },

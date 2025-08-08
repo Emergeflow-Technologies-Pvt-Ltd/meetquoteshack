@@ -25,7 +25,8 @@ export async function GET(
         status: { in: ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT"] }
       },
       include: {
-        documents: true
+        documents: true,
+        messages: true
       }
     });
 

@@ -4,25 +4,20 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DollarSign } from "lucide-react";
 
+import { Prisma } from "@prisma/client";
+import { loanTypeLabels } from "@/components/shared/general.const";
+
 interface FinancialOverviewProps {
-  application: {
-    grossIncome: number;
-    monthlyDebts: number;
-    savings: number;
-    otherIncome: boolean;
-    childCareBenefit: boolean;
-    sin?: number;
-    hasBankruptcy: boolean;
-    loanAmount: number;
-    loanType: string;
-    loanPurpose?: string | null;
-  };
-  loanTypeLabels: Record<string, string>;
+  application: Prisma.ApplicationGetPayload<{
+    include: {
+      documents: true;
+      messages: true;
+    };
+  }> | null;
 }
 
 const FinancialOverview: React.FC<FinancialOverviewProps> = ({
   application,
-  loanTypeLabels,
 }) => {
   return (
     <Card>
@@ -34,33 +29,36 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-gray-700">
         <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-          <InfoRow label="Gross Income" value={`$${application.grossIncome}`} />
+          <InfoRow
+            label="Gross Income"
+            value={`$${application?.grossIncome}`}
+          />
           <InfoRow
             label="Monthly Debts"
-            value={`$${application.monthlyDebts}`}
+            value={`$${application?.monthlyDebts}`}
           />
-          <InfoRow label="Savings" value={`$${application.savings}`} />
+          <InfoRow label="Savings" value={`$${application?.savings}`} />
           <InfoRow
             label="Other Income"
-            value={application.otherIncome ? "Yes" : "No"}
+            value={application?.otherIncome ? "Yes" : "No"}
           />
           <InfoRow
             label="Child Care Benefit"
-            value={application.childCareBenefit ? "Yes" : "No"}
+            value={application?.childCareBenefit ? "Yes" : "No"}
           />
-          <InfoRow label="SIN" value={application.sin || "N/A"} />
+          <InfoRow label="SIN" value={application?.sin || "N/A"} />
           <InfoRow
             label="Has Bankruptcy?"
-            value={application.hasBankruptcy ? "Yes" : "No"}
+            value={application?.hasBankruptcy ? "Yes" : "No"}
           />
-          <InfoRow label="Loan Amount" value={`$${application.loanAmount}`} />
+          <InfoRow label="Loan Amount" value={`$${application?.loanAmount}`} />
           <InfoRow
             label="Loan Type"
-            value={loanTypeLabels[application.loanType]}
-          />
-          <InfoRow
-            label="Loan Purpose"
-            value={application.loanPurpose || "N/A"}
+            value={
+              application?.loanType
+                ? loanTypeLabels[application.loanType]
+                : "N/A"
+            }
           />
         </div>
       </CardContent>
@@ -73,7 +71,7 @@ const InfoRow = ({
   value,
 }: {
   label: string;
-  value: string | number;
+  value: string | number | undefined;
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>

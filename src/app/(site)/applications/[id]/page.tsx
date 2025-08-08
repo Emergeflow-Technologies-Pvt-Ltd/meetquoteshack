@@ -15,7 +15,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import axios from "axios";
-import { Application, Document, LoanStatus } from "@prisma/client";
+import { Application, Document, LoanStatus, Message } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { availableDocumentTypes } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -52,19 +52,7 @@ export default function ApplicationPage({
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Chat States
-  const [messages, setMessages] = useState<
-    {
-      id: string;
-      content: string;
-      senderRole: string;
-      createdAt: string;
-      MessageRead: {
-        id: string;
-        userId: string;
-        readAt: string;
-      }[];
-    }[]
-  >([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   // Fetch Application + Messages
   useEffect(() => {
@@ -588,7 +576,7 @@ export default function ApplicationPage({
         {application?.status === "IN_CHAT" && (
           <LoaneeChat
             application={application}
-            applicationId={application.id}
+            applicationId={application ? application.id : ""} // fallback string
             messages={messages}
             setMessages={setMessages}
           />

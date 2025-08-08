@@ -3,15 +3,15 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Home } from "lucide-react";
+import { Prisma } from "@prisma/client";
 
 interface PropertyMortgageDetailsProps {
-  application: {
-    mortgageType?: string | null;
-    houseType?: string | null;
-    estimatedPropertyValue?: number | null;
-    downPayment?: string | null;
-    tradeInCurrentVehicle?: boolean;
-  };
+  application: Prisma.ApplicationGetPayload<{
+    include: {
+      documents: true;
+      messages: true;
+    };
+  }> | null;
 }
 
 const PropertyMortgageDetails: React.FC<PropertyMortgageDetailsProps> = ({
@@ -28,17 +28,13 @@ const PropertyMortgageDetails: React.FC<PropertyMortgageDetailsProps> = ({
       <CardContent className="space-y-3 text-sm text-gray-700">
         <div className="grid grid-cols-2 gap-y-2 gap-x-4">
           <InfoRow
-            label="Mortgage Type"
-            value={application.mortgageType || "N/A"}
-          />
-          <InfoRow
             label="Property Type"
-            value={application.houseType || "N/A"}
+            value={application?.houseType || "N/A"}
           />
           <InfoRow
             label="Estimated Property Value"
             value={
-              application.estimatedPropertyValue
+              application?.estimatedPropertyValue
                 ? `$${Number(
                     application.estimatedPropertyValue
                   ).toLocaleString()}`
@@ -47,11 +43,11 @@ const PropertyMortgageDetails: React.FC<PropertyMortgageDetailsProps> = ({
           />
           <InfoRow
             label="Down Payment"
-            value={application.downPayment || "N/A"}
+            value={application?.downPayment || "N/A"}
           />
           <InfoRow
             label="Trade-in Current Vehicle"
-            value={application.tradeInCurrentVehicle ? "Yes" : "No"}
+            value={application?.tradeInCurrentVehicle ? "Yes" : "No"}
           />
         </div>
       </CardContent>
@@ -64,7 +60,7 @@ const InfoRow = ({
   value,
 }: {
   label: string;
-  value: string | number;
+  value: string | number | undefined;
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>

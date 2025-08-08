@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import axios from "axios";
 import {
@@ -10,13 +11,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Prisma } from "@prisma/client";
 
 interface LenderChatProps {
-  application: any;
-  setApplication: (app: any) => void;
+  application: Prisma.ApplicationGetPayload<{
+    include: {
+      documents: true;
+      messages: true;
+    };
+  }>;
+  setApplication: React.Dispatch<
+    React.SetStateAction<Prisma.ApplicationGetPayload<{
+      include: {
+        documents: true;
+        messages: true;
+      };
+    }> | null>
+  >;
   applicationId: string;
-  messages: any[];
-  setMessages: (msgs: any[]) => void;
+  messages: Prisma.MessageGetPayload<object>[];
+  setMessages: React.Dispatch<
+    React.SetStateAction<Prisma.MessageGetPayload<object>[]>
+  >;
   missingDocumentTypes: string[];
   documentTypeLabels: Record<string, string>;
   LoanStatus: { IN_PROGRESS: string; IN_CHAT: string };
@@ -50,29 +66,32 @@ const LenderChat: React.FC<LenderChatProps> = ({
 
   const handleSendMessageAndMaybeRequestDocs = async () => {
     if (!message.trim()) return;
+
     try {
       setSending(true);
 
       // Send message
-      const res = await axios.post("/api/messages", {
+      const { data: newMessage } = await axios.post("/api/messages", {
         content: message,
         applicationId,
       });
-      setMessages([...messages, res.data]);
+      setMessages([...messages, newMessage]);
 
       toast({ title: "Message Sent" });
 
       // Request documents if any selected
       if (selectedDocs.length > 0 && application) {
-        const docRes = await axios.post(
+        const { data: newDocuments } = await axios.post(
           `/api/applications/${application.id}/documents`,
           { documentTypes: selectedDocs }
         );
-        setApplication((prev: any) =>
+
+        setApplication((prev) =>
           prev
-            ? { ...prev, documents: [...prev.documents, ...docRes.data] }
+            ? { ...prev, documents: [...prev.documents, ...newDocuments] }
             : null
         );
+
         setSelectedDocs([]);
       }
 
@@ -94,9 +113,9 @@ const LenderChat: React.FC<LenderChatProps> = ({
       await axios.patch(`/api/applications/${applicationId}/startchat`, {
         status: "IN_CHAT",
       });
-      setApplication((prev: any) =>
-        prev ? { ...prev, status: "IN_CHAT" } : prev
-      );
+
+      setApplication((prev) => (prev ? { ...prev, status: "IN_CHAT" } : null));
+
       toast({
         title: "Chat started",
         description: "You can now chat with the applicant",
