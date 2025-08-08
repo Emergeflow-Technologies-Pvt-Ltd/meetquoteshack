@@ -24,11 +24,10 @@ import {
 
 export default async function LenderPoolPage() {
   const session = await getServerSession(authOptions);
-  console.log("this======", session);
 
   const availableApplications = await prisma.application.findMany({
     where: {
-      status: LoanStatus.OPEN,
+      status: LoanStatus.ASSIGNED_TO_LENDER,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -36,11 +35,7 @@ export default async function LenderPoolPage() {
   const acceptedApplications = await prisma.application.findMany({
     where: {
       status: {
-        in: [
-          LoanStatus.ASSIGNED_TO_LENDER,
-          LoanStatus.IN_PROGRESS,
-          LoanStatus.IN_CHAT,
-        ],
+        in: [LoanStatus.IN_PROGRESS, LoanStatus.IN_CHAT],
       },
       lender: {
         userId: session?.user?.id,
@@ -55,13 +50,23 @@ export default async function LenderPoolPage() {
         Lender Dashboard
       </h1>
 
-      <Tabs defaultValue="available" className="w-full">
+      <Tabs defaultValue="assigned" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="available">Available Applications</TabsTrigger>
-          <TabsTrigger value="accepted">My Applications</TabsTrigger>
+          <TabsTrigger value="assigned">
+            Available Applications{" "}
+            <Badge variant="secondary" className="ml-2">
+              {availableApplications.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="accepted">
+            My Applications
+            <Badge variant="secondary" className="ml-2">
+              {acceptedApplications.length}
+            </Badge>
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="available">
+        <TabsContent value="assigned">
           {availableApplications.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
               {availableApplications.map((app) => (

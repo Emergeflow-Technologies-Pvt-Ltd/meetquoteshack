@@ -38,7 +38,11 @@ export default async function AdminPage() {
   const assignedApplications = await prisma.application.findMany({
     where: {
       status: {
-        in: [LoanStatus.ASSIGNED_TO_LENDER, LoanStatus.IN_PROGRESS],
+        in: [
+          LoanStatus.ASSIGNED_TO_LENDER,
+          LoanStatus.IN_PROGRESS,
+          LoanStatus.IN_CHAT,
+        ],
       },
     },
     orderBy: {
