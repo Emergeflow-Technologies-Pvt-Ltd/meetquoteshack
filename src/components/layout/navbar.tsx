@@ -1,7 +1,7 @@
 "use client";
 
-import { Menu } from "lucide-react";
-import React, { useState } from "react";
+import { Menu, Bell } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -35,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -46,12 +46,51 @@ import {
 } from "../ui/dialog";
 import ProfileIcon from "../assets/profile_icon.svg";
 import Image from "next/image";
+import axios from "axios";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<
+    Prisma.NotificationGetPayload<{ include: { application: true } }>[]
+  >([]);
+
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const userRole = session?.user?.role;
   const router = useRouter();
+  console.log(session?.user.id);
+
+  useEffect(() => {
+    const fetchUnreadNotifications = async () => {
+      try {
+        const { data } = await axios.get("/api/notifications");
+        console.log("Raw notifications from API:", data);
+
+        let filteredNotifications = data;
+
+        if (session?.user?.role === "LOANEE") {
+          filteredNotifications = data.filter(
+            (n: { type: string }) => n.type === "DOCUMENT_REQUEST"
+          );
+        } else if (session?.user?.role === "LENDER") {
+          filteredNotifications = data.filter(
+            (n: { type: string }) => n.type === "DOCUMENT_SUBMITTED"
+          );
+        }
+
+        setNotifications(filteredNotifications);
+      } catch (error) {
+        console.error("Error fetching unread notifications:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUnreadNotifications();
+  }, [session?.user?.role]);
+
+  const unreadCount = notifications.length;
 
   return (
     <header className="sticky top-2 lg:top-5 z-40">
@@ -228,16 +267,94 @@ export const Navbar = ({ session }: { session: Session | null }) => {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <div className="hidden lg:flex items-center gap-2">
-            {/* <ToggleTheme /> */}
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Show bell only if logged in */}
+            {session && (
+              <button
+                className="relative p-2 rounded-full hover:bg-accent"
+                onClick={() => setModalOpen(true)}
+              >
+                <Bell className="w-6 h-6" />
+                {!loading && unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
+              </button>
+            )}
+            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-blue-500" />
+                    Notifications
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="flex flex-col gap-3 mt-4">
+                  {notifications.length > 0 ? (
+                    notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
+                      >
+                        <div
+                          onClick={() =>
+                            router.push(`/applications/${n.applicationId}`)
+                          }
+                          className="flex flex-col"
+                        >
+                          <span className="font-medium text-sm">
+                            {n.type === "DOCUMENT_REQUEST"
+                              ? `Documents requested for Application ${n.applicationId}`
+                              : `Documents submitted for Application ${n.applicationId}`}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(n.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+
+                        {session?.user?.role === "LENDER" && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await axios.post(
+                                  `/api/notifications/markAsRead`,
+                                  {
+                                    notificationId: n.id,
+                                  }
+                                );
+                                setNotifications((prev) =>
+                                  prev.filter((notif) => notif.id !== n.id)
+                                );
+                              } catch (error) {
+                                console.error("Error marking as read:", error);
+                              }
+                            }}
+                            className="px-3 py-1 text-xs rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition"
+                            title="Mark as Read"
+                          >
+                            Mark as Read
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-6">
+                      No unread notifications
+                    </p>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Image
                     width={45}
                     src={ProfileIcon}
-                    alt={ProfileIcon}
-                    className="rounded-full"
+                    alt="Profile"
+                    className="rounded-full cursor-pointer"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>

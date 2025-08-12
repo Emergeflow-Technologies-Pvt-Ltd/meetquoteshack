@@ -45,7 +45,13 @@ export default function ApplicationPage({
   const { id } = use(params);
 
   const [application, setApplication] = useState<
-    (Application & { documents: Document[] }) | null
+    | (Application & {
+        documents: Document[];
+        lender?: {
+          user?: { id: string };
+        } | null;
+      })
+    | null
   >(null);
   const [loading, setLoading] = useState(true);
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
@@ -77,6 +83,8 @@ export default function ApplicationPage({
     fetchApplication();
   }, [session, id]);
 
+  const lenderUserId = application?.lender?.user?.id;
+
   const handleFileUpload = async (docId: string, file: File) => {
     if (!session?.user?.email) return;
 
@@ -104,15 +112,17 @@ export default function ApplicationPage({
           docId: docId,
         });
 
-        // Set progress to 100% when complete
+        await axios.post(`/api/notifications/submitted`, {
+          applicationId: id,
+          lenderUserId,
+        });
+
         setUploadProgress(100);
         clearInterval(progressInterval);
 
-        // Refresh application data
         const { data } = await axios.get(`/api/applications/${id}`);
         setApplication(data);
 
-        // Reset upload state after a short delay
         setTimeout(() => {
           setUploadingDocId(null);
           setUploadProgress(0);

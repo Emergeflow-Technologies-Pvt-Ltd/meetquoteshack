@@ -19,9 +19,19 @@ export async function PATCH(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        // Check if user is admin
+        // Check if user is lender
         if (session.user.role !== UserRole.LENDER) {
             return new NextResponse("Forbidden", { status: 403 });
+        }
+
+        // Get old status before update
+        const application = await prisma.application.findUnique({
+            where: { id },
+            select: { status: true },
+        });
+
+        if (!application) {
+            return new NextResponse("Application not found", { status: 404 });
         }
 
         // Update the status to IN_CHAT
@@ -32,12 +42,23 @@ export async function PATCH(
             },
         });
 
+        // Log status change in ApplicationStatusHistory
+        await prisma.applicationStatusHistory.create({
+            data: {
+                applicationId: id,
+                oldStatus: application.status,
+                newStatus: LoanStatus.IN_CHAT,
+                changedById: session.user.id,
+            },
+        });
+
         return NextResponse.json({
-            message: "Application rejected successfully",
+            message: "Application moved to IN_CHAT successfully",
             application: updatedApplication,
         });
     } catch (error) {
-        console.error("[APPLICATION_REJECT_PATCH]", error);
+        console.error("[APPLICATION_IN_CHAT_PATCH]", error);
         return new NextResponse("Internal error", { status: 500 });
     }
 }
+
