@@ -23,11 +23,31 @@ export async function PATCH(
             return new NextResponse("Forbidden", { status: 403 });
         }
 
+        // Get old status before update
+        const application = await prisma.application.findUnique({
+            where: { id },
+            select: { status: true },
+        });
+
+        if (!application) {
+            return new NextResponse("Application not found", { status: 404 });
+        }
+
         // Update the status to REJECTED
         const updatedApplication = await prisma.application.update({
             where: { id },
             data: {
                 status: LoanStatus.REJECTED,
+            },
+        });
+
+        // Log status change
+        await prisma.applicationStatusHistory.create({
+            data: {
+                applicationId: id,
+                oldStatus: application.status,
+                newStatus: LoanStatus.REJECTED,
+                changedById: session.user.id,
             },
         });
 
@@ -40,3 +60,4 @@ export async function PATCH(
         return new NextResponse("Internal error", { status: 500 });
     }
 }
+
