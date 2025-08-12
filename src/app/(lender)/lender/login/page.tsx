@@ -61,7 +61,7 @@ export default function LenderLogin() {
         variant: "destructive",
       });
     } else if (result?.ok) {
-      window.location.href = "/lender/applications";
+      window.location.href = "/lender/dashboard";
     }
   };
 

@@ -11,6 +11,7 @@ import {
   User,
   Document,
   DocumentType,
+  ApplicationStatusHistory,
 } from "@prisma/client";
 import { availableDocumentTypes } from "@/lib/constants";
 import {
@@ -42,6 +43,7 @@ type ApplicationWithUser = Application & {
   documentKey?: string;
   estimatedPropertyValue?: number;
   intendedPropertyAddress?: string;
+  applicationStatusHistory?: ApplicationStatusHistory[];
 };
 
 export default function ApplicationPage({ params }: Props) {
@@ -63,6 +65,7 @@ export default function ApplicationPage({ params }: Props) {
       .then(({ data }) => {
         setApplication(data.application);
         setLenders(data.lenderList);
+        console.log("=====", data.application);
 
         if (data.application.documents?.length > 0) {
           const urlMap = new Map<string, string>();
@@ -149,7 +152,7 @@ export default function ApplicationPage({ params }: Props) {
         console.error("Failed to remove document:", error);
       });
   };
-
+  console.log("this is the history===", application?.applicationStatusHistory);
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -419,6 +422,41 @@ export default function ApplicationPage({ params }: Props) {
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Status History</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {application.applicationStatusHistory &&
+                application.applicationStatusHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {application.applicationStatusHistory.map(
+                      (entry: ApplicationStatusHistory, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-start justify-between border-b border-gray-200 pb-2"
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {entry.oldStatus} → {entry.newStatus}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Changed by: {entry.changedById || "Unknown"}
+                            </p>
+                          </div>
+                          <p className="text-xs text-gray-400">
+                            {new Date(entry.changedAt).toLocaleString()}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No history available</p>
+                )}
               </CardContent>
             </Card>
           </div>

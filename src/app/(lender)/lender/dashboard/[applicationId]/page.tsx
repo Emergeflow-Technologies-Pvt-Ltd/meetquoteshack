@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { ChevronLeft, FileText } from "lucide-react";
 import Section from "@/components/shared/section";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -93,6 +93,54 @@ export default function ApplicationDetailsPage({
     }
   };
 
+  const handleRejectApplication = async () => {
+    setLoading(true);
+    try {
+      await axios.patch(`/api/applications/${applicationId}/accept`, {
+        status: LoanStatus.OPEN,
+        lenderId: session?.user?.id,
+      });
+      toast({
+        title: "Success",
+        description: "Application has been rejected",
+      });
+      router.push("/lender/dashboard");
+    } catch (error) {
+      console.error("Error accepting application:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject application",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveApplication = async () => {
+    setLoading(true);
+    try {
+      await axios.patch(`/api/applications/${applicationId}/accept`, {
+        status: LoanStatus.APPROVED,
+        lenderId: session?.user?.id,
+      });
+      toast({
+        title: "Success",
+        description: "Application has been approved",
+      });
+      router.push("/lender/dashboard");
+    } catch (error) {
+      console.error("Error accepting application:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve application",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!application) {
     return (
       <Section className="py-12">
@@ -128,12 +176,23 @@ export default function ApplicationDetailsPage({
           }`}
         >
           {/* Header + Accept Button */}
-          <div className="flex justify-between gap-4 sticky top-0 bg-white z-10 pb-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Application Details
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">ID: {application.id}</p>
+          <div className="flex justify-between items-center gap-4 sticky top-0 bg-white z-10 pb-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Application Details
+                </h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  ID: {application.id}
+                </p>
+              </div>
             </div>
 
             {(application.status === LoanStatus.IN_PROGRESS ||
@@ -141,14 +200,14 @@ export default function ApplicationDetailsPage({
               <div className="flex space-x-4">
                 <Button
                   variant="default"
-                  onClick={handleAcceptApplication}
+                  onClick={handleApproveApplication}
                   disabled={loading}
                 >
                   {loading ? "Processing..." : "Approve Loan"}
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={handleAcceptApplication}
+                  onClick={handleRejectApplication}
                   disabled={loading}
                 >
                   {loading ? "Processing..." : "Reject Loan"}
@@ -156,7 +215,6 @@ export default function ApplicationDetailsPage({
               </div>
             )}
 
-            {/* Hide Accept button if IN_PROGRESS */}
             {application.status !== LoanStatus.IN_PROGRESS &&
               application.status !== LoanStatus.IN_CHAT && (
                 <Button
