@@ -28,7 +28,7 @@ const LoaneeChat: React.FC<LoaneeChatProps> = ({
         content: message,
         applicationId,
       });
-      setMessages([...messages, res.data]);
+      setMessages((prev) => [...prev, res.data]);
       setMessage("");
       toast({ title: "Message Sent" });
     } catch (error) {
@@ -77,22 +77,38 @@ const LoaneeChat: React.FC<LoaneeChatProps> = ({
         </div>
       </div>
 
-      <div className="p-4 border-t flex gap-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!sending && message.trim()) {
+            handleSendMessage();
+          }
+        }}
+        className="p-4 border-t flex gap-2"
+      >
         <input
           type="text"
           placeholder="Type a message..."
           className="flex-1 border rounded-md px-3 py-2 text-sm"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (!sending && message.trim()) {
+                handleSendMessage();
+              }
+            }
+          }}
         />
         <Button
+          type="submit"
           variant="default"
           disabled={sending || !message.trim()}
-          onClick={handleSendMessage}
         >
           {sending ? "..." : "Send"}
         </Button>
-      </div>
+      </form>
     </div>
   );
 };

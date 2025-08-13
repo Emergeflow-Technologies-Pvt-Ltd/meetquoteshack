@@ -25,11 +25,12 @@ import Section from "@/components/shared/section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 export default function RegisterAsLender() {
   const { status } = useSession();
+  const router = useRouter();
 
   if (status === "authenticated") {
     redirect("/lender/dashboard");
@@ -68,12 +69,13 @@ export default function RegisterAsLender() {
 
     axios
       .post("/api/lender/register", data)
-      .then((res) => {
+      .then(() => {
         toast({
           title: "Success",
-          description: res.data,
+          description: "Your account was created successfully",
           variant: "default",
         });
+        router.push("/lender/login");
       })
       .catch((error) => {
         toast({

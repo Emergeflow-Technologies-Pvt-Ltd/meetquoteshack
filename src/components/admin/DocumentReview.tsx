@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle, FileEdit } from "lucide-react";
 import axios from "axios";
+import { documentTypeLabels } from "../shared/general.const";
 
 // Define our own Document interface that includes the fields we need
 interface DocumentWithReview {
@@ -48,8 +49,12 @@ export default function DocumentReview({
   onStatusChange,
 }: DocumentReviewProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [status, setStatus] = useState<DocumentStatus | string>(document.status || "PENDING");
-  const [rejectionReason, setRejectionReason] = useState(document.rejectionReason || "");
+  const [status, setStatus] = useState<DocumentStatus | string>(
+    document.status || "PENDING"
+  );
+  const [rejectionReason, setRejectionReason] = useState(
+    document.rejectionReason || ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -64,21 +69,27 @@ export default function DocumentReview({
 
     setIsSubmitting(true);
     try {
-      await axios.patch(`/api/admin/${document.id}`, {
-        status,
-        rejectionReason: status === "REJECTED" ? rejectionReason : undefined,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
+      await axios.patch(
+        `/api/admin/${document.id}`,
+        {
+          status,
+          rejectionReason: status === "REJECTED" ? rejectionReason : undefined,
         },
-        withCredentials: true
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
 
       toast({
         title: "Success",
-        description: `Document ${status === "APPROVED" ? "approved" : "rejected"} successfully`,
+        description: `Document ${
+          status === "APPROVED" ? "approved" : "rejected"
+        } successfully`,
       });
-      
+
       setIsOpen(false);
       onStatusChange();
     } catch (error) {
@@ -97,11 +108,13 @@ export default function DocumentReview({
   if (document.status === "APPROVED" || document.status === "REJECTED") {
     return (
       <div className="mt-2 flex items-center gap-2">
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-          document.status === "APPROVED" 
-            ? "bg-green-100 text-green-800" 
-            : "bg-red-100 text-red-800"
-        }`}>
+        <div
+          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+            document.status === "APPROVED"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
           {document.status === "APPROVED" ? (
             <CheckCircle className="h-3 w-3" />
           ) : (
@@ -122,9 +135,9 @@ export default function DocumentReview({
     <div className="mt-2">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="flex items-center gap-1"
           >
             <FileEdit className="h-3 w-3" />
@@ -142,7 +155,7 @@ export default function DocumentReview({
             <div className="grid gap-2">
               <Label htmlFor="document-type">Document Type</Label>
               <div className="font-medium">
-                {document.documentType.replace(/_/g, " ")}
+                {documentTypeLabels[document.documentType]}
               </div>
             </div>
             <div className="grid gap-2">
@@ -178,23 +191,31 @@ export default function DocumentReview({
             )}
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsOpen(false)}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className={status === "APPROVED" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              className={
+                status === "APPROVED"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+              }
             >
-              {isSubmitting ? "Submitting..." : status === "APPROVED" ? "Approve" : "Reject"}
+              {isSubmitting
+                ? "Submitting..."
+                : status === "APPROVED"
+                ? "Approve"
+                : "Reject"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-} 
+}
