@@ -30,7 +30,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { loanTypeLabels } from "@/components/shared/general.const";
+import {
+  applicationStatusLabels,
+  housingStatusTypeLabels,
+  loanTypeLabels,
+  maritalStatusLabels,
+  propertyTypeLabels,
+  residencyStatusTypeLabels,
+} from "@/components/shared/general.const";
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
@@ -218,7 +225,9 @@ export default function ApplicationPage({
                 ),
               }}
             >
-              {application?.status.replace(/_/g, " ")}
+              {application?.status
+                ? applicationStatusLabels[application.status]
+                : null}
             </Badge>
           </div>
 
@@ -242,7 +251,9 @@ export default function ApplicationPage({
                       </p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Date of Birth</span>
+                      <span className="text-gray-500">
+                        Date of Birth (mm-dd-yy)
+                      </span>
                       <p className="font-medium">
                         {application?.dateOfBirth
                           ? new Date(
@@ -274,7 +285,9 @@ export default function ApplicationPage({
                     <div>
                       <span className="text-gray-500">Housing Status</span>
                       <p className="font-medium">
-                        {application?.housingStatus}
+                        {application?.housingStatus
+                          ? housingStatusTypeLabels[application.housingStatus]
+                          : null}
                       </p>
                     </div>
                     <div>
@@ -286,13 +299,19 @@ export default function ApplicationPage({
                     <div>
                       <span className="text-gray-500">Canadian Status</span>
                       <p className="font-medium">
-                        {application?.residencyStatus}
+                        {application?.residencyStatus
+                          ? residencyStatusTypeLabels[
+                              application.residencyStatus
+                            ]
+                          : null}
                       </p>
                     </div>
                     <div>
                       <span className="text-gray-500">Marital Status</span>
                       <p className="font-medium">
-                        {application?.maritalStatus}
+                        {application?.maritalStatus
+                          ? maritalStatusLabels[application.maritalStatus]
+                          : null}
                       </p>
                     </div>
                     <div>
@@ -392,7 +411,9 @@ export default function ApplicationPage({
                     <div>
                       <span className="text-gray-500">Property Type</span>
                       <p className="font-medium">
-                        {application?.houseType || "N/A"}
+                        {application?.houseType
+                          ? propertyTypeLabels[application.houseType]
+                          : null}
                       </p>
                     </div>
                     <div>
@@ -443,7 +464,9 @@ export default function ApplicationPage({
                         </p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Date of Birth</span>
+                        <span className="text-gray-500">
+                          Date of Birth (mm-dd-yy)
+                        </span>
                         <p className="font-medium">
                           {application.coApplicantDateOfBirth
                             ? new Date(
@@ -486,7 +509,7 @@ export default function ApplicationPage({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {application?.documents.map((doc) => (
+                  {application?.documents?.map((doc) => (
                     <div
                       key={doc.id}
                       className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${

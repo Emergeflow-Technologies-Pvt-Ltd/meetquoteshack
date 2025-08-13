@@ -79,7 +79,7 @@ export default async function LenderPoolPage() {
           </TabsTrigger>
 
           <TabsTrigger value="approved" className="w-full sm:w-auto">
-            Approved Application
+            Approved Applications
             <Badge variant="secondary" className="ml-2">
               {approvedApplications.length}
             </Badge>
@@ -268,7 +268,7 @@ export default async function LenderPoolPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-8 bg-gray-50 rounded-lg">
+            <p className="text-gray-600 text-center mt-16 py-8 bg-gray-50 rounded-lg">
               No accepted applications
             </p>
           )}
@@ -362,8 +362,8 @@ export default async function LenderPoolPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-8 bg-gray-50 rounded-lg">
-              No accepted applications
+            <p className="text-gray-600 text-center mt-16 py-8 bg-gray-50 rounded-lg">
+              No approved applications
             </p>
           )}
         </TabsContent>

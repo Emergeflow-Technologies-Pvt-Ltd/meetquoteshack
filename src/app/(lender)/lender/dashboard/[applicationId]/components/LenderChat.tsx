@@ -184,7 +184,19 @@ const LenderChat: React.FC<LenderChatProps> = ({
       </div>
 
       <div className="p-4 border-t flex flex-col gap-2">
-        <div className="flex gap-2 items-start">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (
+              application.status === "IN_CHAT" &&
+              !sending &&
+              message.trim()
+            ) {
+              handleSendMessageAndMaybeRequestDocs();
+            }
+          }}
+          className="flex gap-2 items-start"
+        >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="outline">
@@ -232,17 +244,30 @@ const LenderChat: React.FC<LenderChatProps> = ({
             disabled={application.status !== "IN_CHAT"}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (
+                  application.status === "IN_CHAT" &&
+                  !sending &&
+                  message.trim()
+                ) {
+                  handleSendMessageAndMaybeRequestDocs();
+                }
+              }
+            }}
           />
+
           <Button
+            type="submit"
             variant="default"
             disabled={
               application.status !== "IN_CHAT" || sending || !message.trim()
             }
-            onClick={handleSendMessageAndMaybeRequestDocs}
           >
             {sending ? "..." : "Send"}
           </Button>
-        </div>
+        </form>
 
         {selectedDocs.length > 0 && (
           <p className="ml-[42px] text-xs text-muted-foreground">

@@ -32,7 +32,7 @@ const CoApplicantDetails: React.FC<CoApplicantDetailsProps> = ({
             value={application.coApplicantFullName || "N/A"}
           />
           <InfoRow
-            label="Date of Birth"
+            label="Date of Birth (mm-dd-yy)"
             value={
               application.coApplicantDateOfBirth
                 ? new Date(

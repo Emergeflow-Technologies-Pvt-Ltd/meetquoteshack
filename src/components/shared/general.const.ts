@@ -1,4 +1,4 @@
-import { DocumentType, DownPayment, EmploymentStatus, LoanType, PropertyType } from "@prisma/client";
+import { DocumentType, DownPayment, EmploymentStatus, HousingStatus, LoanStatus, LoanType, MaritalStatus, PropertyType, ResidencyStatus } from "@prisma/client";
 
 export const loanTypeLabels: Record<string, string> = {
     [LoanType.BUSINESS]: "Business Loan",
@@ -54,5 +54,35 @@ export const documentTypeLabels: Record<string, string> = {
     [DocumentType.BANK_STATEMENT]: "Bank Statement",
     [DocumentType.PROPERTY_DOCUMENT]: "Property Document",
     [DocumentType.OTHER]: "Other",
+};
+
+
+export const residencyStatusTypeLabels: Record<string, string> = {
+    [ResidencyStatus.CITIZEN]: "Citizen",
+    [ResidencyStatus.OTHER]: "Other",
+    [ResidencyStatus.PERMANENT_RESIDENT]: "Permanent Resident",
+    [ResidencyStatus.STUDENT_VISA]: "Student visa",
+    [ResidencyStatus.WORK_PERMIT]: "Work permit"
+};
+
+export const housingStatusTypeLabels: Record<string, string> = {
+    [HousingStatus.OWN]: "Own",
+    [HousingStatus.RENT]: "Rent",
+};
+export const maritalStatusLabels: Record<string, string> = {
+    [MaritalStatus.SINGLE]: "Single",
+    [MaritalStatus.MARRIED]: "Married",
+    [MaritalStatus.DIVORCED]: "Divorced",
+    [MaritalStatus.WIDOWED]: "Widowed",
+    [MaritalStatus.OTHER]: "Other"
+};
+export const applicationStatusLabels: Record<string, string> = {
+    [LoanStatus.OPEN]: "OPEN",
+    [LoanStatus.APPROVED]: "APPROVED",
+    [LoanStatus.ARCHIVED]: "ARCHIVED",
+    [LoanStatus.ASSIGNED_TO_LENDER]: "ASSIGNED TO LENDER",
+    [LoanStatus.IN_CHAT]: "IN CHAT",
+    [LoanStatus.IN_PROGRESS]: "IN_PROGRESS",
+    [LoanStatus.REJECTED]: "REJECTED",
 };
 

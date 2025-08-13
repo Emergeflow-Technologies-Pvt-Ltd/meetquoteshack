@@ -31,6 +31,14 @@ import {
   getTextColorLoanStatus,
 } from "@/components/shared/chips";
 import { useRouter } from "next/navigation";
+import {
+  employmentTypeLabels,
+  housingStatusTypeLabels,
+  loanTypeLabels,
+  maritalStatusLabels,
+  propertyTypeLabels,
+  residencyStatusTypeLabels,
+} from "@/components/shared/general.const";
 
 interface Props {
   params: Promise<{
@@ -207,8 +215,6 @@ export default function ApplicationPage({ params }: Props) {
       !application.documents.some((doc) => doc.documentType === docType.type)
   );
 
-  console.log("thissss=====", application);
-
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
@@ -338,14 +344,7 @@ export default function ApplicationPage({ params }: Props) {
                     {application.workplaceName}
                   </p>
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500">
-                    Job Type
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {application.employmentStatus}
-                  </p>
-                </div>
+
                 <div>
                   <label className="text-xs font-medium text-gray-500">
                     Annual Income
@@ -370,7 +369,7 @@ export default function ApplicationPage({ params }: Props) {
                       Employment Status
                     </label>
                     <p className="text-sm text-gray-900 capitalize">
-                      {application.employmentStatus}
+                      {employmentTypeLabels[application.employmentStatus]}
                     </p>
                   </div>
                   <div>
@@ -409,7 +408,7 @@ export default function ApplicationPage({ params }: Props) {
                       Housing Status
                     </label>
                     <p className="text-sm text-gray-900 capitalize">
-                      {application.housingStatus}
+                      {housingStatusTypeLabels[application.housingStatus]}
                     </p>
                   </div>
                   <div>
@@ -428,7 +427,7 @@ export default function ApplicationPage({ params }: Props) {
                       Residency Status
                     </label>
                     <p className="text-sm text-gray-900 capitalize">
-                      {application.residencyStatus}
+                      {residencyStatusTypeLabels[application.residencyStatus]}
                     </p>
                   </div>
                   <div>
@@ -436,7 +435,7 @@ export default function ApplicationPage({ params }: Props) {
                       Marital Status
                     </label>
                     <p className="text-sm text-gray-900 capitalize">
-                      {application.maritalStatus}
+                      {maritalStatusLabels[application.maritalStatus]}
                     </p>
                   </div>
                 </div>
@@ -499,7 +498,7 @@ export default function ApplicationPage({ params }: Props) {
                     Loan Type
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.loanType || "N/A"}
+                    {loanTypeLabels[application.loanType]}
                   </p>
                 </div>
                 <div>
@@ -517,7 +516,9 @@ export default function ApplicationPage({ params }: Props) {
                     House Type
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.houseType || "N/A"}
+                    {application.houseType
+                      ? propertyTypeLabels[application.houseType]
+                      : "N/A"}
                   </p>
                 </div>
                 <div>
