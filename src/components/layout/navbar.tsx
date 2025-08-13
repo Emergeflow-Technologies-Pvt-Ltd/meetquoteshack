@@ -47,6 +47,7 @@ import {
 import ProfileIcon from "../assets/profile_icon.svg";
 import Image from "next/image";
 import axios from "axios";
+import NotificationIcon from "../assets/notification.svg";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -57,6 +58,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpenMobile, setModalOpenMobile] = useState(false);
   const userRole = session?.user?.role;
   const router = useRouter();
   console.log(session?.user.id);
@@ -133,6 +135,27 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
                     {session ? (
                       <>
+                        {/* 🔔 Notification Bell */}
+                        {(userRole === UserRole.LOANEE ||
+                          userRole === UserRole.LENDER) && (
+                          <>
+                            <button
+                              className="relative flex items-center gap-2 p-2 rounded-md hover:bg-accent text-left"
+                              onClick={() => {
+                                setIsOpen(false);
+                                setModalOpenMobile(true);
+                              }}
+                            >
+                              <Bell className="w-5 h-5" />
+                              <span>Notifications</span>
+                              {!loading && unreadCount > 0 && (
+                                <span className="absolute top-2 left-6 w-2 h-2 bg-red-500 rounded-full"></span>
+                              )}
+                            </button>
+                          </>
+                        )}
+
+                        {/* Rest of menu items */}
                         {userRole === UserRole.LOANEE && (
                           <Button
                             onClick={() => setIsOpen(false)}
@@ -242,10 +265,72 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
                 <SheetFooter className="flex-col sm:flex-col justify-start items-start">
                   <Separator className="mb-2" />
-                  {/* <ToggleTheme /> */}
                 </SheetFooter>
               </SheetContent>
             </Sheet>
+
+            <Dialog open={modalOpenMobile} onOpenChange={setModalOpenMobile}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-blue-500" />
+                    Notifications
+                  </DialogTitle>
+                </DialogHeader>
+                {notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
+                  >
+                    <div
+                      onClick={() =>
+                        router.push(`/applications/${n.applicationId}`)
+                      }
+                      className="flex items-start gap-3"
+                    >
+                      <Image
+                        alt="Notification icon"
+                        src={NotificationIcon}
+                        className="shrink-0 text-blue-500"
+                      />
+
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">
+                          {n.type === "DOCUMENT_REQUEST"
+                            ? `Documents requested for Application ${n.applicationId}`
+                            : `Documents submitted for Application ${n.applicationId}`}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(n.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {session?.user?.role === "LENDER" && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await axios.post(`/api/notifications/markAsRead`, {
+                              notificationId: n.id,
+                            });
+                            setNotifications((prev) =>
+                              prev.filter((notif) => notif.id !== n.id)
+                            );
+                          } catch (error) {
+                            console.error("Error marking as read:", error);
+                          }
+                        }}
+                        className="px-3 py-1 text-xs rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition"
+                        title="Mark as Read"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </DialogContent>
+            </Dialog>
           </div>
           {/* <!-- Desktop --> */}
           <NavigationMenu className="hidden lg:block mx-auto">
@@ -269,7 +354,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
           <div className="hidden lg:flex items-center gap-4">
             {/* Show bell only if logged in */}
-            {session && (
+            {session && userRole !== UserRole.ADMIN && (
               <button
                 className="relative p-2 rounded-full hover:bg-accent"
                 onClick={() => setModalOpen(true)}
@@ -280,6 +365,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                 )}
               </button>
             )}
+
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
               <DialogContent className="max-w-md">
                 <DialogHeader>
@@ -289,61 +375,58 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col gap-3 mt-4">
-                  {notifications.length > 0 ? (
-                    notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
-                      >
-                        <div
-                          onClick={() =>
-                            router.push(`/applications/${n.applicationId}`)
-                          }
-                          className="flex flex-col"
-                        >
-                          <span className="font-medium text-sm">
-                            {n.type === "DOCUMENT_REQUEST"
-                              ? `Documents requested for Application ${n.applicationId}`
-                              : `Documents submitted for Application ${n.applicationId}`}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(n.createdAt).toLocaleString()}
-                          </span>
-                        </div>
+                {notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
+                  >
+                    <div
+                      onClick={() =>
+                        router.push(`/applications/${n.applicationId}`)
+                      }
+                      className="flex items-start gap-3"
+                    >
+                      <Image
+                        alt="Notification icon"
+                        src={NotificationIcon}
+                        className="shrink-0 text-blue-500"
+                      />
 
-                        {session?.user?.role === "LENDER" && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              try {
-                                await axios.post(
-                                  `/api/notifications/markAsRead`,
-                                  {
-                                    notificationId: n.id,
-                                  }
-                                );
-                                setNotifications((prev) =>
-                                  prev.filter((notif) => notif.id !== n.id)
-                                );
-                              } catch (error) {
-                                console.error("Error marking as read:", error);
-                              }
-                            }}
-                            className="px-3 py-1 text-xs rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition"
-                            title="Mark as Read"
-                          >
-                            Mark as Read
-                          </button>
-                        )}
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">
+                          {n.type === "DOCUMENT_REQUEST"
+                            ? `Documents requested for Application ${n.applicationId}`
+                            : `Documents submitted for Application ${n.applicationId}`}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(n.createdAt).toLocaleString()}
+                        </span>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-muted-foreground text-center py-6">
-                      No unread notifications
-                    </p>
-                  )}
-                </div>
+                    </div>
+
+                    {session?.user?.role === "LENDER" && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await axios.post(`/api/notifications/markAsRead`, {
+                              notificationId: n.id,
+                            });
+                            setNotifications((prev) =>
+                              prev.filter((notif) => notif.id !== n.id)
+                            );
+                          } catch (error) {
+                            console.error("Error marking as read:", error);
+                          }
+                        }}
+                        className="px-3 py-1 text-xs rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition"
+                        title="Mark as Read"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
+                  </div>
+                ))}
               </DialogContent>
             </Dialog>
 
