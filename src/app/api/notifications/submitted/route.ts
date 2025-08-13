@@ -14,9 +14,9 @@ export async function POST(req: Request) {
 
         const { applicationId, lenderUserId } = await req.json();
 
-        if (!applicationId || !lenderUserId) {
+        if (!applicationId) {
             return NextResponse.json(
-                { error: "Missing applicationId or lenderUserId" },
+                { error: "Missing applicationId" },
                 { status: 400 }
             );
         }
@@ -31,17 +31,21 @@ export async function POST(req: Request) {
             data: { read: true },
         });
 
-        // Create a new DOCUMENT_SUBMITTED notification for the lender
-        const notification = await prisma.notification.create({
-            data: {
-                userId: lenderUserId,  // <-- use lenderUserId here
-                applicationId,
-                type: "DOCUMENT_SUBMITTED",
-                read: false,
-            },
-        });
+        let notification = null;
 
-        return NextResponse.json(notification, { status: 201 });
+        // Only create notification for lender if we have their ID
+        if (lenderUserId) {
+            notification = await prisma.notification.create({
+                data: {
+                    userId: lenderUserId,
+                    applicationId,
+                    type: "DOCUMENT_SUBMITTED",
+                    read: false,
+                },
+            });
+        }
+
+        return NextResponse.json(notification || { success: true }, { status: 201 });
     } catch (error) {
         console.error("Error creating document submitted notification:", error);
         return NextResponse.json(
@@ -50,4 +54,5 @@ export async function POST(req: Request) {
         );
     }
 }
+
 

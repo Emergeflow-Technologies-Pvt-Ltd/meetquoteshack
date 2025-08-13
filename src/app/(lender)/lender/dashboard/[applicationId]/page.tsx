@@ -96,8 +96,7 @@ export default function ApplicationDetailsPage({
   const handleRejectApplication = async () => {
     setLoading(true);
     try {
-      await axios.patch(`/api/applications/${applicationId}/accept`, {
-        status: LoanStatus.OPEN,
+      await axios.patch(`/api/applications/${applicationId}/lender/reject`, {
         lenderId: session?.user?.id,
       });
       toast({
@@ -176,55 +175,71 @@ export default function ApplicationDetailsPage({
           }`}
         >
           {/* Header + Accept Button */}
-          <div className="flex justify-between items-center gap-4 sticky top-0 bg-white z-10 pb-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-10 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={() => router.back()}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 self-start sm:self-auto"
               >
                 <ChevronLeft />
               </Button>
-              <div>
+              <div className="flex flex-col">
                 <h1 className="text-2xl font-semibold text-gray-900">
                   Application Details
                 </h1>
                 <p className="mt-1 text-sm text-gray-500">
                   ID: {application.id}
                 </p>
+                {application.status !== LoanStatus.IN_PROGRESS &&
+                  application.status !== LoanStatus.IN_CHAT &&
+                  application.status !== LoanStatus.APPROVED && (
+                    <div className="mt-3 sm:hidden">
+                      <Button
+                        variant="default"
+                        onClick={handleAcceptApplication}
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Accept Application"}
+                      </Button>
+                    </div>
+                  )}
               </div>
             </div>
 
-            {(application.status === LoanStatus.IN_PROGRESS ||
-              application.status === LoanStatus.IN_CHAT) && (
-              <div className="flex space-x-4">
-                <Button
-                  variant="default"
-                  onClick={handleApproveApplication}
-                  disabled={loading}
-                >
-                  {loading ? "Processing..." : "Approve Loan"}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleRejectApplication}
-                  disabled={loading}
-                >
-                  {loading ? "Processing..." : "Reject Loan"}
-                </Button>
-              </div>
-            )}
-
-            {application.status !== LoanStatus.IN_PROGRESS &&
-              application.status !== LoanStatus.IN_CHAT && (
-                <Button
-                  variant="default"
-                  onClick={handleAcceptApplication}
-                  disabled={loading}
-                >
-                  {loading ? "Processing..." : "Accept Application"}
-                </Button>
+            <div className=" sm:flex space-x-4">
+              {(application.status === LoanStatus.IN_PROGRESS ||
+                application.status === LoanStatus.IN_CHAT) && (
+                <>
+                  <Button
+                    variant="default"
+                    onClick={handleApproveApplication}
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : "Approve Loan"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleRejectApplication}
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : "Reject Loan"}
+                  </Button>
+                </>
               )}
+
+              {application.status !== LoanStatus.IN_PROGRESS &&
+                application.status !== LoanStatus.IN_CHAT &&
+                application.status !== LoanStatus.APPROVED && (
+                  <Button
+                    variant="default"
+                    onClick={handleAcceptApplication}
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : "Accept Application"}
+                  </Button>
+                )}
+            </div>
           </div>
 
           {/* Cards Section */}
