@@ -23,13 +23,14 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 import { getStatusColors } from "@/lib/utils";
-import { Eye, Trash2 } from "lucide-react";
+import { ChevronLeft, Eye, Trash2 } from "lucide-react";
 import DocumentReview from "@/components/admin/DocumentReview";
 import { toast } from "@/hooks/use-toast";
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
 } from "@/components/shared/chips";
+import { useRouter } from "next/navigation";
 
 interface Props {
   params: Promise<{
@@ -56,6 +57,7 @@ export default function ApplicationPage({ params }: Props) {
   const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([]);
   const [lenders, setLenders] = useState<User[]>([]);
   const [selectedLenderId, setSelectedLenderId] = useState<string | null>(null);
+  const router = useRouter();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -205,84 +207,100 @@ export default function ApplicationPage({ params }: Props) {
       !application.documents.some((doc) => doc.documentType === docType.type)
   );
 
+  console.log("thissss=====", application);
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Application Details
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">ID: {application.id}</p>
+        <div className="flex justify-between gap-4 mt-8 pb-4">
+          <div className="flex items-center gap-4">
+            <button className="rounded-full" onClick={() => router.back()}>
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+            </button>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Application Details
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                ID: {application?.id}
+              </p>
+            </div>
           </div>
           <Badge
             className="px-3 py-1 text-sm font-medium"
             style={{
-              color: getTextColorLoanStatus(application.status),
-              backgroundColor: getBackgroundColorLoanStatus(application.status),
+              color: getTextColorLoanStatus(application?.status as LoanStatus),
+              backgroundColor: getBackgroundColorLoanStatus(
+                application?.status as LoanStatus
+              ),
             }}
           >
-            {application.status.replace(/_/g, " ")}
+            {application?.status.replace(/_/g, " ")}
           </Badge>
         </div>
         <div className="w-full mt-6 pt-4 border-t mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h3 className="text-lg font-semibold">Assign to Lender</h3>
+          {!["REJECTED", "APPROVED"].includes(
+            application?.status as string
+          ) && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h3 className="text-lg font-semibold">Assign to Lender</h3>
 
-            {application?.lenderId ? (
-              <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                <Select
-                  value={selectedLenderId || application?.lenderId || ""}
-                  onValueChange={(value) => setSelectedLenderId(value)}
-                >
-                  <SelectTrigger className="w-[250px]">
-                    <SelectValue placeholder="Reassign lender..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lenders.map((lender) => (
-                      <SelectItem key={lender.id} value={lender.id}>
-                        {lender.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {application?.lenderId ? (
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
+                  <Select
+                    value={selectedLenderId || application?.lenderId || ""}
+                    onValueChange={(value) => setSelectedLenderId(value)}
+                  >
+                    <SelectTrigger className="w-[250px]">
+                      <SelectValue placeholder="Reassign lender..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lenders.map((lender) => (
+                        <SelectItem key={lender.id} value={lender.id}>
+                          {lender.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                <Button
-                  onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
-                  disabled={!selectedLenderId}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                >
-                  Reassign
-                </Button>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                <Select
-                  value={selectedLenderId || ""}
-                  onValueChange={(value) => setSelectedLenderId(value)}
-                >
-                  <SelectTrigger className="w-[250px]">
-                    <SelectValue placeholder="Select lender..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lenders.map((lender) => (
-                      <SelectItem key={lender.id} value={lender.id}>
-                        {lender.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Button
+                    onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
+                    disabled={!selectedLenderId}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    Reassign
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
+                  <Select
+                    value={selectedLenderId || ""}
+                    onValueChange={(value) => setSelectedLenderId(value)}
+                  >
+                    <SelectTrigger className="w-[250px]">
+                      <SelectValue placeholder="Select lender..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lenders.map((lender) => (
+                        <SelectItem key={lender.id} value={lender.id}>
+                          {lender.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                <Button
-                  onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
-                  disabled={!selectedLenderId}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Assign
-                </Button>
-              </div>
-            )}
-          </div>
+                  <Button
+                    onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
+                    disabled={!selectedLenderId}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Assign
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -551,13 +569,17 @@ export default function ApplicationPage({ params }: Props) {
                         ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    onClick={handleAddDocument}
-                    disabled={!selectedDocTypes.length}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Add ({selectedDocTypes.length})
-                  </Button>
+                  {!["REJECTED", "APPROVED"].includes(
+                    application?.status as string
+                  ) && (
+                    <Button
+                      onClick={handleAddDocument}
+                      disabled={!selectedDocTypes.length}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Add ({selectedDocTypes.length})
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -660,16 +682,20 @@ export default function ApplicationPage({ params }: Props) {
                 </div>
               </CardContent>
             </Card>
-            <div className="flex w-full justify-end mt-6">
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  handleRejectApplication();
-                }}
-              >
-                Reject Application
-              </Button>
-            </div>
+            {!["REJECTED", "APPROVED"].includes(
+              application?.status as string
+            ) && (
+              <div className="flex w-full justify-end mt-6">
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    handleRejectApplication();
+                  }}
+                >
+                  Reject Application
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

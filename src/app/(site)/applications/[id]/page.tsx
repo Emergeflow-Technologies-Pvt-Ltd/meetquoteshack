@@ -13,6 +13,7 @@ import {
   Clock,
   User,
   DollarSign,
+  ChevronLeft,
 } from "lucide-react";
 import axios from "axios";
 import { Application, Document, LoanStatus, Message } from "@prisma/client";
@@ -35,6 +36,7 @@ import {
   getTextColorLoanStatus,
 } from "@/components/shared/chips";
 import LoaneeChat from "../components/LoaneeChat";
+import { useRouter } from "next/navigation";
 
 export default function ApplicationPage({
   params,
@@ -56,6 +58,7 @@ export default function ApplicationPage({
   const [loading, setLoading] = useState(true);
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const router = useRouter();
 
   // Chat States
   const [messages, setMessages] = useState<Message[]>([]);
@@ -82,6 +85,8 @@ export default function ApplicationPage({
 
     fetchApplication();
   }, [session, id]);
+
+  console.log("this is the data", application);
 
   const lenderUserId = application?.lender?.user?.id;
 
@@ -114,7 +119,7 @@ export default function ApplicationPage({
 
         await axios.post(`/api/notifications/submitted`, {
           applicationId: id,
-          lenderUserId,
+          ...(lenderUserId && { lenderUserId }),
         });
 
         setUploadProgress(100);
@@ -188,13 +193,19 @@ export default function ApplicationPage({
           }`}
         >
           <div className="flex justify-between gap-4 sticky top-0 bg-white z-10 pb-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Application Details
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                ID: {application?.id}
-              </p>
+            <div className="flex items-center gap-4">
+              <button className="rounded-full" onClick={() => router.back()}>
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </button>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Application Details
+                </h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  ID: {application?.id}
+                </p>
+              </div>
             </div>
             <Badge
               className="px-3 py-1 text-sm font-medium"
