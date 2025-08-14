@@ -283,9 +283,10 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
                   >
                     <div
-                      onClick={() =>
-                        router.push(`/applications/${n.applicationId}`)
-                      }
+                      onClick={() => {
+                        setModalOpenMobile(false);
+                        router.push(`/applications/${n.applicationId}`);
+                      }}
                       className="flex items-start gap-3"
                     >
                       <Image
@@ -381,9 +382,10 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
                   >
                     <div
-                      onClick={() =>
-                        router.push(`/applications/${n.applicationId}`)
-                      }
+                      onClick={() => {
+                        setModalOpen(false);
+                        router.push(`/applications/${n.applicationId}`);
+                      }}
                       className="flex items-start gap-3"
                     >
                       <Image

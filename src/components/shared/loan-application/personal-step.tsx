@@ -169,7 +169,16 @@ export function PersonalStep({ form }: PersonalStepProps) {
           <FormItem>
             <FormLabel>SIN / SSN</FormLabel>
             <FormControl>
-              <Input placeholder="e.g. 123-456-789" {...field} />
+              <Input
+                placeholder="e.g. 123456789"
+                value={field.value ? field.value.toString() : ""}
+                onChange={(e) => {
+                  // Remove all non-digit characters
+                  const digitsOnly = e.target.value.replace(/\D/g, "");
+                  // Update form with cleaned value
+                  field.onChange(digitsOnly);
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

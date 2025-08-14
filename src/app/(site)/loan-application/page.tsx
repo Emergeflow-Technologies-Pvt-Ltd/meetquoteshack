@@ -61,7 +61,7 @@ export default function GeneralLoanForm() {
       sin: undefined,
       isAdult: true,
       downPayment: undefined,
-      propertyType: undefined,
+      houseType: undefined,
       tradeInCurrentVehicle: undefined,
       hasBankruptcy: false,
       firstName: "",
@@ -91,7 +91,13 @@ export default function GeneralLoanForm() {
   async function onNext() {
     const fieldsToValidate: Record<number, (keyof GeneralLoanFormValues)[]> = {
       0: ["isAdult", "hasBankruptcy"],
-      1: ["loanType"],
+      1: [
+        "loanType",
+        "estimatedPropertyValue",
+        "houseType",
+        "downPayment",
+        "tradeInCurrentVehicle",
+      ],
       2: [
         "employmentStatus",
         "grossIncome",
@@ -115,6 +121,7 @@ export default function GeneralLoanForm() {
         "maritalStatus",
         "personalPhone",
         "personalEmail",
+        "sin",
       ],
       6: ["loanAmount", "hasCoApplicant"],
     };
@@ -168,6 +175,7 @@ export default function GeneralLoanForm() {
         housingPayment: Number(data.housingPayment),
         grossIncome: Number(data.grossIncome),
         loanAmount: Number(data.loanAmount),
+        tradeInCurrentVehicle: data.tradeInCurrentVehicle,
       };
 
       const response = await axios.post("/api/apply/general", payload);

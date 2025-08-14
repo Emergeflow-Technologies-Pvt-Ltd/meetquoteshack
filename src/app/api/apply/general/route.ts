@@ -35,7 +35,14 @@ export async function POST(request: Request) {
       coApplicantAddress: data.coApplicantAddress || null,
       coApplicantEmail: data.coApplicantEmail || null,
       otherIncome: data.otherIncome,
+      estimatedPropertyValue: data.estimatedPropertyValue
+        ? data.estimatedPropertyValue.toString()
+        : null,
+      houseType: data.houseType || null,
+      downPayment: data.downPayment || null,
+      tradeInCurrentVehicle: data.tradeInCurrentVehicle || null,
       savings: data.savings,
+      sin: data.sin || null,
       workplaceDuration: data.workplaceDuration,
       hasBankruptcy: data.hasBankruptcy,
       firstName: data.firstName,
