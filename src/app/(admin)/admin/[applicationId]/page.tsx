@@ -459,8 +459,7 @@ export default function ApplicationPage({ params }: Props) {
                         >
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {applicationStatusLabels[entry.oldStatus]} →{" "}
-                              {applicationStatusLabels[entry.newStatus]}
+                              {entry.oldStatus} → {entry.newStatus}
                             </p>
                           </div>
                           <p className="text-xs text-gray-400">
