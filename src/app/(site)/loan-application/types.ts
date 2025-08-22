@@ -82,12 +82,18 @@ export const generalLoanFormSchema = z.object({
   loanAmount: z.number().min(1, "Please specify how much you need in CAD"),
   previousAddress: z.string().min(1, "Previous address is required").optional(),
   estimatedPropertyValue: z.number().min(1).optional(),
-  propertyType: z.nativeEnum(PropertyType).optional(),
+  houseType: z.nativeEnum(PropertyType).optional(),
   downPayment: z.nativeEnum(DownPayment).optional(),
   tradeInCurrentVehicle: z.boolean().optional(),
   sin: z
     .string()
-    .min(9, "SIN must be at least 9 digits").optional(),
+    .min(9, "SIN must be at least 9 digits")
+    .regex(/^\d{9}$/, "Must be 9 digits")
+    .transform((val) => (val ? parseInt(val) : null))
+    .refine((val) => val === null || !isNaN(val), {
+      message: "Must be a valid number"
+    })
+    .optional(),
   hasCoApplicant: z.boolean(),
   coApplicantFullName: z.string().optional(),
   coApplicantDateOfBirth: z

@@ -113,7 +113,7 @@ const TypeofApplication = ({ form }: Props) => {
       {showPropertyType && (
         <FormField
           control={form.control}
-          name="propertyType"
+          name="houseType"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
