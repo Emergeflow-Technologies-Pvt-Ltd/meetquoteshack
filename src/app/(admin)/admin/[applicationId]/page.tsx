@@ -32,7 +32,6 @@ import {
 } from "@/components/shared/chips";
 import { useRouter } from "next/navigation";
 import {
-  applicationStatusLabels,
   employmentTypeLabels,
   housingStatusTypeLabels,
   loanTypeLabels,
