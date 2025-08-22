@@ -59,7 +59,7 @@ export default function GeneralLoanForm() {
       otherIncome: undefined,
       savings: undefined,
       sin: undefined,
-      isAdult: true,
+      isAdult: false,
       downPayment: undefined,
       houseType: undefined,
       tradeInCurrentVehicle: undefined,

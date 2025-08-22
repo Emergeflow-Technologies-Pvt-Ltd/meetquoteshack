@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -207,6 +207,7 @@ enum ResidencyStatus {
   WORK_PERMIT        @map("work_permit")
   STUDENT_VISA       @map("student_visa")
   OTHER              @map("other")
+  REFUGEE            @map("refugee")
 }
 
 enum EmploymentStatus {

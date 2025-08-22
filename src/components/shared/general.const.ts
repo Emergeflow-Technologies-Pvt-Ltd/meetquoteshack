@@ -62,7 +62,8 @@ export const residencyStatusTypeLabels: Record<string, string> = {
     [ResidencyStatus.OTHER]: "Other",
     [ResidencyStatus.PERMANENT_RESIDENT]: "Permanent Resident",
     [ResidencyStatus.STUDENT_VISA]: "Student visa",
-    [ResidencyStatus.WORK_PERMIT]: "Work permit"
+    [ResidencyStatus.WORK_PERMIT]: "Work permit",
+    [ResidencyStatus.REFUGEE]: "Refugee"
 };
 
 export const housingStatusTypeLabels: Record<string, string> = {
@@ -82,7 +83,7 @@ export const applicationStatusLabels: Record<string, string> = {
     [LoanStatus.ARCHIVED]: "ARCHIVED",
     [LoanStatus.ASSIGNED_TO_LENDER]: "ASSIGNED TO LENDER",
     [LoanStatus.IN_CHAT]: "IN CHAT",
-    [LoanStatus.IN_PROGRESS]: "IN_PROGRESS",
+    [LoanStatus.IN_PROGRESS]: "IN PROGRESS",
     [LoanStatus.REJECTED]: "REJECTED",
 };
 

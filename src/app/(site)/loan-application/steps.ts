@@ -21,13 +21,13 @@ export const formSteps = [
   },
   {
     id: "education",
-    title: "Education",
-    description: "Your educational background",
+    title: "Personal Finances",
+    description: "Your financial background",
   },
   {
     id: "employment",
-    title: "Employment",
-    description: "Your employment and income details",
+    title: "Personal & Educational Details",
+    description: "Your personal and educational details",
   },
   {
     id: "loan",

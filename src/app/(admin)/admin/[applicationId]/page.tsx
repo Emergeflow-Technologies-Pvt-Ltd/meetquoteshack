@@ -32,6 +32,7 @@ import {
 } from "@/components/shared/chips";
 import { useRouter } from "next/navigation";
 import {
+  applicationStatusLabels,
   employmentTypeLabels,
   housingStatusTypeLabels,
   loanTypeLabels,
@@ -458,10 +459,8 @@ export default function ApplicationPage({ params }: Props) {
                         >
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {entry.oldStatus} → {entry.newStatus}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Changed by: {entry.changedById || "Unknown"}
+                              {applicationStatusLabels[entry.oldStatus]} →{" "}
+                              {applicationStatusLabels[entry.newStatus]}
                             </p>
                           </div>
                           <p className="text-xs text-gray-400">
