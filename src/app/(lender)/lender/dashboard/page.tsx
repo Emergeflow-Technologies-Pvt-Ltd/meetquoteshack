@@ -28,7 +28,11 @@ export default async function LenderPoolPage() {
   const availableApplications = await prisma.application.findMany({
     where: {
       status: LoanStatus.ASSIGNED_TO_LENDER,
+      lender: {
+        userId: session?.user?.id,
+      },
     },
+
     orderBy: { createdAt: "desc" },
   });
 

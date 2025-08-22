@@ -28,6 +28,7 @@ export default async function ApplicationsPage() {
   const openApplications = await prisma.application.findMany({
     where: {
       status: LoanStatus.OPEN,
+      userId: session?.user.id,
     },
     orderBy: { createdAt: "desc" },
   });

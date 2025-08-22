@@ -460,9 +460,6 @@ export default function ApplicationPage({ params }: Props) {
                             <p className="text-sm font-medium text-gray-900">
                               {entry.oldStatus} → {entry.newStatus}
                             </p>
-                            <p className="text-xs text-gray-500">
-                              Changed by: {entry.changedById || "Unknown"}
-                            </p>
                           </div>
                           <p className="text-xs text-gray-400">
                             {new Date(entry.changedAt).toLocaleString()}
