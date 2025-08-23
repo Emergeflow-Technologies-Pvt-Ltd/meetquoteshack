@@ -32,12 +32,15 @@ import {
 } from "@/components/shared/chips";
 import { useRouter } from "next/navigation";
 import {
+  applicationStatusLabels,
+  downPaymentLabels,
   employmentTypeLabels,
   housingStatusTypeLabels,
   loanTypeLabels,
   maritalStatusLabels,
   propertyTypeLabels,
   residencyStatusTypeLabels,
+  vehicleTypeLabels,
 } from "@/components/shared/general.const";
 
 interface Props {
@@ -458,7 +461,11 @@ export default function ApplicationPage({ params }: Props) {
                         >
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {entry.oldStatus} → {entry.newStatus}
+                              {applicationStatusLabels[entry.oldStatus ?? ""] ??
+                                "N/A"}{" "}
+                              →{" "}
+                              {applicationStatusLabels[entry.newStatus ?? ""] ??
+                                "N/A"}
                             </p>
                           </div>
                           <p className="text-xs text-gray-400">
@@ -524,7 +531,17 @@ export default function ApplicationPage({ params }: Props) {
                   </label>
                   <p className="text-sm text-gray-900">
                     {application.downPayment
-                      ? `$${application.downPayment.toLocaleString()}`
+                      ? downPaymentLabels[application.downPayment]
+                      : "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">
+                    Vehicle Type
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {application?.vehicleType
+                      ? vehicleTypeLabels[application.vehicleType]
                       : "N/A"}
                   </p>
                 </div>

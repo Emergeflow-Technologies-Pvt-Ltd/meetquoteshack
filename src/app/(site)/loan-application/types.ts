@@ -7,6 +7,7 @@ import {
   MaritalStatus,
   PropertyType,
   ResidencyStatus,
+  VehicleType,
 } from "@prisma/client";
 import * as z from "zod";
 
@@ -84,6 +85,7 @@ export const generalLoanFormSchema = z.object({
   estimatedPropertyValue: z.number().min(1).optional(),
   houseType: z.nativeEnum(PropertyType).optional(),
   downPayment: z.nativeEnum(DownPayment).optional(),
+  vehicleType: z.nativeEnum(VehicleType).optional(),
   tradeInCurrentVehicle: z.boolean().optional(),
   sin: z
     .string()

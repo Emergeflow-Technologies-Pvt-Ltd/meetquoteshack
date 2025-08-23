@@ -61,6 +61,7 @@ export default function GeneralLoanForm() {
       sin: undefined,
       isAdult: false,
       downPayment: undefined,
+      vehicleType: undefined,
       houseType: undefined,
       tradeInCurrentVehicle: undefined,
       hasBankruptcy: false,
@@ -97,6 +98,7 @@ export default function GeneralLoanForm() {
         "houseType",
         "downPayment",
         "tradeInCurrentVehicle",
+        "vehicleType",
       ],
       2: [
         "employmentStatus",
@@ -175,7 +177,6 @@ export default function GeneralLoanForm() {
         housingPayment: Number(data.housingPayment),
         grossIncome: Number(data.grossIncome),
         loanAmount: Number(data.loanAmount),
-        tradeInCurrentVehicle: data.tradeInCurrentVehicle,
       };
 
       const response = await axios.post("/api/apply/general", payload);

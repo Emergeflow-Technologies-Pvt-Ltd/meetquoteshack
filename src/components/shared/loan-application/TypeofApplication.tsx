@@ -3,7 +3,12 @@
 import React from "react";
 import { Controller, useWatch, UseFormReturn } from "react-hook-form";
 import { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
-import { DownPayment, LoanType, PropertyType } from "@prisma/client";
+import {
+  DownPayment,
+  LoanType,
+  PropertyType,
+  VehicleType,
+} from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +31,7 @@ import {
   downPaymentLabels,
   loanTypeLabels,
   propertyTypeLabels,
+  vehicleTypeLabels,
 } from "../general.const";
 
 type Props = {
@@ -57,6 +63,7 @@ const TypeofApplication = ({ form }: Props) => {
     loanType === LoanType.INVESTMENT_PROPERTY;
 
   const showTradeIn = loanType === LoanType.CAR;
+  const showVehicleType = loanType === LoanType.CAR;
 
   return (
     <div className="space-y-6">
@@ -186,6 +193,36 @@ const TypeofApplication = ({ form }: Props) => {
                     </label>
                   ))}
                 </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {showVehicleType && (
+        <FormField
+          control={form.control}
+          name="vehicleType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                What type of vehicle are you looking for?{" "}
+                <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a vehicle type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(VehicleType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {vehicleTypeLabels[type]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>

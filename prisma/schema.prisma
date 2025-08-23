@@ -91,6 +91,7 @@ model Application {
   residencyStatus          ResidencyStatus
   personalPhone            String
   personalEmail            String
+  vehicleType              VehicleType?
   employmentStatus         EmploymentStatus
   grossIncome              Decimal                    @db.Decimal(12, 2) // 10 digits before decimal, 2 after
   workplaceName            String
@@ -199,6 +200,16 @@ enum ApplicationType {
 enum HousingStatus {
   RENT @map("rent")
   OWN  @map("own")
+}
+
+enum VehicleType {
+  CAR
+  TRUCK
+  SUV
+  VAN
+  SEDAN
+  MINIVAN
+  OTHER
 }
 
 enum ResidencyStatus {

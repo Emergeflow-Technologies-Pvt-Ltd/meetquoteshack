@@ -4,6 +4,10 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Home } from "lucide-react";
 import { Prisma } from "@prisma/client";
+import {
+  downPaymentLabels,
+  vehicleTypeLabels,
+} from "@/components/shared/general.const";
 
 interface PropertyMortgageDetailsProps {
   application: Prisma.ApplicationGetPayload<{
@@ -43,11 +47,23 @@ const PropertyMortgageDetails: React.FC<PropertyMortgageDetailsProps> = ({
           />
           <InfoRow
             label="Down Payment"
-            value={application?.downPayment || "N/A"}
+            value={
+              application?.downPayment
+                ? downPaymentLabels[application.downPayment]
+                : "N/A"
+            }
           />
           <InfoRow
             label="Trade-in Current Vehicle"
             value={application?.tradeInCurrentVehicle ? "Yes" : "No"}
+          />
+          <InfoRow
+            label="Vehicle Type"
+            value={
+              application?.vehicleType
+                ? vehicleTypeLabels[application.vehicleType]
+                : "N/A"
+            }
           />
         </div>
       </CardContent>

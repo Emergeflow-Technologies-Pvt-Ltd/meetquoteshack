@@ -40,6 +40,7 @@ export async function POST(request: Request) {
         : null,
       houseType: data.houseType || null,
       downPayment: data.downPayment || null,
+      vehicleType: data.vehicleType || null,
       tradeInCurrentVehicle: data.tradeInCurrentVehicle || null,
       savings: data.savings,
       sin: data.sin || null,
