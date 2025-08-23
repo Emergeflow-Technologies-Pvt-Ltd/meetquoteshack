@@ -58,7 +58,13 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
             <FormControl>
               <RadioGroup
                 onValueChange={(value) => field.onChange(value === "yes")}
-                defaultValue={field.value ? "yes" : "no"}
+                value={
+                  field.value === undefined
+                    ? undefined
+                    : field.value
+                    ? "yes"
+                    : "no"
+                }
                 className="flex flex-row gap-4"
               >
                 <FormItem className="flex items-center space-x-2">

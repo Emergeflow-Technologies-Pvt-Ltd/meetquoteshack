@@ -32,11 +32,13 @@ import {
 } from "@/components/ui/tooltip";
 import {
   applicationStatusLabels,
+  downPaymentLabels,
   housingStatusTypeLabels,
   loanTypeLabels,
   maritalStatusLabels,
   propertyTypeLabels,
   residencyStatusTypeLabels,
+  vehicleTypeLabels,
 } from "@/components/shared/general.const";
 import {
   getBackgroundColorLoanStatus,
@@ -431,7 +433,9 @@ export default function ApplicationPage({
                     <div>
                       <span className="text-gray-500">Down Payment</span>
                       <p className="font-medium">
-                        {application?.downPayment || "N/A"}
+                        {application?.downPayment
+                          ? downPaymentLabels[application.downPayment]
+                          : "N/A"}
                       </p>
                     </div>
                     <div>
@@ -440,6 +444,14 @@ export default function ApplicationPage({
                       </span>
                       <p className="font-medium">
                         {application?.tradeInCurrentVehicle ? "Yes" : "No"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Type of Vehicle?</span>
+                      <p className="font-medium">
+                        {application?.vehicleType
+                          ? vehicleTypeLabels[application.vehicleType]
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
