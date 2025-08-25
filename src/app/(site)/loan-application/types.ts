@@ -64,7 +64,7 @@ export const generalLoanFormSchema = z.object({
 
   // Step 4: Education Details
   generalEducationLevel: z.nativeEnum(EducationLevel).optional(),
-  generalFieldOfStudy: z.string().min(1, "Field of study is required").optional(),
+  generalFieldOfStudy: z.string().optional(),
 
   // Step 5: Employment Details
   employmentStatus: z.nativeEnum(EmploymentStatus),
@@ -89,8 +89,6 @@ export const generalLoanFormSchema = z.object({
   tradeInCurrentVehicle: z.boolean().optional(),
   sin: z
     .string()
-    .min(9, "SIN must be at least 9 digits")
-    .regex(/^\d{9}$/, "Must be 9 digits")
     .transform((val) => (val ? parseInt(val) : null))
     .refine((val) => val === null || !isNaN(val), {
       message: "Must be a valid number"
