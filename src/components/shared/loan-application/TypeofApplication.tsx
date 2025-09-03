@@ -74,19 +74,30 @@ const TypeofApplication = ({ form }: Props) => {
       <Controller
         control={form.control}
         name="loanType"
-        render={({ field }) => (
-          <Select onValueChange={field.onChange} value={field.value}>
-            <SelectTrigger id="loanType">
-              <SelectValue placeholder="Select a loan type" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(LoanType).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {loanTypeLabels[type]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        rules={{ required: "Loan type is required" }}
+        render={({ field, fieldState }) => (
+          <>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger
+                id="loanType"
+                className={fieldState.error ? "border-red-500" : ""}
+              >
+                <SelectValue placeholder="Select a loan type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(LoanType).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {loanTypeLabels[type]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldState.error && (
+              <p className="text-red-500 text-sm mt-1">
+                {fieldState.error.message}
+              </p>
+            )}
+          </>
         )}
       />
 
@@ -94,6 +105,17 @@ const TypeofApplication = ({ form }: Props) => {
         <FormField
           control={form.control}
           name="estimatedPropertyValue"
+          rules={{
+            required: showPropertyDetails
+              ? "Estimated property value is required"
+              : false,
+            validate: (value) => {
+              if (showPropertyDetails && (!value || value <= 0)) {
+                return "Estimated property value is required";
+              }
+              return true;
+            },
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -103,6 +125,7 @@ const TypeofApplication = ({ form }: Props) => {
                 <Input
                   placeholder="e.g. 500000"
                   type="number"
+                  min="1"
                   value={field.value ?? ""}
                   onChange={(e) =>
                     field.onChange(
@@ -121,6 +144,14 @@ const TypeofApplication = ({ form }: Props) => {
         <FormField
           control={form.control}
           name="houseType"
+          rules={{
+            validate: (value) => {
+              if (showPropertyType && !value) {
+                return "Property type is required";
+              }
+              return true;
+            },
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -163,6 +194,14 @@ const TypeofApplication = ({ form }: Props) => {
         <FormField
           control={form.control}
           name="downPayment"
+          rules={{
+            validate: (value) => {
+              if (showDownPayment && !value) {
+                return "Down payment is required";
+              }
+              return true;
+            },
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -204,6 +243,14 @@ const TypeofApplication = ({ form }: Props) => {
         <FormField
           control={form.control}
           name="vehicleType"
+          rules={{
+            validate: (value) => {
+              if (showVehicleType && !value) {
+                return "Vehicle type is required";
+              }
+              return true;
+            },
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -234,6 +281,14 @@ const TypeofApplication = ({ form }: Props) => {
         <FormField
           control={form.control}
           name="tradeInCurrentVehicle"
+          rules={{
+            validate: (value) => {
+              if (showTradeIn && value === undefined) {
+                return "Please specify if trading in vehicle";
+              }
+              return true;
+            },
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>

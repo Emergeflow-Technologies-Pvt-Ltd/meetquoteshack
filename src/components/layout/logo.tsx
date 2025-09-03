@@ -1,14 +1,12 @@
-import { Landmark } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import QuoteshackLogo from "../assets/quoteshack-logo.svg";
+import Image from "next/image";
 
 export default function Logo() {
   return (
     <Link href="/" className="flex font-bold items-center">
-      <span className="flex items-center justify-center size-7 lg:size-8 mr-2 bg-gradient-to-tr from-primary via-primary/70 to-primary rounded-lg border border-secondary">
-        <Landmark className="size-5 lg:size-6 text-white" />
-      </span>
-      <h5 className="text-lg lg:text-xl">Quoteshack</h5>
+      <Image src={QuoteshackLogo} alt="logo" width={150} height={40} />
     </Link>
   );
 }

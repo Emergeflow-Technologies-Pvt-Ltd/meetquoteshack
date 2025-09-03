@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { UseFormReturn } from "react-hook-form";
+import { PlacesAutocompleteField } from "../PlacesAutocompleteField";
 
 interface GeneralLoanStepProps {
   form: UseFormReturn<GeneralLoanFormValues>;
@@ -126,14 +127,16 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
           <FormField
             control={form.control}
             name="coApplicantAddress"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="123 Main St, City" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            render={() => (
+              <PlacesAutocompleteField
+                control={form.control}
+                name="coApplicantAddress"
+                label="Address"
+                placeholder="123 Main St, City"
+                onPlaceSelected={({ address }) => {
+                  form.setValue("coApplicantAddress", address);
+                }}
+              />
             )}
           />
           <FormField

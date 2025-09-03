@@ -10,6 +10,7 @@ import type { UseFormReturn } from "react-hook-form";
 import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
 import { ResidencyStatus, HousingStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
+import { PlacesAutocompleteField } from "../PlacesAutocompleteField";
 
 interface ResidenceStepProps {
   form: UseFormReturn<GeneralLoanFormValues>;
@@ -64,16 +65,16 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
         <FormField
           control={form.control}
           name="currentAddress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Current Address <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="123 Main St, City, Province" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          render={() => (
+            <PlacesAutocompleteField
+              control={form.control}
+              name="currentAddress"
+              label="Current Address"
+              placeholder="123 Main St, City, Province"
+              onPlaceSelected={({ address }) => {
+                form.setValue("currentAddress", address);
+              }}
+            />
           )}
         />
 
@@ -104,16 +105,16 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
         <FormField
           control={form.control}
           name="previousAddress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Previous Address <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="456 Old St, City, Province" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          render={() => (
+            <PlacesAutocompleteField
+              control={form.control}
+              name="previousAddress"
+              label="Previous Address"
+              placeholder="123 Main St, City, Province"
+              onPlaceSelected={({ address }) => {
+                form.setValue("previousAddress", address);
+              }}
+            />
           )}
         />
       )}
