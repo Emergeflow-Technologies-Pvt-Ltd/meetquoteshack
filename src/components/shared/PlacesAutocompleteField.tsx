@@ -36,7 +36,7 @@ export function PlacesAutocompleteField<T extends FieldValues>({
 }: PlacesAutocompleteFieldProps<T>) {
   // Load Google Maps API with "places" library
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: ["places"],
   });
 
