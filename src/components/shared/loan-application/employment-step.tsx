@@ -18,6 +18,7 @@ import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types"
 
 import { EmploymentStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
+import { PlacesAutocompleteField } from "../PlacesAutocompleteField";
 
 interface EmploymentStepProps {
   form: UseFormReturn<GeneralLoanFormValues>;
@@ -89,7 +90,11 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
                   Current Employer <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ""} />
+                  <Input
+                    placeholder="Enter current employer"
+                    {...field}
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -98,16 +103,16 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
           <FormField
             control={form.control}
             name="workplaceAddress"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Company Address <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input {...field} value={field.value || ""} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            render={() => (
+              <PlacesAutocompleteField
+                control={form.control}
+                name="workplaceAddress"
+                label="Company Address"
+                placeholder="Enter company address"
+                onPlaceSelected={({ address }) => {
+                  form.setValue("workplaceAddress", address);
+                }}
+              />
             )}
           />
         </div>
@@ -141,7 +146,12 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
                   Work Email <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} value={field.value || ""} />
+                  <Input
+                    placeholder="Enter work email"
+                    type="email"
+                    {...field}
+                    value={field.value || ""}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -164,6 +174,7 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
                   <FormControl>
                     <Input
                       type="number"
+                      placeholder="Enter employment duration"
                       {...field}
                       value={inputValue}
                       onChange={(e) => {
