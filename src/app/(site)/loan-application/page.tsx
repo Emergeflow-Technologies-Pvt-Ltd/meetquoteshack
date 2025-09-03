@@ -30,6 +30,7 @@ import {
   GeneralLoanFormValues,
 } from "@/app/(site)/loan-application/types";
 import { formSteps } from "@/app/(site)/loan-application/steps";
+import { LoanType } from "@prisma/client";
 
 export default function GeneralLoanForm() {
   const router = useRouter();
@@ -37,16 +38,27 @@ export default function GeneralLoanForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: session } = useSession();
 
-  // Debug mount
-  console.log("🔄 Component mounted/re-rendered");
-
   // Redirect if not authenticated
   useEffect(() => {
     if (!session?.user) {
-      console.log("🔒 No session - redirecting to login");
+      console.log(" No session - redirecting to login");
       router.push("/loanee/login");
     }
   }, [session, router]);
+
+  const loanTypesForPropertyDetails: LoanType[] = [
+    "FIRST_TIME_HOME",
+    "INVESTMENT_PROPERTY",
+    "MORTGAGE_REFINANCE",
+    "HELOC",
+    "HOME_REPAIR",
+  ];
+
+  const loanTypesForDownPayment: LoanType[] = [
+    "FIRST_TIME_HOME",
+    "INVESTMENT_PROPERTY",
+    "CAR",
+  ];
 
   const form = useForm<GeneralLoanFormValues>({
     resolver: zodResolver(generalLoanFormSchema),
@@ -89,17 +101,56 @@ export default function GeneralLoanForm() {
     mode: "all",
   });
 
+  const watchLoanType = form.watch("loanType");
+  const watchEstimatedPropertyValue = form.watch("estimatedPropertyValue");
+  const watchDownPayment = form.watch("downPayment");
+  const watchVehicleType = form.watch("vehicleType");
+  const watchTradeIn = form.watch("tradeInCurrentVehicle");
+
+  // Evaluate conditions for disabling "Next"
+  const disableNextStep1 = (() => {
+    if (!watchLoanType) return true;
+
+    if (loanTypesForPropertyDetails.includes(watchLoanType)) {
+      if (
+        !watchEstimatedPropertyValue ||
+        Number(watchEstimatedPropertyValue) <= 0
+      ) {
+        return true;
+      }
+    }
+
+    if (
+      watchLoanType === "FIRST_TIME_HOME" ||
+      watchLoanType === "INVESTMENT_PROPERTY"
+    ) {
+      const houseType = form.getValues("houseType");
+      if (!houseType || houseType.trim().length === 0) {
+        return true;
+      }
+    }
+
+    if (loanTypesForDownPayment.includes(watchLoanType)) {
+      if (!watchDownPayment || Number(watchDownPayment) <= 0) {
+        return true;
+      }
+    }
+
+    if (watchLoanType === "CAR") {
+      if (!watchVehicleType || watchVehicleType.trim().length === 0)
+        return true;
+      if (watchTradeIn === undefined) return true;
+    }
+
+    return false; // All validations passed
+  })();
+
   async function onNext() {
-    const fieldsToValidate: Record<number, (keyof GeneralLoanFormValues)[]> = {
+    const baseFieldsToValidate: Record<
+      number,
+      (keyof GeneralLoanFormValues)[]
+    > = {
       0: ["isAdult", "hasBankruptcy"],
-      1: [
-        "loanType",
-        "estimatedPropertyValue",
-        "houseType",
-        "downPayment",
-        "tradeInCurrentVehicle",
-        "vehicleType",
-      ],
       2: [
         "employmentStatus",
         "grossIncome",
@@ -129,24 +180,112 @@ export default function GeneralLoanForm() {
     };
 
     try {
-      const fields = fieldsToValidate[currentStep] ?? [];
-      const isValid = await form.trigger(fields);
-      if (!isValid) {
-        toast({
-          title: "Validation Error",
-          description: "Please complete all required fields correctly",
-          variant: "destructive",
-        });
-        return false;
+      let fields: (keyof GeneralLoanFormValues)[] = [];
+
+      if (currentStep === 1) {
+        const loanType = form.getValues("loanType");
+        fields = ["loanType"];
+
+        if (!loanType) {
+          form.setError("loanType", {
+            type: "manual",
+            message: "Loan type is required",
+          });
+          toast({
+            title: "Validation Error",
+            description: "Please select a loan type",
+            variant: "destructive",
+          });
+        }
+
+        if (loanTypesForPropertyDetails.includes(loanType)) {
+          fields.push("estimatedPropertyValue");
+          const value = form.getValues("estimatedPropertyValue");
+          if (!value || Number(value) <= 0) {
+            form.setError("estimatedPropertyValue", {
+              type: "manual",
+              message: "Estimated property value is required",
+            });
+          }
+        }
+
+        if (
+          loanType === "FIRST_TIME_HOME" ||
+          loanType === "INVESTMENT_PROPERTY"
+        ) {
+          fields.push("houseType");
+          const value = form.getValues("houseType");
+          if (!value || value.trim().length === 0) {
+            form.setError("houseType", {
+              type: "manual",
+              message: "Property type is required",
+            });
+          }
+        }
+
+        if (loanTypesForDownPayment.includes(loanType)) {
+          fields.push("downPayment");
+          const value = form.getValues("downPayment");
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            form.setError("downPayment", {
+              type: "manual",
+              message: "Down payment is required",
+            });
+          }
+        }
+
+        if (loanType === "CAR") {
+          fields.push("vehicleType", "tradeInCurrentVehicle");
+          const vehicleType = form.getValues("vehicleType");
+          if (!vehicleType || vehicleType.trim().length === 0) {
+            form.setError("vehicleType", {
+              type: "manual",
+              message: "Vehicle type is required",
+            });
+          }
+
+          const tradeIn = form.getValues("tradeInCurrentVehicle");
+          if (tradeIn === undefined) {
+            form.setError("tradeInCurrentVehicle", {
+              type: "manual",
+              message: "Please specify if trading in vehicle",
+            });
+          }
+        }
+
+        const isValid = await form.trigger(fields, { shouldFocus: true });
+
+        if (!isValid) {
+          console.log("Form errors:", form.formState.errors);
+          toast({
+            title: "Validation Error",
+            description: "Please complete all required fields correctly",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } else {
+        fields = baseFieldsToValidate[currentStep] || [];
+        const isValid = await form.trigger(fields, { shouldFocus: true });
+
+        if (!isValid) {
+          toast({
+            title: "Validation Error",
+            description: "Please complete all required fields",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
 
       if (currentStep < formSteps.length - 1) {
-        setCurrentStep(currentStep + 1);
+        setCurrentStep((prev) => prev + 1);
         return true;
       }
+
       return false;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast({
         title: "Error",
         description: "An error occurred during validation",
@@ -221,11 +360,11 @@ export default function GeneralLoanForm() {
         <Form {...form}>
           <form
             onSubmit={(e) => {
-              console.log("🔘 Form submit handler triggered");
+              console.log("Form submit handler triggered");
               form
                 .handleSubmit(onSubmit)(e)
                 .catch((error) => {
-                  console.error("❗ Form submission error:", error);
+                  console.error(" Form submission error:", error);
                 });
             }}
             className="space-y-8 p-6"
@@ -279,9 +418,10 @@ export default function GeneralLoanForm() {
                 <Button
                   type="button"
                   onClick={() => {
-                    console.log("➡️ Next button clicked");
+                    console.log("Next button clicked");
                     onNext().catch(console.error);
                   }}
+                  disabled={currentStep === 1 && disableNextStep1}
                 >
                   Next
                 </Button>
