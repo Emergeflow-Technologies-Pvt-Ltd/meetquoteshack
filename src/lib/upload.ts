@@ -9,9 +9,10 @@ export async function uploadFile(email: string, file: File) {
       contentType: file.type,
     });
   if (error) {
+    window.location.reload();
     return error;
   }
-
+  window.location.reload();
   return key;
 }
 
