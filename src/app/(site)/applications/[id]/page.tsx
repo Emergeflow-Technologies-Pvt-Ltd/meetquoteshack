@@ -64,10 +64,12 @@ export default function ApplicationPage({
       })
     | null
   >(null);
-  const [loading, setLoading] = useState(true);
+
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const router = useRouter();
+  const [loadingApp, setLoadingApp] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
   // Chat States
   const [messages, setMessages] = useState<Message[]>([]);
@@ -77,19 +79,22 @@ export default function ApplicationPage({
     const fetchApplication = async () => {
       if (session?.user?.email) {
         try {
+          setLoadingApp(true);
           const { data } = await axios.get(`/api/applications/${id}`);
           setApplication(data.application);
 
-          // Fetch messages if in chat
           if (data.application.status === "IN_CHAT") {
+            setLoadingMessages(true);
             const res = await axios.get(`/api/messages?applicationId=${id}`);
             setMessages(res.data);
+            setLoadingMessages(false);
           }
         } catch (error) {
           console.error("Error fetching application:", error);
+        } finally {
+          setLoadingApp(false);
         }
       }
-      setLoading(false);
     };
 
     fetchApplication();
@@ -164,7 +169,7 @@ export default function ApplicationPage({
     }
   };
 
-  if (loading) {
+  if (loadingApp || loadingMessages) {
     return (
       <Section className="py-24">
         <Card>
