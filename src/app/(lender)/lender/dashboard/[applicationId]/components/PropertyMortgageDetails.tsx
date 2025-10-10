@@ -6,6 +6,7 @@ import { Home } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import {
   downPaymentLabels,
+  propertyTypeLabels,
   vehicleTypeLabels,
 } from "@/components/shared/general.const";
 
@@ -33,7 +34,11 @@ const PropertyMortgageDetails: React.FC<PropertyMortgageDetailsProps> = ({
         <div className="grid grid-cols-2 gap-y-2 gap-x-4">
           <InfoRow
             label="Property Type"
-            value={application?.houseType || "N/A"}
+            value={
+              application?.houseType
+                ? propertyTypeLabels[application.houseType] || "N/A"
+                : "N/A"
+            }
           />
           <InfoRow
             label="Estimated Property Value"
