@@ -330,10 +330,18 @@ export default function ApplicationPage({ params }: Props) {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">
-                    Address
+                    Current Address
                   </label>
                   <p className="text-sm text-gray-900">
                     {application.currentAddress}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">
+                    Email
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {application.personalEmail}
                   </p>
                 </div>
 
@@ -341,13 +349,28 @@ export default function ApplicationPage({ params }: Props) {
 
                 <div>
                   <label className="text-xs font-medium text-gray-500">
-                    Employment
+                    Previous Address
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.workplaceName}
+                    {application?.previousAddress || "N/A"}
                   </p>
                 </div>
-
+                <div>
+                  <label className="text-xs font-medium text-gray-500">
+                    Current Address Duration
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {application?.yearsAtCurrentAddress} years
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">
+                    Field of Study
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {application?.generalFieldOfStudy}
+                  </p>
+                </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">
                     Annual Income
@@ -401,6 +424,30 @@ export default function ApplicationPage({ params }: Props) {
                     <p className="text-sm text-gray-900">
                       {application.workplaceDuration} year
                       {application.workplaceDuration > 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Workplace Email
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.workplaceEmail}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Workplace Phone
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.workplacePhone}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Workplace Address
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.workplaceAddress}
                     </p>
                   </div>
                 </div>
@@ -499,6 +546,14 @@ export default function ApplicationPage({ params }: Props) {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">
+                    SIN
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {application?.sin || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">
                     Loan Type
                   </label>
                   <p className="text-sm text-gray-900">
@@ -555,6 +610,64 @@ export default function ApplicationPage({ params }: Props) {
                 </div>
               </CardContent>
             </Card>
+
+            {application.hasCoApplicant && (
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <CardTitle>Co-Applicant Details</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Full Name
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.coApplicantFullName || "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Date of Birth
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.coApplicantDateOfBirth
+                        ? new Date(
+                            application.coApplicantDateOfBirth
+                          ).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Address
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.coApplicantAddress || "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Phone
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.coApplicantPhone || "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">
+                      Email
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {application.coApplicantEmail || "N/A"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-3">

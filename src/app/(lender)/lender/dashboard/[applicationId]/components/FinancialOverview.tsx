@@ -5,7 +5,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DollarSign } from "lucide-react";
 
 import { Prisma } from "@prisma/client";
-import { loanTypeLabels } from "@/components/shared/general.const";
+import {
+  housingStatusTypeLabels,
+  loanTypeLabels,
+} from "@/components/shared/general.const";
 
 interface FinancialOverviewProps {
   application: Prisma.ApplicationGetPayload<{
@@ -37,6 +40,18 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
             label="Monthly Debts"
             value={`$${application?.monthlyDebts}`}
           />
+          <InfoRow
+            label="Housing Status"
+            value={
+              application?.housingStatus
+                ? housingStatusTypeLabels[application.housingStatus]
+                : "N/A"
+            }
+          />
+          <InfoRow
+            label="Housing Payment"
+            value={`$${Number(application?.housingPayment).toLocaleString()}`}
+          />
           <InfoRow label="Savings" value={`$${application?.savings}`} />
           <InfoRow
             label="Other Income"
@@ -46,7 +61,6 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
             label="Child Care Benefit"
             value={application?.childCareBenefit ? "Yes" : "No"}
           />
-          <InfoRow label="SIN" value={application?.sin || "N/A"} />
           <InfoRow
             label="Has Bankruptcy?"
             value={application?.hasBankruptcy ? "Yes" : "No"}
@@ -75,7 +89,7 @@ const InfoRow = ({
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>
-    <p className="font-medium">{value}</p>
+    <p className="font-medium break-words">{value}</p>
   </div>
 );
 

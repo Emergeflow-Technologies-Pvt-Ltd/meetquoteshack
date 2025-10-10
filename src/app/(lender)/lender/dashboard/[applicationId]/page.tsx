@@ -16,6 +16,7 @@ import PersonalDetails from "./components/PersonalDetails";
 import FinancialOverview from "./components/FinancialOverview";
 import PropertyMortgageDetails from "./components/PropertyMortgageDetails";
 import CoApplicantDetails from "./components/CoApplicantDetails";
+import WorkplaceDetails from "./components/WorkplaceDetails";
 
 export default function ApplicationDetailsPage({
   params,
@@ -258,6 +259,7 @@ export default function ApplicationDetailsPage({
               {application.hasCoApplicant && (
                 <CoApplicantDetails application={application} />
               )}
+              <WorkplaceDetails application={application} />
             </div>
 
             {/* Documents */}
