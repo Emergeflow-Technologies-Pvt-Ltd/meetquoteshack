@@ -80,7 +80,7 @@ const InfoRow = ({
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>
-    <p className="font-medium">{value}</p>
+    <p className="font-medium break-words">{value}</p>
   </div>
 );
 

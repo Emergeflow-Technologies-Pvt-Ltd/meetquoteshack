@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import {
-  housingStatusTypeLabels,
   maritalStatusLabels,
   residencyStatusTypeLabels,
 } from "@/components/shared/general.const";
@@ -43,6 +42,15 @@ const PersonalDetails: React.FC<PersonalDetailsProps> = ({ application }) => {
             }
           />
           <InfoRow
+            label="Marital status"
+            value={
+              maritalStatusLabels[
+                application?.maritalStatus as keyof typeof maritalStatusLabels
+              ] || "N/A"
+            }
+          />
+
+          <InfoRow
             label="Current Address"
             value={application?.currentAddress}
           />
@@ -51,21 +59,14 @@ const PersonalDetails: React.FC<PersonalDetailsProps> = ({ application }) => {
             value={application?.previousAddress || "N/A"}
           />
           <InfoRow
-            label="Years at Current Address"
-            value={application?.yearsAtCurrentAddress}
-          />
-          <InfoRow
-            label="Housing Status"
+            label="Current Address Duration"
             value={
-              application?.housingStatus
-                ? housingStatusTypeLabels[application.housingStatus]
+              application?.yearsAtCurrentAddress
+                ? `${application.yearsAtCurrentAddress} years`
                 : "N/A"
             }
           />
-          <InfoRow
-            label="Housing Payment"
-            value={`$${Number(application?.housingPayment).toLocaleString()}`}
-          />
+
           <InfoRow
             label="Canadian Status"
             value={
@@ -99,7 +100,7 @@ const InfoRow = ({
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>
-    <p className="font-medium">{value}</p>
+    <p className="font-medium break-words">{value}</p>
   </div>
 );
 

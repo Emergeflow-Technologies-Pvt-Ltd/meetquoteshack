@@ -283,7 +283,7 @@ export default function ApplicationPage({
                     </div>
                     <div>
                       <span className="text-gray-500">
-                        Years at Current Address
+                        Current Address Duration
                       </span>
                       <p className="font-medium">
                         {application?.yearsAtCurrentAddress}
