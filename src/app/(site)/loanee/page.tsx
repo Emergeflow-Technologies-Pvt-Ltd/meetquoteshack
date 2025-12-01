@@ -32,7 +32,11 @@ export default function Loanee() {
         variant: "destructive",
       });
     } else {
-      router.push("/loanee/login");
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the loanee login.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -49,7 +53,11 @@ export default function Loanee() {
         variant: "destructive",
       });
     } else {
-      router.push("/loanee/login");
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the loan application.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -182,13 +190,20 @@ export default function Loanee() {
                 and more with our pre- approval process.
               </p>
               <div>
-                <Link
+                <button
+                  onClick={handleLoanformClick}
+                  className="inline-flex items-center py-4 px-8 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200 group"
+                >
+                  <span>Calculate Loan or Pre-Approval</span>
+                  <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                </button>
+                {/* <Link
                   href="/loan-application"
                   className="inline-flex items-center py-4 px-8 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200 group"
                 >
                   <span>Calculate Loan or Pre-Approval</span>
                   <ArrowRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-                </Link>
+                </Link> */}
               </div>
             </motion.div>
             <motion.div

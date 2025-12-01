@@ -168,6 +168,12 @@ export default async function AdminPage() {
                           </p>
                         </div>
                         <div>
+                          <span className="text-gray-500">Monthly Debts</span>
+                          <p className="font-medium">
+                            ${app.monthlyDebts.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
                           <span className="text-gray-500">Savings</span>
                           <p className="font-medium">
                             ${app.savings.toLocaleString()}

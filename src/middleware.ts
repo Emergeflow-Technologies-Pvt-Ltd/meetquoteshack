@@ -13,6 +13,11 @@ export default withAuth(
         return Response.redirect(new URL('/', req.nextUrl));
       }
     }
+    if (req.nextUrl.pathname.startsWith('/agent')) {
+      if (req.nextauth.token?.role !== UserRole.AGENT) {
+        return Response.redirect(new URL('/', req.nextUrl));
+      }
+    }
   },
   {
     callbacks: {

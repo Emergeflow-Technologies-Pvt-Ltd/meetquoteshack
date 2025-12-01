@@ -6,12 +6,88 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Head from "next/head";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 
 export default function Lenders() {
+
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  };
+
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleGetStartedClick = () => {
+    const role = session?.user?.role;
+
+    if (role === "LOANEE") {
+      router.push("/loan-application");
+    } else if (role === "LENDER") {
+      toast({
+        title: "Access Denied",
+        description:
+          "You're logged in as a lender. Please log out to login as a loanee.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the loan application.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSignUpClick = () => {
+    const role = session?.user?.role;
+    if (!session) {
+      router.push("/lender/register");
+      return;
+    }
+    else if (role === "LENDER") {
+      toast({
+        title: "Already Logged In",
+        description: "You are already logged in as a lender.",
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the lender registration.",
+        variant: "destructive",
+      });
+      return;
+    }
+  };
+
+  const handleLoginClick = () => {
+    const role = session?.user?.role;
+
+    if (role === "LENDER") {
+      toast({
+        title: "Already Logged In",
+        description: "You're already logged in as a lender.",
+      });
+    } else if (role === "LOANEE") {
+      toast({
+        title: "Access Denied",
+        description:
+          "You're logged in as a loanee. Please log out to login as a lender.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the lender login.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -46,21 +122,39 @@ export default function Lenders() {
             matching them to pre-qualified borrowers that align with their lending criteria.
           </p>
 
-          <div className="pt-6 flex flex-col sm:flex-row gap-5 justify-center">
-            <Link
-              href="/lender/register"
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
+              <button
+                onClick={handleGetStartedClick}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 py-4 px-10 rounded-full bg-violet-600 text-white font-bold hover:bg-violet-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-violet-200"
+              >
+                <span className="text-center">
+                  Find A Loan Now, It&apos;s Free
+                </span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={handleLoginClick}
+                className="flex items-center w-full sm:w-auto justify-center gap-2 py-3 px-8 rounded-full border-2 border-violet-200 text-violet-700 font-medium hover:border-violet-300 hover:bg-violet-50 transition duration-300 ease-in-out"
+              >
+                Login
+              </button>
+            </div>
+          {/* <div className="pt-6 flex flex-col sm:flex-row gap-5 justify-center">
+            <Button
+            onClick={() => router.push("/lender/register")}
               className="group flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-violet-200 transition duration-300 ease-in-out"
             >
               Get Started, It&apos;s Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/lender/login"
+            </Button>
+            <button
+              onClick={handleLoginClick}
               className="flex items-center justify-center gap-2 py-3 px-8 rounded-lg border-2 border-violet-200 text-violet-700 font-medium hover:border-violet-300 hover:bg-violet-50 transition duration-300 ease-in-out"
             >
               Login
-            </Link>
-          </div>
+            </button>
+          </div> */}
         </motion.div>
       </Section>
 
@@ -168,13 +262,13 @@ export default function Lenders() {
             centralized dashboard. Our lender AI platform does the heavy lifting so you can focus on scaling
             your business and maximizing returns.
           </p>
-          <Link
-            href="/lender/register"
-            className="group inline-flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-violet-200 transition duration-300 ease-in-out"
-          >
-            Sign Up Now
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <Button
+              onClick= {handleSignUpClick}
+              className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+              size="lg"
+            >
+              Sign Up Now
+            </Button>
         </motion.div>
       </Section>
 
@@ -219,19 +313,19 @@ export default function Lenders() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-5 justify-center">
-            <Link
-              href="/lender/register"
-              className="group flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-white text-violet-700 font-medium hover:shadow-lg hover:shadow-violet-900/20 transition duration-300 ease-in-out"
+            <Button
+              onClick= {handleSignUpClick}
+              className="px-8 py-6 text-lg rounded-lg bg-white text-violet-700 font-medium hover:shadow-lg hover:shadow-violet-900/20 transition duration-300 ease-in-out"
+              size="lg"
             >
               Become a Lender
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/lender/login"
+            </Button>
+            <button
+              onClick={handleLoginClick}
               className="flex items-center justify-center gap-2 py-3 px-8 rounded-lg border-2 border-white/30 text-white font-medium hover:bg-white/10 transition duration-300 ease-in-out backdrop-blur-sm"
             >
               Login
-            </Link>
+            </button>
           </div>
         </motion.div>
       </Section>

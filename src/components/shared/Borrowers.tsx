@@ -3,18 +3,29 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Clock, Shield } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function Borrowers() {
   const { data: session } = useSession();
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleApplyNowClick = () => {
     const role = session?.user?.role;
 
-    if (!session || role === "LOANEE") {
-      // Not logged in or LOANEE: allow to apply
-      window.location.href = "/loan-application";
-    } else if (role === "LENDER") {
+    if (!session) {
+      // Not logged in: send to loanee login first
+      router.push("/loanee/login");
+      return;
+    }
+
+    if (role === "LOANEE") {
+      // Logged in loanee: go to loan application
+      router.push("/loan-application");
+      return;
+    }
+
+    if (role === "LENDER") {
       // Lender trying to apply as a loanee
       toast({
         title: "Switch Account",
@@ -22,14 +33,15 @@ export default function Borrowers() {
           "Please logout of your Lender account before applying as a loanee.",
         variant: "destructive",
       });
-    } else {
-      // Other roles
-      toast({
-        title: "Access Denied",
-        description: "You are not allowed to access the loan application.",
-        variant: "destructive",
-      });
+      return;
     }
+
+    // Other roles: deny access
+    toast({
+      title: "Access Denied",
+      description: "You are not allowed to access the loan application.",
+      variant: "destructive",
+    });
   };
 
   const benefits = [

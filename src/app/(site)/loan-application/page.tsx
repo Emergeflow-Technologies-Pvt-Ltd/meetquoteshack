@@ -68,7 +68,9 @@ export default function GeneralLoanForm() {
       estimatedPropertyValue: undefined,
       hasCoApplicant: undefined,
       monthlyDebts: undefined,
+      monthlyDebtsExist: undefined,
       otherIncome: undefined,
+      otherIncomeAmount: undefined,
       savings: undefined,
       sin: undefined,
       isAdult: false,
@@ -86,8 +88,16 @@ export default function GeneralLoanForm() {
       currentAddress: "",
       yearsAtCurrentAddress: undefined,
       housingStatus: undefined,
-      housingPayment: undefined,
+      housingRentPayment: undefined,
+      housingTotalPayment: undefined,
       residencyStatus: undefined,
+      mortgage : undefined,
+      propertyTaxMonthly: undefined,
+      homeInsurance: undefined,
+      monthlyCarLoanPayment : undefined,
+      monthlyCreditCardMinimums : undefined,
+      monthlyOtherLoanPayments : undefined,
+      heatingCosts: undefined,
       generalEducationLevel: undefined,
       generalFieldOfStudy: "",
       employmentStatus: undefined,
@@ -97,6 +107,7 @@ export default function GeneralLoanForm() {
       workplacePhone: "",
       workplaceEmail: "",
       loanAmount: undefined,
+      creditScore: undefined,
     },
     mode: "all",
   });
@@ -150,24 +161,10 @@ export default function GeneralLoanForm() {
       number,
       (keyof GeneralLoanFormValues)[]
     > = {
+      // step 0: Eligibility step
       0: ["isAdult", "hasBankruptcy"],
+      // step 2: Personal details
       2: [
-        "employmentStatus",
-        "grossIncome",
-        "workplaceName",
-        "workplaceAddress",
-        "workplacePhone",
-        "workplaceEmail",
-      ],
-      3: [
-        "currentAddress",
-        "yearsAtCurrentAddress",
-        "housingStatus",
-        "housingPayment",
-        "residencyStatus",
-      ],
-      4: ["monthlyDebts", "savings", "otherIncome", "childCareBenefit"],
-      5: [
         "firstName",
         "lastName",
         "dateOfBirth",
@@ -176,6 +173,26 @@ export default function GeneralLoanForm() {
         "personalEmail",
         "sin",
       ],
+      // step 3: Residence details
+      3: [
+        "currentAddress",
+        "yearsAtCurrentAddress",
+        "housingStatus",
+        "housingRentPayment",
+        "residencyStatus",
+      ],
+      // step 4: Employment details
+      4: [
+        "employmentStatus",
+        "grossIncome",
+        "workplaceName",
+        "workplaceAddress",
+        "workplacePhone",
+        "workplaceEmail",
+      ],
+      // step 5: Financial details
+      5: ["monthlyDebts", "savings", "otherIncome", "otherIncomeAmount",  "creditScore", "childCareBenefit"],
+      // step 6: Final loan details
       6: ["loanAmount", "hasCoApplicant"],
     };
 
@@ -271,7 +288,7 @@ export default function GeneralLoanForm() {
         if (!isValid) {
           toast({
             title: "Validation Error",
-            description: "Please complete all required fields",
+            description: "Please complete all required fields correctly",
             variant: "destructive",
           });
           return false;
@@ -313,7 +330,7 @@ export default function GeneralLoanForm() {
       const payload = {
         ...data,
         yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
-        housingPayment: Number(data.housingPayment),
+        housingRentPayment: Number(data.housingRentPayment),
         grossIncome: Number(data.grossIncome),
         loanAmount: Number(data.loanAmount),
       };
@@ -380,7 +397,7 @@ export default function GeneralLoanForm() {
               />
             )}
             {currentStep === 2 && (
-              <EmploymentStep
+              <PersonalStep
                 form={form as UseFormReturn<GeneralLoanFormValues>}
               />
             )}
@@ -390,15 +407,17 @@ export default function GeneralLoanForm() {
               />
             )}
             {currentStep === 4 && (
+              <EmploymentStep
+                form={form as UseFormReturn<GeneralLoanFormValues>}
+              />
+            )}
+            
+            {currentStep === 5 && (
               <FinancialStep
                 form={form as UseFormReturn<GeneralLoanFormValues>}
               />
             )}
-            {currentStep === 5 && (
-              <PersonalStep
-                form={form as UseFormReturn<GeneralLoanFormValues>}
-              />
-            )}
+            
             {currentStep === 6 && (
               <GeneralLoanStep
                 form={form as UseFormReturn<GeneralLoanFormValues>}

@@ -185,20 +185,18 @@ export function PersonalStep({ form }: PersonalStepProps) {
         )}
       />
 
-      {/* Education Level & Field of Study */}
-      <div className="flex gap-4 flex-row">
         {/* Education Level */}
         <FormField
           control={form.control}
           name="generalEducationLevel"
           render={({ field }) => (
-            <FormItem className="w-1/2">
+            <FormItem className="w-full">
               <FormLabel>Education Level</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value as string}
-                  className="flex flex-wrap gap-2"
+                  className="flex flex-row items-center gap-8"
                 >
                   {Object.entries(EducationLevel).map(([value]) => (
                     <FormItem
@@ -234,7 +232,7 @@ export function PersonalStep({ form }: PersonalStepProps) {
             </FormItem>
           )}
         />
-      </div>
+      {/* </div> */}
     </div>
   );
 }

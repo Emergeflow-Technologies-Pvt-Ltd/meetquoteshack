@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import Section from "./section";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface ImageProps {
   src: string;
@@ -53,6 +54,35 @@ const HeroImage: FC<ImageProps> = ({ src, index = 0 }) => (
 export default function Hero() {
   const { data: session } = useSession();
   const { toast } = useToast();
+  const router = useRouter();
+
+    const handleFindLoanClick = () => {
+    const role = session?.user?.role;
+
+    if (!session) {
+      // Not logged in: navigate to loanee login
+      router.push("/loanee/login");
+      return;
+    }
+
+    // If session exists, never open the loanee login page
+    if (role === "LOANEE") {
+      router.push("/loan-application");
+    } else if (role === "LENDER") {
+      toast({
+        title: "Access Denied",
+        description: "You are logged in as a lender. Please log out to apply as a loanee.",
+        variant: "destructive",
+      });
+    } else {
+      // For other roles (agent/admin) just route to the application or show a message
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the loan application.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleBecomeLenderClick = () => {
     const role = session?.user?.role;
@@ -74,7 +104,11 @@ export default function Hero() {
       });
     } else {
       // If another role or unknown: proceed
-      window.location.href = "/lender/register";
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the lender registration.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -107,14 +141,13 @@ export default function Hero() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Link href="/loan-application">
                 <Button
                   className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
                   size="lg"
+                  onClick={handleFindLoanClick}
                 >
                   Find A Loan
                 </Button>
-              </Link>
 
               <Button
                 variant="outline"

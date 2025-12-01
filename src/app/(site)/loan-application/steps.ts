@@ -11,27 +11,28 @@ export const formSteps = [
   },
   {
     id: "personal",
-    title: "Employment Details",
-    description: "Your current workplace details details",
-  },
-  {
-    id: "residence",
-    title: "Address & Residency",
-    description: "Your current living situation",
-  },
-  {
-    id: "education",
-    title: "Personal Finances",
-    description: "Your financial background",
-  },
-  {
-    id: "employment",
-    title: "Personal & Educational Details",
+    title: "Personal and Educational Details",
     description: "Your personal and educational details",
   },
   {
+    id: "residence",
+    title: "Residential Information",
+    description: "Your current resudential details",
+  },
+
+  {
+    id: "employment",
+    title: "Employment and Income",
+    description: "Your employment status and income details",
+  },
+    {
+    id: "",
+    title: "Financial Details",
+    description: "YBanking and financial information",
+  },
+  {
     id: "loan",
-    title: "Loan Requirements",
-    description: "Desired loan amount and details",
+    title: "review & Submit",
+    description: "Review and submit your application",
   },
 ] as const;

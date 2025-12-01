@@ -51,7 +51,8 @@ import NotificationIcon from "../assets/notification.svg";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [open, setOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [notifications, setNotifications] = useState<
     Prisma.NotificationGetPayload<{ include: { application: true } }>[]
   >([]);
@@ -188,6 +189,16 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             <Link href="/admin">Admin Dashboard</Link>
                           </Button>
                         )}
+                        {userRole === UserRole.AGENT && (
+                          <Button
+                            onClick={() => setIsOpen(false)}
+                            asChild
+                            variant="ghost"
+                            className="justify-start text-base"
+                          >
+                            <Link href="/agent">Agent Dashboard</Link>
+                          </Button>
+                        )}
                         <Button
                           onClick={() => setIsOpen(false)}
                           asChild
@@ -209,12 +220,12 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </>
                     ) : (
                       <>
-                        <Dialog open={open} onOpenChange={setOpen}>
+                        <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
                           <DialogTrigger asChild>
                             <Button
                               variant="default"
                               className="justify-start text-base mt-2"
-                              onClick={() => setOpen(true)}
+                              onClick={() => setLoginOpen(true)}
                             >
                               Login
                             </Button>
@@ -229,7 +240,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                                 onClick={() => {
                                   router.push("/lender/login");
                                   setIsOpen(false);
-                                  setOpen(false);
+                                  setLoginOpen(false);
                                 }}
                               >
                                 Login as Lender
@@ -239,25 +250,72 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                                 onClick={() => {
                                   router.push("/loanee/login");
                                   setIsOpen(false);
-                                  setOpen(false);
+                                  setLoginOpen(false);
                                 }}
                               >
                                 Login as Loanee
                               </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setLoginOpen(false);
+                                }}
+                              >
+                                Login as Agent
+                              </Button>
                             </div>
                           </DialogContent>
                         </Dialog>
-                        <Button
-                          variant="outline"
-                          className="justify-start text-base"
-                          onClick={() => {
-                            router.push("/lender/register");
-                            setIsOpen(false);
-                            setOpen(false);
-                          }}
-                        >
-                          Sign up as Lender
-                        </Button>
+                        <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="default"
+                              className="justify-start text-base mt-2"
+                              onClick={() => setRegisterOpen(true)}
+                            >
+                              Register
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle>Select your role</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex flex-col gap-4 mt-2">
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  router.push("/lender/login");
+                                  setIsOpen(false);
+                                  setRegisterOpen(false);
+                                }}
+                              >
+                                Register as Lender
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setRegisterOpen(false);
+                                }}
+                              >
+                                Register as Loanee
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setRegisterOpen(false);
+                                }}
+                              >
+                                Register as Agent
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </>
                     )}
                   </div>
@@ -464,6 +522,11 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       <Link href="/lender/dashboard">Lender Dashboard</Link>
                     </DropdownMenuItem>
                   )}
+                  {userRole === UserRole.AGENT && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/agent/dashboard">Agent Dashboard</Link>
+                      </DropdownMenuItem>
+                  )}
                   {userRole === UserRole.ADMIN && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin">Admin Dashboard</Link>
@@ -480,31 +543,41 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="default">Login</Button>
-                </DropdownMenuTrigger>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/lender/register")}
-                >
-                  Sign up as Lender
-                </Button>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => router.push("/loanee/login")}
-                  >
-                    As Loanee
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      router.push("/lender/login");
-                    }}
-                  >
-                    As Lender
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="default">Login</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => router.push("/loanee/login")}>
+                      As Loanee
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/lender/login")}>
+                      As Lender
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/agent/login")}>
+                      As Agent
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="default">Register</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => router.push("/loanee/login")}>
+                      As Loanee
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/lender/login")}>
+                      As Lender
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/agent/login")}>
+                      As Agent
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             )}
           </div>
         </div>

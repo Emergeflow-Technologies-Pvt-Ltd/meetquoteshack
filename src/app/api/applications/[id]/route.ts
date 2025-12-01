@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string; }>; }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,10 +19,12 @@ export async function GET(
       return new NextResponse("Missing application ID", { status: 400 });
     }
 
-    const application = await prisma.application.findUnique({
+    const application = await prisma.application.findFirst({
       where: {
-        id: id,
-        status: { in: ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"] },
+        id,
+        status: {
+          in: ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"],
+        },
       },
       include: {
         documents: true,
@@ -30,39 +32,27 @@ export async function GET(
         lender: {
           include: {
             user: {
-              select: {
-                id: true
-              }
-            }
-          }
+              select: { id: true },
+            },
+          },
         },
         ApplicationStatusHistory: {
           orderBy: { changedAt: "desc" },
           include: {
             changedBy: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
+              select: { id: true, name: true, email: true },
             },
           },
         },
       },
     });
 
-    const lenderList = await prisma.lender.findMany({
-      select: {
-        name: true,
-        id: true,
-      },
-    });
+    const lenderList = await prisma.lender.findMany({ select: { name: true, id: true } });
 
     if (!application) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    // Destructure ApplicationStatusHistory and remap to applicationStatusHistory
     const { ApplicationStatusHistory, ...rest } = application;
 
     return NextResponse.json({
@@ -100,6 +90,11 @@ export async function PATCH(
     });
 
     if (!application) {
+      return new NextResponse("Not found", { status: 404 });
+    }
+
+    const allowedStatuses = ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"];
+    if (!allowedStatuses.includes(application.status)) {
       return new NextResponse("Not found", { status: 404 });
     }
 

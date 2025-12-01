@@ -26,7 +26,7 @@ interface EmploymentStepProps {
 
 export function EmploymentStep({ form }: EmploymentStepProps) {
   return (
-    <div className="space-y-6">
+    <div className="grid gap-4 md:grid-cols-2">
       <FormField
         control={form.control}
         name="employmentStatus"
@@ -93,7 +93,11 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
                   <Input
                     placeholder="Enter current employer"
                     {...field}
-                    value={field.value || ""}
+                    value={
+                      field.value === undefined || field.value === null
+                        ? ""
+                        : String(field.value)
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -169,12 +173,12 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
               return (
                 <FormItem>
                   <FormLabel>
-                    Employment Duration <span className="text-red-500">*</span>
+                    Total Work Experience <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter employment duration"
+                      placeholder="Enter years of experience"
                       {...field}
                       value={inputValue}
                       onChange={(e) => {
@@ -193,6 +197,6 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
           />
         </div>
       </div>
-    </div>
+      </div>
   );
 }
