@@ -17,7 +17,10 @@ export default function Loanee() {
 
   const handleLoginClick = () => {
     const role = session?.user?.role;
-
+     if (!role) {
+    router.push("/loanee/login");
+    return;
+  }
     if (role === "LOANEE") {
       toast({
         title: "Already Logged In",
@@ -41,7 +44,15 @@ export default function Loanee() {
 
   const handleLoanformClick = () => {
     const role = session?.user?.role;
-
+    if (!role) {
+    toast({
+      title: "Login Required",
+      description: "Please login to continue.",
+      variant: "destructive",
+    });
+    router.push("/loanee");
+    return;
+  }
     if (role === "LOANEE") {
       router.push("/loan-application");
     } else if (role === "LENDER") {

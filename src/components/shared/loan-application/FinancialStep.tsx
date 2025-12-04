@@ -30,9 +30,8 @@ function YesNoToggle({
       {["true", "false"].map((val) => (
         <label
           key={val}
-          className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${
-            String(value) === val ? "border-gray-400 bg-gray-100" : "border-gray-300 hover:border-gray-400"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${String(value) === val ? "border-gray-400 bg-gray-100" : "border-gray-300 hover:border-gray-400"
+            }`}
         >
           <input
             type="radio"

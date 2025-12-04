@@ -23,7 +23,10 @@ export default function Lenders() {
 
   const handleGetStartedClick = () => {
     const role = session?.user?.role;
-
+    if (!role)  {
+      router.push("/loanee/login");
+      return;
+    }
     if (role === "LOANEE") {
       router.push("/loan-application");
     } else if (role === "LENDER") {
@@ -67,7 +70,10 @@ export default function Lenders() {
 
   const handleLoginClick = () => {
     const role = session?.user?.role;
-
+    if (!role) {
+      router.push("/lender/login");
+      return;
+    }
     if (role === "LENDER") {
       toast({
         title: "Already Logged In",
@@ -314,7 +320,7 @@ export default function Lenders() {
           <div className="pt-8 flex flex-col sm:flex-row gap-5 justify-center">
             <Button
               onClick= {handleSignUpClick}
-              className="px-8 py-6 text-lg rounded-lg bg-white text-violet-700 font-medium hover:shadow-lg hover:shadow-violet-900/20 transition duration-300 ease-in-out"
+              className="px-8 py-6 text-lg rounded-lg bg-white text-violet-700 font-medium hover:shadow-lg hover:text-white transition duration-300 ease-in-out"
               size="lg"
             >
               Become a Lender

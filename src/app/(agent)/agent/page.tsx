@@ -1,13 +1,13 @@
 "use client";
 
 import Section from "@/components/shared/section";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 export default function Agents() {
   const fadeIn = {
@@ -21,7 +21,7 @@ export default function Agents() {
   const handleLoginClick = () => {
     const role = session?.user?.role;
 
-    if (role === "LENDER") {
+    if (role === "AGENT") {
       toast({
         title: "Already Logged In",
         description: "You're already logged in as a lender.",
@@ -30,11 +30,41 @@ export default function Agents() {
       toast({
         title: "Access Denied",
         description:
-          "You're logged in as a loanee. Please log out to login as a lender.",
+          "You're logged in as a loanee. Please log out to login as a agent.",
         variant: "destructive",
       });
-    } else {
-      router.push("/lender/login");
+    } else if (role === "LENDER") {
+      toast({
+        title: "Access Denied",
+        description:
+          "You're logged in as a lender. Please log out to login as agent.",
+        variant: "destructive",
+      });
+     } else {
+      router.push("/agent/login");
+    }
+  };
+
+  const handleSignUpClick = () => {
+    const role = session?.user?.role;
+    if (!role) {
+      router.push("/agent/register");
+      return;
+    }
+    else if (role === "AGENT") {
+      toast({
+        title: "Already Logged In",
+        description: "You are already logged in as a lender.",
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Access Denied",
+        description: "You are not allowed to access the agent registration.",
+        variant: "destructive",
+      });
+      return;
     }
   };
 
@@ -70,13 +100,13 @@ export default function Agents() {
           </p>
 
           <div className="pt-6 flex flex-col sm:flex-row gap-5 justify-center">
-            <Link
-              href="/agent/register"
-              className="group flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-medium hover:shadow-lg hover:shadow-violet-200 transition duration-300 ease-in-out"
+            <Button
+              onClick= {handleSignUpClick}
+              className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+              size="lg"
             >
               Become an Agent
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </Button>
             <button
               onClick={handleLoginClick}
               className="flex items-center justify-center gap-2 py-3 px-8 rounded-lg border-2 border-violet-200 text-violet-700 font-medium hover:border-violet-300 hover:bg-violet-50 transition duration-300 ease-in-out"
@@ -172,13 +202,13 @@ export default function Agents() {
             Sign up as an agent, invite loanees, and watch their loan journey — all from your dashboard.
           </p>
 
-          <Link
-            href="/agent/register"
-            className="group inline-flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-violet-700 text-white font-medium hover:shadow-lg hover:shadow-violet-200 transition duration-300 ease-in-out"
-          >
-            Become an Agent
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <Button
+              onClick= {handleSignUpClick}
+              className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+              size="lg"
+            >
+              Sign Up Now
+            </Button>
         </motion.div>
       </Section>
 
@@ -217,19 +247,24 @@ export default function Agents() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-5 justify-center">
-            <Link
-              href="/agent/register"
-              className="group flex items-center justify-center gap-2 py-3 px-8 rounded-lg bg-white text-violet-700 font-medium hover:shadow-lg hover:shadow-violet-900/20 transition duration-300 ease-in-out"
-            >
-              Become an Agent
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <button
-              onClick={handleLoginClick}
-              className="flex items-center justify-center gap-2 py-3 px-8 rounded-lg border-2 border-violet-200 text-violet-700 font-medium hover:border-violet-300 hover:bg-violet-50 transition duration-300 ease-in-out"
-            >
-              Login
-            </button>
+            <Button
+  onClick={handleSignUpClick}
+  className="flex items-center justify-center gap-2 py-3 px-8 rounded-lg border-2 border-violet-200 text-violet-700 font-medium bg-white hover:bg-white hover:text-violet-700"
+  size="lg"
+>
+  Sign Up Now
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+
+</Button>
+
+            <Button
+  onClick={handleLoginClick}
+  className="bg-white hover:bg-white hover:text-violet-700 flex items-center justify-center gap-2 py-3 px-8 rounded-lg border-2 border-violet-200 text-violet-700 font-medium"
+  size="lg"
+>
+  Login
+</Button>
+
           </div>
         </motion.div>
       </Section>

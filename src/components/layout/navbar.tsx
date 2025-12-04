@@ -62,14 +62,11 @@ export const Navbar = ({ session }: { session: Session | null }) => {
   const [modalOpenMobile, setModalOpenMobile] = useState(false);
   const userRole = session?.user?.role;
   const router = useRouter();
-  console.log(session?.user.id);
 
   useEffect(() => {
     const fetchUnreadNotifications = async () => {
       try {
         const { data } = await axios.get("/api/notifications");
-        console.log("Raw notifications from API:", data);
-
         let filteredNotifications = data;
 
         if (session?.user?.role === "LOANEE") {
@@ -569,10 +566,10 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     <DropdownMenuItem onClick={() => router.push("/loanee/login")}>
                       As Loanee
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push("/lender/login")}>
+                    <DropdownMenuItem onClick={() => router.push("/lender/register")}>
                       As Lender
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push("/agent/login")}>
+                    <DropdownMenuItem onClick={() => router.push("/agent/register")}>
                       As Agent
                     </DropdownMenuItem>
                   </DropdownMenuContent>
