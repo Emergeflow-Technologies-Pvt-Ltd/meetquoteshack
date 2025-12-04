@@ -60,57 +60,57 @@ export default function GeneralLoanForm() {
     "CAR",
   ];
 
-  const form = useForm<GeneralLoanFormValues>({
-    resolver: zodResolver(generalLoanFormSchema),
-    defaultValues: {
-      loanType: undefined,
-      childCareBenefit: undefined,
-      estimatedPropertyValue: undefined,
-      hasCoApplicant: undefined,
-      monthlyDebts: undefined,
-      monthlyDebtsExist: undefined,
-      otherIncome: undefined,
-      otherIncomeAmount: undefined,
-      savings: undefined,
-      sin: undefined,
-      isAdult: false,
-      downPayment: undefined,
-      vehicleType: undefined,
-      houseType: undefined,
-      tradeInCurrentVehicle: undefined,
-      hasBankruptcy: false,
-      firstName: "",
-      lastName: "",
-      personalEmail: "",
-      personalPhone: "",
-      dateOfBirth: undefined,
-      maritalStatus: undefined,
-      currentAddress: "",
-      yearsAtCurrentAddress: undefined,
-      housingStatus: undefined,
-      housingRentPayment: undefined,
-      housingTotalPayment: undefined,
-      residencyStatus: undefined,
-      mortgage : undefined,
-      propertyTaxMonthly: undefined,
-      homeInsurance: undefined,
-      monthlyCarLoanPayment : undefined,
-      monthlyCreditCardMinimums : undefined,
-      monthlyOtherLoanPayments : undefined,
-      heatingCosts: undefined,
-      generalEducationLevel: undefined,
-      generalFieldOfStudy: "",
-      employmentStatus: undefined,
-      grossIncome: undefined,
-      workplaceName: "",
-      workplaceAddress: "",
-      workplacePhone: "",
-      workplaceEmail: "",
-      loanAmount: undefined,
-      creditScore: undefined,
-    },
-    mode: "all",
-  });
+const form = useForm<GeneralLoanFormValues>({
+  resolver: zodResolver(generalLoanFormSchema),
+  defaultValues: {
+    loanType: undefined,
+    childCareBenefit: undefined,
+    estimatedPropertyValue: undefined,
+    hasCoApplicant: undefined,
+    monthlyDebts: undefined,
+    monthlyDebtsExist: undefined,
+    otherIncome: undefined,
+    otherIncomeAmount: undefined,
+    savings: undefined,
+    sin: undefined,
+    isAdult: false,
+    downPayment: undefined,
+    vehicleType: undefined,
+    houseType: undefined,
+    tradeInCurrentVehicle: undefined,
+    hasBankruptcy: false,
+    firstName: "",
+    lastName: "",
+    personalEmail: "",
+    personalPhone: "",
+    dateOfBirth: undefined,
+    maritalStatus: undefined,
+    currentAddress: "",
+    yearsAtCurrentAddress: undefined,
+    housingStatus: undefined,
+    housingPayment: undefined,
+    residencyStatus: undefined,
+    mortgage : undefined,
+    condoFees : undefined,
+    propertyTaxMonthly: undefined,
+    homeInsurance: undefined,
+    monthlyCarLoanPayment : undefined,
+    monthlyCreditCardMinimums : undefined,
+    monthlyOtherLoanPayments : undefined,
+    heatingCosts: undefined,
+    generalEducationLevel: undefined,
+    generalFieldOfStudy: "",
+    employmentStatus: undefined,
+    grossIncome: undefined,
+    workplaceName: "",
+    workplaceAddress: "",
+    workplacePhone: "",
+    workplaceEmail: "",
+    loanAmount: undefined,
+    creditScore: undefined,
+  },
+  mode: "all",
+});
 
   const watchLoanType = form.watch("loanType");
   const watchEstimatedPropertyValue = form.watch("estimatedPropertyValue");
@@ -118,7 +118,6 @@ export default function GeneralLoanForm() {
   const watchVehicleType = form.watch("vehicleType");
   const watchTradeIn = form.watch("tradeInCurrentVehicle");
 
-  // Evaluate conditions for disabling "Next"
   const disableNextStep1 = (() => {
     if (!watchLoanType) return true;
 
@@ -178,7 +177,7 @@ export default function GeneralLoanForm() {
         "currentAddress",
         "yearsAtCurrentAddress",
         "housingStatus",
-        "housingRentPayment",
+        "housingPayment",
         "residencyStatus",
       ],
       // step 4: Employment details
@@ -191,7 +190,7 @@ export default function GeneralLoanForm() {
         "workplaceEmail",
       ],
       // step 5: Financial details
-      5: ["monthlyDebts", "savings", "otherIncome", "otherIncomeAmount",  "creditScore", "childCareBenefit"],
+      5: ["monthlyDebtsExist", "monthlyDebts", "savings", "otherIncome", "otherIncomeAmount", "creditScore", "childCareBenefit"],
       // step 6: Final loan details
       6: ["loanAmount", "hasCoApplicant"],
     };
@@ -318,19 +317,16 @@ export default function GeneralLoanForm() {
 
   async function onSubmit(data: GeneralLoanFormValues) {
     try {
-      // If not on final step, proceed to next
       if (currentStep < formSteps.length - 1) {
         await onNext();
         return;
       }
-      // Final submission
       setIsSubmitting(true);
 
-      // Prepare payload with number conversions
       const payload = {
         ...data,
         yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
-        housingRentPayment: Number(data.housingRentPayment),
+        housingPayment: Number(data.housingPayment),
         grossIncome: Number(data.grossIncome),
         loanAmount: Number(data.loanAmount),
       };
@@ -376,14 +372,17 @@ export default function GeneralLoanForm() {
 
         <Form {...form}>
           <form
-            onSubmit={(e) => {
-              console.log("Form submit handler triggered");
-              form
-                .handleSubmit(onSubmit)(e)
-                .catch((error) => {
-                  console.error(" Form submission error:", error);
+            onSubmit={form.handleSubmit(
+              onSubmit,
+              (errors) => {
+                console.log("Validation errors on final submit:", errors);
+                toast({
+                  title: "Validation Error",
+                  description: "Please fix the highlighted fields before submitting.",
+                  variant: "destructive",
                 });
-            }}
+              }
+            )}
             className="space-y-8 p-6"
           >
             {currentStep === 0 && (

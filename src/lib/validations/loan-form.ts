@@ -11,8 +11,7 @@ export const loanFormSchema = z.object({
   currentAddress: z.string().min(5, "Please enter your complete address"),
   residencyDuration: z.string().min(1, "Please specify how long you've lived here"),
   housingStatus: z.enum(["rent", "own"]),
-  housingRentPayment: z.string().min(1, "Please enter your rent/mortgage amount"),
-  housingTotalPayment: z.string().min(1, "Please enter your total housing payment"),
+  housingPayment: z.string().min(1, "Please enter your rent/mortgage amount"),
   dateOfBirth: z.date({
     required_error: "Date of birth is required",
   }),

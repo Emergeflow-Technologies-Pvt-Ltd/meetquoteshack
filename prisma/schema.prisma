@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,14 +13,14 @@ model User {
   image                    String?
   email                    String?                    @unique
   emailVerified            DateTime?
-  sessions                 Session[]
-  accounts                 Account[]
   role                     UserRole                   @default(LOANEE)
-  applications             Application[]
   password                 String?
+  accounts                 Account[]
+  applications             Application[]
+  ApplicationStatusHistory ApplicationStatusHistory[]
   lender                   Lender?
   Notification             Notification[]
-  ApplicationStatusHistory ApplicationStatusHistory[]
+  sessions                 Session[]
 }
 
 model Account {
@@ -62,19 +61,19 @@ model Lender {
   email       String
   province    String
   userId      String?       @unique
-  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   approved    Boolean       @default(false)
   Application Application[]
+  user        User?         @relation(fields: [userId], references: [id])
 }
 
 model Application {
   id                       String                     @id @default(cuid())
   userId                   String
   loanType                 LoanType
-  estimatedPropertyValue   Decimal?                   @db.Decimal(12, 2) // conditional
-  houseType                PropertyType? // NEW ENUM
-  downPayment              DownPayment? // NEW ENUM
-  tradeInCurrentVehicle    Boolean? // for Car Loans
+  estimatedPropertyValue   Decimal?                   @db.Decimal(12, 2)
+  houseType                PropertyType?
+  downPayment              DownPayment?
+  tradeInCurrentVehicle    Boolean?
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
   status                   LoanStatus                 @default(OPEN)
@@ -85,7 +84,8 @@ model Application {
   currentAddress           String
   yearsAtCurrentAddress    Int
   housingStatus            HousingStatus
-  housingPayment           Decimal                    @db.Decimal(10, 2) // 8 digits before decimal, 2 after
+  housingPayment           Decimal                    @db.Decimal(10, 2)
+  creditScore              Int?
   dateOfBirth              DateTime
   maritalStatus            MaritalStatus
   residencyStatus          ResidencyStatus
@@ -93,7 +93,7 @@ model Application {
   personalEmail            String
   vehicleType              VehicleType?
   employmentStatus         EmploymentStatus
-  grossIncome              Decimal                    @db.Decimal(12, 2) // 10 digits before decimal, 2 after
+  grossIncome              Decimal                    @db.Decimal(12, 2)
   workplaceName            String
   workplaceAddress         String
   workplacePhone           String
@@ -102,6 +102,7 @@ model Application {
   monthlyDebts             Decimal                    @db.Decimal(12, 2)
   savings                  Decimal                    @db.Decimal(12, 2)
   otherIncome              Boolean
+  otherIncomeAmount        Decimal?                   @db.Decimal(12, 2)
   childCareBenefit         Boolean
   sin                      Int?
   hasCoApplicant           Boolean
@@ -110,26 +111,36 @@ model Application {
   coApplicantAddress       String?
   coApplicantPhone         String?
   coApplicantEmail         String?
-  loanAmount               Decimal                    @db.Decimal(12, 2) // 10 digits before decimal, 2 after
-  // Fields for general loans
+  loanAmount               Decimal                    @db.Decimal(12, 2)
   generalEducationLevel    EducationLevel?
   generalFieldOfStudy      String?
-  // Related models
-  documents                Document[]
-  messages                 Message[]
-  user                     User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
   lenderId                 String?
   lender                   Lender?                    @relation(fields: [lenderId], references: [id])
-  Notification             Notification[]
+  user                     User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  potentialLender          PotentialLender[]
   ApplicationStatusHistory ApplicationStatusHistory[]
+  documents                Document[]
+  messages                 Message[]
+  Notification             Notification[]
 
   @@index([userId])
   @@index([lenderId])
 }
 
+model PotentialLender {
+  id            String   @id @default(cuid())
+  applicationId String
+  lenderId      String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([lenderId])
+}
+
 model Document {
   id            String         @id @default(cuid())
-  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   applicationId String
   documentType  DocumentType
   fileUrl       String?
@@ -138,22 +149,18 @@ model Document {
   fileName      String?
   uploadedAt    DateTime       @default(now())
   status        DocumentStatus @default(PENDING)
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
 model Message {
   id            String      @id @default(cuid())
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   applicationId String
   content       String
   senderId      String
   senderRole    UserRole
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-}
-
-enum NotificationType {
-  DOCUMENT_REQUEST
-  DOCUMENT_SUBMITTED
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -163,9 +170,8 @@ model Notification {
   type          NotificationType @default(DOCUMENT_REQUEST)
   read          Boolean          @default(false)
   createdAt     DateTime         @default(now())
-
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application   Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([applicationId])
@@ -180,10 +186,15 @@ model ApplicationStatusHistory {
   changedAt     DateTime    @default(now())
   changedById   String?
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  changedBy     User?       @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  changedBy     User?       @relation(fields: [changedById], references: [id])
 
   @@index([applicationId])
   @@index([changedById])
+}
+
+enum NotificationType {
+  DOCUMENT_REQUEST
+  DOCUMENT_SUBMITTED
 }
 
 enum UserRole {
@@ -305,10 +316,10 @@ enum DocumentType {
 }
 
 enum DocumentStatus {
-  PENDING  @map("pending") // document not uploaded by loanee
-  UPLOADED @map("uploaded") // document uploaded by loanee
-  APPROVED @map("approved") // document approved by admin
-  REJECTED @map("rejected") // document rejected by admin
+  PENDING  @map("pending")
+  UPLOADED @map("uploaded")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
 }
 
 enum MaritalStatus {

@@ -261,8 +261,7 @@ export const generalLoanFormSchema = z
       required_error: "Housing status is required",
     }),
 
-    // keep rent payment optional here — conditional validation handled below
-    housingRentPayment: z.number().optional(),
+    housingPayment: z.number().optional(),
 
     residencyStatus: z.nativeEnum(ResidencyStatus),
 
@@ -293,11 +292,13 @@ export const generalLoanFormSchema = z
     tradeInCurrentVehicle: z.boolean().optional(),
     sin: z
       .string()
-      .transform((val) => (val ? parseInt(val) : null))
-      .refine((val) => val === null || !isNaN(val), {
-        message: "Must be a valid number"
+      .trim()
+      .optional()
+      .refine((val) => !val || /^\d{9}$/.test(val), {
+        message: "SIN must be exactly 9 digits",
       })
-      .optional(),
+  .transform((val) => (val ? Number(val) : null)),
+
     hasCoApplicant: z.boolean(),
     coApplicantFullName: z.string().optional(),
     coApplicantDateOfBirth: z.preprocess((arg) => {
@@ -335,7 +336,6 @@ export const generalLoanFormSchema = z
     condoFees: z.coerce.number().min(0, "Please enter your condo fees in CAD"),
     heatingCosts: z.coerce.number().min(0, "Please enter your heating costs in CAD"),
     homeInsurance: z.coerce.number().min(0, "Please enter your home insurance amount in CAD"),
-    housingTotalPayment: z.coerce.number().min(0, "Please enter your housing payment in CAD"),
     monthlyCarLoanPayment: z.coerce.number().min(0, "Please enter your monthly car loan payment in CAD"),
     monthlyCreditCardMinimums: z.coerce.number().min(0, "Please enter your monthly credit card minimums in CAD"),
     monthlyOtherLoanPayments: z.coerce.number().min(0, "Please enter your other loan payments in CAD"),
@@ -351,14 +351,12 @@ export const generalLoanFormSchema = z
       .max(900, "Credit score cannot exceed 900"),
   })
   .superRefine((data, ctx) => {
-    // conditional: require housingRentPayment when housingStatus is RENT
-    // HousingStatus comes from Prisma native enum (e.g. HousingStatus.RENT)
     if (data.housingStatus === HousingStatus.RENT) {
-      if (typeof data.housingRentPayment !== "number") {
+      if (typeof data.housingPayment !== "number") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Monthly rent is required when housing status is Rent",
-          path: ["housingRentPayment"],
+          path: ["housingPayment"],
         });
       }
     }

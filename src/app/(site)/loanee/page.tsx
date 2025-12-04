@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import Section from "@/components/shared/section";
 import faqData from "@/data/faq";
 import Faq from "@/components/shared/Faq";

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import prisma from "@/lib/db";
 import { authOptions } from "@/lib/auth";
+import { LoanStatus } from "@prisma/client";
 
 export async function GET(
   request: Request,
@@ -47,11 +48,18 @@ export async function GET(
       },
     });
 
-    const lenderList = await prisma.lender.findMany({ select: { name: true, id: true } });
-
     if (!application) {
       return new NextResponse("Not found", { status: 404 });
     }
+
+    const potentials = await prisma.potentialLender.findMany({
+      where: { applicationId: id },
+      select: { lenderId: true },
+    });
+
+    const potentialLenderIds = potentials.map((p) => p.lenderId);
+
+    const lenderList = await prisma.lender.findMany({ select: { name: true, id: true } });
 
     const { ApplicationStatusHistory, ...rest } = application;
 
@@ -59,6 +67,7 @@ export async function GET(
       application: {
         ...rest,
         applicationStatusHistory: ApplicationStatusHistory,
+        potentialLenderIds,
       },
       lenderList,
     });
@@ -71,7 +80,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string; lenderId?: string; }>; }
+  { params }: { params: Promise<{ id: string; lenderId?: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -81,8 +90,35 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await request.json();
-    const { fileName, fileKey, fileUrl, docId, status, lenderId } = body;
+    const caller = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true },
+    });
+
+    if (!caller) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const {
+      fileName,
+      fileKey,
+      fileUrl,
+      docId,
+      status,
+      lenderId,
+      mode,
+      potentialLenderIds,
+    } = body as {
+      fileName?: string;
+      fileKey?: string;
+      fileUrl?: string;
+      docId?: string;
+      status?: string;
+      lenderId?: string | null;
+      mode?: "single" | "multi";
+      potentialLenderIds?: string[];
+    };
 
     const application = await prisma.application.findUnique({
       where: { id },
@@ -93,38 +129,23 @@ export async function PATCH(
       return new NextResponse("Not found", { status: 404 });
     }
 
-    const allowedStatuses = ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"];
+    const allowedStatuses = [
+      "OPEN",
+      "ASSIGNED_TO_LENDER",
+      "IN_PROGRESS",
+      "IN_CHAT",
+      "REJECTED",
+      "APPROVED",
+    ];
     if (!allowedStatuses.includes(application.status)) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    if (status) {
-      // Update application status
-      const updatedApplication = await prisma.application.update({
-        where: { id },
-        data: {
-          status,
-          lender: lenderId
-            ? {
-              connect: { id: lenderId },
-            }
-            : undefined,
-        },
-      });
+    if (!status) {
+      if (!docId) {
+        return NextResponse.json({ error: "docId required for document update" }, { status: 400 });
+      }
 
-      // Log status change in history table
-      await prisma.applicationStatusHistory.create({
-        data: {
-          applicationId: id,
-          oldStatus: application.status, // from before update
-          newStatus: status,
-          changedById: session.user.id, // who made the change
-        },
-      });
-
-      return NextResponse.json(updatedApplication);
-    } else {
-      // Handle document update
       const updatedDoc = await prisma.document.update({
         where: { id: docId },
         data: {
@@ -140,8 +161,139 @@ export async function PATCH(
         document: updatedDoc,
       });
     }
+
+    const isAssignAction = status === "ASSIGNED_TO_LENDER" || mode === "multi" || Array.isArray(potentialLenderIds);
+
+    if (status === undefined) {
+      return NextResponse.json({ error: "status is required" }, { status: 400 });
+    }
+    
+    if (!Object.values(LoanStatus).includes(status as LoanStatus)) {
+      return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+    }
+
+    const validatedStatus = status as LoanStatus;
+
+
+    if (isAssignAction && caller.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden - admin access required" }, { status: 403 });
+    }
+
+    if (status === "ASSIGNED_TO_LENDER" && mode !== "multi" && !lenderId) {
+      return NextResponse.json({ error: "lenderId is required when setting ASSIGNED_TO_LENDER" }, { status: 400 });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      if (mode === "multi" || (Array.isArray(potentialLenderIds) && potentialLenderIds.length > 0)) {
+        const ids = Array.isArray(potentialLenderIds) ? potentialLenderIds : [];
+
+        if (ids.length < 1) {
+          throw new Error("Provide at least one potential lender id");
+        }
+
+        await tx.potentialLender.deleteMany({
+          where: { applicationId: id },
+        });
+
+        const createManyData = ids.map((lid) => ({ applicationId: id, lenderId: lid }));
+        if (createManyData.length > 0) {
+          await tx.potentialLender.createMany({
+            data: createManyData,
+            skipDuplicates: true,
+          });
+        }
+
+        await tx.application.update({
+          where: { id },
+          data: {
+            lenderId: null,
+            ...(validatedStatus ? { status: validatedStatus } : {}),
+          },
+        });
+
+        await tx.applicationStatusHistory.create({
+          data: {
+            applicationId: id,
+            oldStatus: application.status,
+            newStatus: validatedStatus,
+            changedById: caller.id,
+          },
+        });
+
+        const updatedApp = await tx.application.findUnique({ where: { id } });
+        const potentials = await tx.potentialLender.findMany({ where: { applicationId: id } });
+        return { application: updatedApp, potentialLenderIds: potentials.map(p => p.lenderId) };
+      }
+
+      if (lenderId !== undefined) {
+        if (lenderId === null) {
+          const updated = await tx.application.update({
+            where: { id },
+            data: {
+              ...(validatedStatus ? { status: validatedStatus } : {}),
+              lender: { disconnect: true },
+            },
+          });
+
+          await tx.applicationStatusHistory.create({
+            data: {
+              applicationId: id,
+              oldStatus: application.status,
+              newStatus: validatedStatus,
+              changedById: caller.id,
+            },
+          });
+
+          await tx.potentialLender.deleteMany({ where: { applicationId: id } });
+
+          const potentialsAfter = await tx.potentialLender.findMany({ where: { applicationId: id } });
+          return { application: updated, potentialLenderIds: potentialsAfter.map(p => p.lenderId) };
+        }
+
+        const updated = await tx.application.update({
+          where: { id },
+          data: {
+            ...(validatedStatus ? { status: validatedStatus } : {}),
+            lender: { connect: { id: lenderId } },
+          },
+        });
+
+        await tx.potentialLender.deleteMany({ where: { applicationId: id } });
+
+        await tx.applicationStatusHistory.create({
+          data: {
+            applicationId: id,
+            oldStatus: application.status,
+            newStatus: validatedStatus,
+            changedById: caller.id,
+          },
+        });
+
+        return { application: updated, potentialLenderIds: [] };
+      }
+
+      const updatedApplication = await tx.application.update({
+        where: { id },
+        data: { ...(validatedStatus ? { status: validatedStatus } : {}), },
+      });
+
+      await tx.applicationStatusHistory.create({
+        data: {
+          applicationId: id,
+          oldStatus: application.status,
+          newStatus: validatedStatus,
+          changedById: caller.id,
+        },
+      });
+
+      const existingPotentials = await tx.potentialLender.findMany({ where: { applicationId: id } });
+      return { application: updatedApplication, potentialLenderIds: existingPotentials.map(p => p.lenderId) };
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
-    console.error("[APPLICATION_PATCH]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error("[APPLICATION_PATCH_ASSIGN]", error);
+    const msg = error instanceof Error ? error.message : "Internal error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

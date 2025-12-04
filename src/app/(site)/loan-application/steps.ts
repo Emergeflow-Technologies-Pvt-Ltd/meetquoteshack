@@ -1,3 +1,4 @@
+//src\app\(site)\loan-application\steps.ts
 export const formSteps = [
   {
     id: "eligibility",

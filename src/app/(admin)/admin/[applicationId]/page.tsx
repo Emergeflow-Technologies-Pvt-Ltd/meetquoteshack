@@ -5,6 +5,8 @@ import { use } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   LoanStatus,
   Application,
@@ -42,6 +44,17 @@ import {
   residencyStatusTypeLabels,
   vehicleTypeLabels,
 } from "@/components/shared/general.const";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   params: Promise<{
@@ -56,6 +69,9 @@ type ApplicationWithUser = Application & {
   estimatedPropertyValue?: number;
   intendedPropertyAddress?: string;
   applicationStatusHistory?: ApplicationStatusHistory[];
+  // extras from backend
+  potentialLenderIds?: string[];
+  assignmentMode?: "single" | "multi";
 };
 
 export default function ApplicationPage({ params }: Props) {
@@ -65,75 +81,108 @@ export default function ApplicationPage({ params }: Props) {
   );
 
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([]);
+  const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>(
+    []
+  );
   const [lenders, setLenders] = useState<User[]>([]);
-  const [selectedLenderId, setSelectedLenderId] = useState<string | null>(null);
+  const [selectedLenderId, setSelectedLenderId] = useState<string | null>(
+    null
+  );
+  const [selectedPotentialLenderIds, setSelectedPotentialLenderIds] = useState<
+    string[]
+  >([]);
+
+  const [hasAnyAssignment, setHasAnyAssignment] = useState<boolean>(false);
+
+  const [assignmentMode, setAssignmentMode] = useState<"single" | "multi">(
+    "single"
+  );
+
+  // UI controls
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpenPotentialLender, setDialogOpenPotentialLender] = useState(false);
+
+
   const router = useRouter();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
 
-    axios
-      .get(`/api/applications/${applicationId}`)
-      .then(({ data }) => {
-        setApplication(data.application);
-        setLenders(data.lenderList);
-        console.log("=====", data.application);
+    try {
+      const { data } = await axios.get(`/api/applications/${applicationId}`);
+      const app: ApplicationWithUser = data.application;
+      setApplication(app);
+      setLenders(data.lenderList || []);
 
-        if (data.application.documents?.length > 0) {
-          const urlMap = new Map<string, string>();
-          Promise.all(
-            data.application.documents.map(async (doc: Document) => {
-              if (doc.fileKey) {
-                return axios
-                  .get(`/api/documents/${doc.id}`)
-                  .then(({ data }) => {
-                    urlMap.set(doc.id, data.url);
-                  });
-              }
-            })
-          );
-        }
-      })
+      // hydrate assignment state from backend if present
+      if (app.lenderId) {
+        setSelectedLenderId(app.lenderId);
+      } else {
+        setSelectedLenderId(null);
+      }
 
-      .catch((error) => {
-        console.error("Error fetching application:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch application data",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
+      if (Array.isArray(app.potentialLenderIds) && app.potentialLenderIds.length) {
+        setSelectedPotentialLenderIds(app.potentialLenderIds);
+      } else {
+        setSelectedPotentialLenderIds([]);
+      }
+
+      if (app.assignmentMode) {
+        setAssignmentMode(app.assignmentMode);
+      }
+    } catch (error) {
+      console.error("Error fetching application:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch application data",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
+    }
   }, [applicationId]);
 
   useEffect(() => {
     fetchData();
-  }, [applicationId, fetchData]);
+  }, [fetchData]);
+
+  useEffect(() => {
+    const appHasLender = Boolean(application?.lenderId);
+    const appHasPotentials = Array.isArray(application?.potentialLenderIds) && application.potentialLenderIds.length > 0;
+    const uiHasSelectedLender = Boolean(selectedLenderId);
+    const uiHasPotentials = selectedPotentialLenderIds.length > 0;
+
+    setHasAnyAssignment(appHasLender || appHasPotentials || uiHasSelectedLender || uiHasPotentials);
+  }, [
+    application?.lenderId,
+    application?.potentialLenderIds,
+    selectedLenderId,
+    selectedPotentialLenderIds,
+  ]);
 
   const handleAddDocument = async () => {
     if (!selectedDocTypes.length || !application) return;
 
-    axios
-      .post(`/api/applications/${application.id}/documents`, {
-        documentTypes: selectedDocTypes,
-      })
-      .then(({ data: newDocs }) => {
-        setApplication((prev) =>
-          prev
-            ? {
-                ...prev,
-                documents: [...prev.documents, ...newDocs],
-              }
-            : null
-        );
-        setSelectedDocTypes([]);
-      })
-      .catch((error) => {
-        console.error("Failed to add document requirements:", error);
-      });
+    try {
+      const { data } = await axios.post(
+        `/api/applications/${application.id}/documents`,
+        { documentTypes: selectedDocTypes }
+      );
+      const newDocs: Document[] = data;
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              documents: [...prev.documents, ...newDocs],
+            }
+          : null
+      );
+      setSelectedDocTypes([]);
+    } catch (error) {
+      console.error("Failed to add document requirements:", error);
+      toast({ title: "Error", description: "Failed to add documents", variant: "destructive" });
+    }
   };
 
   const handleRemoveDocument = async (docId: string) => {
@@ -147,25 +196,24 @@ export default function ApplicationPage({ params }: Props) {
       return;
     }
 
-    axios
-      .delete(`/api/applications/${application.id}/documents`, {
+    try {
+      await axios.delete(`/api/applications/${application.id}/documents`, {
         data: { documentId: docId },
-      })
-      .then(() => {
-        setApplication((prev) =>
-          prev
-            ? {
-                ...prev,
-                documents: prev.documents.filter((doc) => doc.id !== docId),
-              }
-            : null
-        );
-      })
-      .catch((error) => {
-        console.error("Failed to remove document:", error);
       });
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              documents: prev.documents.filter((doc) => doc.id !== docId),
+            }
+          : null
+      );
+    } catch (error) {
+      console.error("Failed to remove document:", error);
+      toast({ title: "Error", description: "Failed to remove document", variant: "destructive" });
+    }
   };
-  console.log("this is the history===", application?.applicationStatusHistory);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -191,32 +239,93 @@ export default function ApplicationPage({ params }: Props) {
   const handleRejectApplication = async () => {
     try {
       await axios.patch(`/api/applications/${application.id}/reject`);
-
-      // Update local state
       setApplication((prev) => (prev ? { ...prev, status: "REJECTED" } : null));
     } catch (error) {
       console.error("Failed to update status:", error);
-      alert("Failed to update application status");
+      toast({ title: "Error", description: "Failed to reject application", variant: "destructive" });
     }
   };
 
-  const handleStatusUpdate = async (newStatus: LoanStatus) => {
-    try {
-      await axios.patch(`/api/applications/${application.id}`, {
-        status: newStatus,
-        lenderId: selectedLenderId, // send lenderId along with status
-      });
-      setApplication((prev) => (prev ? { ...prev, status: newStatus } : null));
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      alert("Failed to update application status");
-    }
-  };
-
+  
   const availableToAdd = availableDocumentTypes.filter(
     (docType) =>
       !application.documents.some((doc) => doc.documentType === docType.type)
   );
+
+  const togglePotentialLender = (id: string) => {
+    setSelectedPotentialLenderIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleAssign = async () => {
+    if (!application) return;
+
+    if (assignmentMode === "single" && !selectedLenderId) {
+      toast({ title: "Select lender", description: "Please select a lender.", variant: "destructive" });
+      return;
+    }
+    if (assignmentMode === "multi" && (selectedPotentialLenderIds.length < 1 || selectedPotentialLenderIds.length > 5)) {
+      toast({ title: "Choose lenders", description: "Select between 1 and 5 potential lenders.", variant: "destructive" });
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      const payload = {
+        status: "ASSIGNED_TO_LENDER",
+        mode: assignmentMode, // "single" | "multi"
+        lenderId: assignmentMode === "single" ? selectedLenderId : null,
+        potentialLenderIds: assignmentMode === "multi" ? selectedPotentialLenderIds : [],
+      };
+
+      const res = await axios.patch(`/api/applications/${application.id}`, payload);
+
+      const returnedApp: Partial<ApplicationWithUser> = res.data.application ?? res.data;
+      const returnedPotentialIds: string[] = res.data.potentialLenderIds ?? returnedApp.potentialLenderIds ?? [];
+
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              ...returnedApp,
+              lenderId:
+                (returnedApp && (returnedApp.lenderId ?? (returnedApp as any).lender?.id)) ??
+                (assignmentMode === "single" ? selectedLenderId : null),
+              potentialLenderIds:
+                returnedPotentialIds.length > 0
+                  ? returnedPotentialIds
+                  : assignmentMode === "multi"
+                  ? selectedPotentialLenderIds
+                  : [], // IMPORTANT: clear potentials when single
+              assignmentMode,
+            }
+          : prev
+      );
+
+      if (returnedPotentialIds.length > 0) {
+        setSelectedPotentialLenderIds(returnedPotentialIds);
+      } else if (assignmentMode === "single") {
+        setSelectedPotentialLenderIds([]);
+      }
+
+      if (assignmentMode === "single" && selectedLenderId) {
+        setSelectedLenderId(selectedLenderId);
+      } else if (returnedApp.lenderId) {
+        setSelectedLenderId(returnedApp.lenderId);
+      } else if (assignmentMode === "multi") {
+        setSelectedLenderId(null);
+      }
+
+      toast({ title: "Success", description: "Assignment updated.", variant: "default" });
+      setDialogOpen(false);
+    } catch (err) {
+      console.error("Assign error:", err);
+      toast({ title: "Error", description: "Failed to assign lenders", variant: "destructive" });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -231,11 +340,10 @@ export default function ApplicationPage({ params }: Props) {
               <h1 className="text-2xl font-semibold text-gray-900">
                 Application Details
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                ID: {application?.id}
-              </p>
+              <p className="mt-1 text-sm text-gray-500">ID: {application?.id}</p>
             </div>
           </div>
+
           <Badge
             className="px-3 py-1 text-sm font-medium"
             style={{
@@ -248,71 +356,407 @@ export default function ApplicationPage({ params }: Props) {
             {application?.status.replace(/_/g, " ")}
           </Badge>
         </div>
+
+        {/* Lender assignment section */}
         <div className="w-full mt-6 pt-4 border-t mb-6">
-          {!["REJECTED", "APPROVED"].includes(
-            application?.status as string
-          ) && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h3 className="text-lg font-semibold">Assign to Lender</h3>
+          {!["REJECTED", "APPROVED"].includes(application.status as string) && (
+            <div className="flex flex-col sm:flex-row sm:items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold">Assign to Lender</h3>
+              </div>
 
-              {application?.lenderId ? (
+              {hasAnyAssignment ? (
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                  <Select
-                    value={selectedLenderId || application?.lenderId || ""}
-                    onValueChange={(value) => setSelectedLenderId(value)}
-                  >
-                    <SelectTrigger className="w-[250px]">
-                      <SelectValue placeholder="Reassign lender..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lenders.map((lender) => (
-                        <SelectItem key={lender.id} value={lender.id}>
-                          {lender.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {(() => {
+                    const hasPotentials =
+                      (application?.potentialLenderIds?.length ?? 0) > 0 ||
+                      selectedPotentialLenderIds.length > 0;
+                  
+                    if (hasPotentials) {
+                      const count =
+                        (application?.potentialLenderIds?.length ?? 0) ||
+                        selectedPotentialLenderIds.length;
+                    
+                      return (
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setDialogOpenPotentialLender(true)}
+                            className="rounded-md px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm"
+                            title="View potential lenders"
+                          >
+                            {count} potential
+                          </button>
+                        </div>
+                      );
+                    }
+                    return (
+                      <Select
+                        value={selectedLenderId || application.lenderId || ""}
+                        onValueChange={(value) => setSelectedLenderId(value)}
+                      >
+                        <SelectTrigger className="w-[250px]">
+                          <SelectValue placeholder="Reassign lender..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {lenders.map((lender) => (
+                            <SelectItem key={lender.id} value={lender.id}>
+                              {lender.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  })()}
 
-                  <Button
-                    onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
-                    disabled={!selectedLenderId}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                  >
-                    Reassign
-                  </Button>
+
+                  <div className="flex items-center gap-2">
+                      <Dialog open={dialogOpenPotentialLender} onOpenChange={setDialogOpenPotentialLender}>
+                        <DialogContent className="sm:max-w-sm p-6">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h2 className="text-xl font-semibold leading-tight">Selected Potential Lenders</h2>
+                              <p className="mt-2 text-sm text-muted-foreground">
+                                For Application ID:{" "}
+                                <span className="font-medium text-primary-600">
+                                  {application?.id}
+                                </span>
+                              </p>
+                            </div>
+                                           
+                          </div>
+                                        
+                          <hr className="my-4 border-t border-muted" />
+                                        
+                          <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
+                            {((application.potentialLenderIds && application.potentialLenderIds.length) || selectedPotentialLenderIds.length) ? (
+                              ( (application.potentialLenderIds && application.potentialLenderIds.length ? application.potentialLenderIds : selectedPotentialLenderIds) ).map((id) => {
+                                const lender = lenders.find(l => l.id === id);
+                                const name = lender?.name ?? id;
+                                const initials = name.split(" ").map(s => s[0]).slice(0,2).join("").toUpperCase();
+                              
+                                const statusLabel = "Verified";
+                              
+                                return (
+                                  <div key={id} className="flex items-center justify-between bg-card rounded-lg px-4 py-3 shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
+                                        {initials}
+                                      </div>
+                                      <div>
+                                        <div className="text-sm font-medium">{name}</div>
+                                      </div>
+                                    </div>
+                                
+                                    <div className="flex items-center gap-3">
+                                      <div className="rounded-md px-3 py-1 text-xs font-medium" style={{ backgroundColor: "#E6FFF4", color: "#0F5132" }}>
+                                        {statusLabel}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="py-6 text-center text-sm text-muted-foreground">
+                                No potential lenders selected.
+                              </div>
+                            )}
+                          </div>
+                          
+                          <DialogFooter className="mt-6">
+                            <DialogClose asChild>
+                              <Button variant="outline">Close</Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                      
+
+
+                    <Button
+                      onClick={() => {
+                        setSelectedLenderId(selectedLenderId || application.lenderId || null);
+                        setDialogOpen(true);
+                      }}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    >
+                      Reassign Lender 
+                    </Button>
+
+                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                      <DialogContent className="sm:max-w-[480px]">
+                        <DialogHeader className="space-y-1">
+                          <DialogTitle>Assign Lender</DialogTitle>
+                          <DialogDescription>
+                            Choose how you want to assign lenders to this loanee.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <RadioGroup
+                          value={assignmentMode}
+                          onValueChange={(value) => {
+                            const m = value as "single" | "multi";
+                            setAssignmentMode(m);
+                            if (m === "single") {
+                              setSelectedPotentialLenderIds([]);
+                            } else {
+                              setSelectedLenderId(null);
+                            }
+                          }}
+                          className="mt-2 space-y-3"
+                        >
+                          {/* single */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAssignmentMode("single");
+                              setSelectedPotentialLenderIds([]);
+                            }}
+                            className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
+                              ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                          >
+                            <RadioGroupItem value="single" id="r1" className="mt-1" />
+                            <div className="w-full">
+                              <Label htmlFor="r1">Assign a lender</Label>
+                              <p className="text-xs mt-1 text-muted-foreground">Choose one lender to assign this loanee.</p>
+
+                              {assignmentMode === "single" && (
+                                <div className="mt-4">
+                                  <p className="text-xs mb-2 font-medium text-muted-foreground">Select Lender</p>
+                                  <Select
+                                    value={selectedLenderId || application.lenderId || ""}
+                                    onValueChange={(value) => setSelectedLenderId(value)}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select lender..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {lenders.map((lender) => (
+                                        <SelectItem key={lender.id} value={lender.id}>
+                                          {lender.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+
+                          {/* multi */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAssignmentMode("multi");
+                              setSelectedLenderId(null);
+                            }}
+                            className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
+                              ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                          >
+                            <RadioGroupItem value="multi" className="mt-1" />
+                            <div className="w-full">
+                              <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
+                              <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
+
+                              {assignmentMode === "multi" && (
+                                <div className="mt-4 space-y-2">
+                                  <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
+                                    {lenders.slice(0, 10).map((l) => {
+                                      const checked = selectedPotentialLenderIds.includes(l.id);
+                                      return (
+                                        <Button
+                                          key={l.id}
+                                          variant="outline"
+                                          type="button"
+                                          onClick={() => togglePotentialLender(l.id)}
+                                          className={`w-full flex items-center justify-between px-3 py-2
+                                            ${checked ? "border-primary/40 bg-primary/5" : ""}
+                                          `}
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <Checkbox
+                                              checked={checked}
+                                              onCheckedChange={() => togglePotentialLender(l.id)}
+                                            />
+                                            <span className="text-sm">{l.name}</span>
+                                          </div>
+                                        </Button>
+
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        </RadioGroup>
+
+                        <DialogFooter className="mt-6">
+                          <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                          </DialogClose>
+
+                          <Button
+                            onClick={async () => {
+                              await handleAssign();
+                            }}
+                            disabled={
+                              isAssigning ||
+                              (assignmentMode === "single" && !selectedLenderId) ||
+                              (assignmentMode === "multi" && (selectedPotentialLenderIds.length < 1 || selectedPotentialLenderIds.length > 5))
+                            }
+                            className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                          >
+                            {isAssigning ? "Saving..." : "Assign"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                  <Select
-                    value={selectedLenderId || ""}
-                    onValueChange={(value) => setSelectedLenderId(value)}
-                  >
-                    <SelectTrigger className="w-[250px]">
-                      <SelectValue placeholder="Select lender..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lenders.map((lender) => (
-                        <SelectItem key={lender.id} value={lender.id}>
-                          {lender.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white">Assign Lender</Button>
+                    </DialogTrigger>
 
-                  <Button
-                    onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
-                    disabled={!selectedLenderId}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Assign
-                  </Button>
+                    <DialogContent className="sm:max-w-[480px]">
+                      <DialogHeader className="space-y-1">
+                        <DialogTitle>Assign Lender</DialogTitle>
+                        <DialogDescription>Choose how you want to assign lenders to this loanee.</DialogDescription>
+                      </DialogHeader>
+
+                      <RadioGroup
+                        value={assignmentMode}
+                        onValueChange={(value) => {
+                          const m = value as "single" | "multi";
+                          setAssignmentMode(m);
+                          if (m === "single") {
+                            setSelectedPotentialLenderIds([]);
+                          } else {
+                            setSelectedLenderId(null);
+                          }
+                        }}
+                        className="mt-2 space-y-3"
+                      >
+                        {/* single */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAssignmentMode("single");
+                            setSelectedPotentialLenderIds([]);
+                          }}
+                          className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
+                            ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                        >
+                          <RadioGroupItem value="single" className="mt-1" />
+
+                          <div className="w-full">
+                            <p className="text-sm font-medium">Assign a Lender</p>
+                            <p className="text-xs mt-1 text-muted-foreground">Choose one lender to assign this loanee.</p>
+
+                            {assignmentMode === "single" && (
+                              <div className="mt-4">
+                                <p className="text-xs mb-2 font-medium text-muted-foreground">Select Lender</p>
+
+                                <Select
+                                  value={selectedLenderId || ""}
+                                  onValueChange={(value) => setSelectedLenderId(value)}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select lender..." />
+                                  </SelectTrigger>
+
+                                  <SelectContent>
+                                    {lenders.map((lender) => (
+                                      <SelectItem key={lender.id} value={lender.id}>
+                                        {lender.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* multi */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAssignmentMode("multi");
+                            setSelectedLenderId(null);
+                          }}
+                          className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
+                            ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                        >
+                          <RadioGroupItem value="multi" className="mt-1" />
+
+                          <div className="w-full">
+                            <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
+                            <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
+
+                            {assignmentMode === "multi" && (
+                              <div className="mt-4 space-y-2">
+                                <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
+                                  {lenders.slice(0, 10).map((l) => {
+                                    const checked = selectedPotentialLenderIds.includes(l.id);
+
+                                    return (
+                                      <button
+                                        key={l.id}
+                                        type="button"
+                                        onClick={() => togglePotentialLender(l.id)}
+                                        className={`w-full flex items-center justify-between rounded px-2 py-1 text-left cursor-pointer ${checked ? "bg-primary/5 border border-primary/40" : "border border-transparent hover:border-border"}`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          readOnly
+                                          className="h-4 w-4 mr-2"
+                                        />
+                                        <span className="text-sm">{l.name}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                <p className="text-[11px] text-muted-foreground">
+                                  Selected: {selectedPotentialLenderIds.length > 0 ? selectedPotentialLenderIds.map(id => lenders.find(l => l.id === id)?.name ?? "(Unknown)").join(", ") : "None"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      </RadioGroup>
+
+                      <DialogFooter className="mt-6">
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+
+                        <Button
+                          onClick={handleAssign}
+                          disabled={
+                            isAssigning ||
+                            (assignmentMode === "single" && !selectedLenderId) ||
+                            (assignmentMode === "multi" && (selectedPotentialLenderIds.length < 1 || selectedPotentialLenderIds.length > 5))
+                          }
+                          className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                        >
+                          {isAssigning ? "Saving..." : "Assign"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Left Column - Applicant Info */}
           <div className="space-y-6">
             <Card>
@@ -325,7 +769,7 @@ export default function ApplicationPage({ params }: Props) {
                     Name
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.firstName} {application.lastName}
+                    {application?.firstName ?? ""} {application?.lastName ?? ""}
                   </p>
                 </div>
                 <div>
@@ -333,7 +777,7 @@ export default function ApplicationPage({ params }: Props) {
                     Current Address
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.currentAddress}
+                    {application?.currentAddress ?? "N/A"}
                   </p>
                 </div>
                 <div>
@@ -341,7 +785,7 @@ export default function ApplicationPage({ params }: Props) {
                     Email
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.personalEmail}
+                    {application?.personalEmail ?? "N/A"}
                   </p>
                 </div>
 

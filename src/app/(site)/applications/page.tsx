@@ -34,14 +34,19 @@ export default async function ApplicationsPage() {
   });
 
   const inprogressApplications = await prisma.application.findMany({
-    where: {
-      status: {
-        in: [LoanStatus.IN_PROGRESS, LoanStatus.IN_CHAT],
-      },
-      userId: session?.user?.id,
+  where: {
+    status: {
+      in: [
+        LoanStatus.ASSIGNED_TO_LENDER,
+        LoanStatus.IN_PROGRESS,
+        LoanStatus.IN_CHAT,
+      ],
     },
-    orderBy: { createdAt: "desc" },
-  });
+    userId: session?.user?.id,
+  },
+  orderBy: { createdAt: "desc" },
+});
+
 
   const approvedOrRejectedApplications = await prisma.application.findMany({
     where: {
