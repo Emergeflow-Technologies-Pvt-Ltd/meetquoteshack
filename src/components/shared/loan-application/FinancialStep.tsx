@@ -30,7 +30,9 @@ function YesNoToggle({
       {["true", "false"].map((val) => (
         <label
           key={val}
-          className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${String(value) === val ? "border-gray-400 bg-gray-100" : "border-gray-300 hover:border-gray-400"
+          className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${String(value) === val
+            ? "border-gray-400 bg-gray-100"
+            : "border-gray-300 hover:border-gray-400"
             }`}
         >
           <input
@@ -48,7 +50,10 @@ function YesNoToggle({
 }
 
 export function FinancialStep({ form }: FinancialStepProps) {
-  const housingStatus = useWatch({ control: form.control, name: "housingStatus" }) as HousingStatus | undefined;
+  const housingStatus = useWatch({
+    control: form.control,
+    name: "housingStatus",
+  }) as HousingStatus | undefined;
 
   const monthlyDebtsExist = useWatch({
     control: form.control,
@@ -60,16 +65,40 @@ export function FinancialStep({ form }: FinancialStepProps) {
     name: "otherIncome",
   }) as boolean | undefined;
 
-  const mortgage = useWatch({ control: form.control, name: "mortgage" }) ?? 0;
-  const propertyTaxMonthly = useWatch({ control: form.control, name: "propertyTaxMonthly" }) ?? 0;
-  const condoFees = useWatch({ control: form.control, name: "condoFees" }) ?? 0;
-  const heatingCost = useWatch({ control: form.control, name: "heatingCosts" }) ?? 0;
-  const homeInsurance = useWatch({ control: form.control, name: "homeInsurance" }) ?? 0;
+  const mortgage = useWatch({
+    control: form.control,
+    name: "mortgage",
+  }) ?? 0;
+  const propertyTaxMonthly = useWatch({
+    control: form.control,
+    name: "propertyTaxMonthly",
+  }) ?? 0;
+  const condoFees = useWatch({
+    control: form.control,
+    name: "condoFees",
+  }) ?? 0;
+  const heatingCost = useWatch({
+    control: form.control,
+    name: "heatingCosts",
+  }) ?? 0;
+  const homeInsurance = useWatch({
+    control: form.control,
+    name: "homeInsurance",
+  }) ?? 0;
 
   // other debts
-  const monthlyCarLoanPayment = useWatch({ control: form.control, name: "monthlyCarLoanPayment" }) ?? 0;
-  const monthlyCreditCardMinimums = useWatch({ control: form.control, name: "monthlyCreditCardMinimums" }) ?? 0;
-  const monthlyOtherLoanPayments = useWatch({ control: form.control, name: "monthlyOtherLoanPayments" }) ?? 0;
+  const monthlyCarLoanPayment = useWatch({
+    control: form.control,
+    name: "monthlyCarLoanPayment",
+  }) ?? 0;
+  const monthlyCreditCardMinimums = useWatch({
+    control: form.control,
+    name: "monthlyCreditCardMinimums",
+  }) ?? 0;
+  const monthlyOtherLoanPayments = useWatch({
+    control: form.control,
+    name: "monthlyOtherLoanPayments",
+  }) ?? 0;
 
   const toNumber = useCallback((v: unknown) => {
     if (typeof v === "number") return isFinite(v) ? v : 0;
@@ -77,6 +106,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
     return Number.isFinite(n) ? n : 0;
   }, []);
 
+  // Housing = mortgage/rent + housing parts
   const housingComponent =
     toNumber(mortgage) +
     toNumber(propertyTaxMonthly) +
@@ -84,35 +114,42 @@ export function FinancialStep({ form }: FinancialStepProps) {
     toNumber(heatingCost) +
     toNumber(homeInsurance);
 
-  const totalMonthlyDebts =
-    housingComponent +
+  const otherDebts =
     toNumber(monthlyCarLoanPayment) +
     toNumber(monthlyCreditCardMinimums) +
     toNumber(monthlyOtherLoanPayments);
 
+  const totalMonthlyDebts = housingComponent + otherDebts;
+
   useEffect(() => {
     const rounded = Number(housingComponent.toFixed(2));
     const current = form.getValues().housingPayment;
-    const currentNum = current === undefined || current === null ? 0 : Number(current);
+    const currentNum =
+      current === undefined || current === null ? 0 : Number(current);
 
     if (Math.abs(currentNum - rounded) > 0.005) {
-      form.setValue("housingPayment", rounded, { shouldDirty: true, shouldValidate: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mortgage, propertyTaxMonthly, condoFees, heatingCost, homeInsurance, toNumber]);
-
-  useEffect(() => {
-    if (monthlyDebtsExist) {
-      form.setValue("monthlyDebts", Number(totalMonthlyDebts.toFixed(2)), {
-        shouldValidate: true,
+      form.setValue("housingPayment", rounded, {
         shouldDirty: true,
+        shouldValidate: true,
       });
-    } else {
-      form.setValue("monthlyDebts", 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    monthlyDebtsExist,
+    mortgage,
+    propertyTaxMonthly,
+    condoFees,
+    heatingCost,
+    homeInsurance,
+    toNumber,
+  ]);
+
+  useEffect(() => {
+    form.setValue("monthlyDebts", Number(totalMonthlyDebts.toFixed(2)), {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
     mortgage,
     propertyTaxMonthly,
     condoFees,
@@ -133,25 +170,40 @@ export function FinancialStep({ form }: FinancialStepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                How much savings do you have? <span className="text-red-500">*</span>
+                How much savings do you have?{" "}
+                <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <Input type="number" placeholder="e.g. 5000" {...field} />
+                <Input
+                  type="number"
+                  placeholder="e.g. 5000"
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === "" ? 0 : Number(e.target.value)
+                    )
+                  }
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="monthlyDebtsExist"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Do you have monthly liabilities / debts? <span className="text-red-500">*</span>
+                Do you have monthly liabilities / debts?{" "}
+                <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <YesNoToggle value={field.value as boolean} onChange={field.onChange} />
+                <YesNoToggle
+                  value={field.value as boolean}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -159,146 +211,215 @@ export function FinancialStep({ form }: FinancialStepProps) {
         />
       </div>
 
-      {monthlyDebtsExist === true && (
-        <>
-          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="mortgage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {housingStatus === HousingStatus.RENT ? "Rent (monthly)" : "Mortgage (monthly)"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder={housingStatus === HousingStatus.RENT ? "e.g. 1200.00" : "e.g. 1200.00"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {housingStatus === HousingStatus.RENT
-                      ? "Enter your monthly rent."
-                      : "Enter your monthly mortgage payment."}
-                  </p>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="propertyTaxMonthly"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Tax (monthly)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 150.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="condoFees"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Condo / HOA Fees (monthly)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 200.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="heatingCosts"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Heating / Utilities (monthly)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 80.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="homeInsurance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Home Insurance (monthly)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 60.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="monthlyCarLoanPayment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Monthly Car Loan Payment</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 250.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="monthlyCreditCardMinimums"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Monthly Credit Card Minimums</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 60.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="monthlyOtherLoanPayments"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Other Loan Payments (monthly)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 120.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">Total Monthly Debts</label>
-              <Input
-                type="number"
-                placeholder="auto-calculated"
-                value={Number(totalMonthlyDebts.toFixed(2))}
-                readOnly
-              />
-              <p className="text-xs text-muted-foreground">
-                This is auto-calculated based on the fields above.
+      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="mortgage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {housingStatus === HousingStatus.RENT
+                  ? "Rent (monthly)"
+                  : "Mortgage (monthly)"}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="e.g. 1200.00"
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    field.onChange(val === "" ? 0 : Number(val));
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+              <p className="text-xs text-muted-foreground mt-1">
+                {housingStatus === HousingStatus.RENT
+                  ? "Enter your monthly rent."
+                  : "Enter your monthly mortgage payment."}
               </p>
-            </div>
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {monthlyDebtsExist === true && (
+        <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="propertyTaxMonthly"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Property Tax (monthly)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 150.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="condoFees"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Condo / HOA Fees (monthly)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 200.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="heatingCosts"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Heating / Utilities (monthly)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 80.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="homeInsurance"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Home Insurance (monthly)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 60.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="monthlyCarLoanPayment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Monthly Car Loan Payment</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 250.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="monthlyCreditCardMinimums"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Monthly Credit Card Minimums</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 60.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="monthlyOtherLoanPayments"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Other Loan Payments (monthly)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 120.00"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">Total Monthly Debts</label>
+            <Input
+              type="number"
+              placeholder="auto-calculated"
+              value={Number(totalMonthlyDebts.toFixed(2))}
+              readOnly
+            />
+            <p className="text-xs text-muted-foreground">
+              This is auto-calculated based on rent/mortgage and debts above.
+            </p>
           </div>
-        </>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -308,10 +429,14 @@ export function FinancialStep({ form }: FinancialStepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Do you have any other income? <span className="text-red-500">*</span>
+                Do you have any other income?{" "}
+                <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <YesNoToggle value={field.value as boolean} onChange={(v) => field.onChange(v)} />
+                <YesNoToggle
+                  value={field.value as boolean}
+                  onChange={(v) => field.onChange(v)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -325,10 +450,20 @@ export function FinancialStep({ form }: FinancialStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Enter your other income amount <span className="text-red-500">*</span>
+                  Enter your other income amount{" "}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Enter amount" {...field} />
+                  <Input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -344,10 +479,14 @@ export function FinancialStep({ form }: FinancialStepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Do you receive Child Care Benefit? <span className="text-red-500">*</span>
+                Do you receive Child Care Benefit?{" "}
+                <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <YesNoToggle value={field.value as boolean} onChange={(v) => field.onChange(v)} />
+                <YesNoToggle
+                  value={field.value as boolean}
+                  onChange={(v) => field.onChange(v)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -363,7 +502,16 @@ export function FinancialStep({ form }: FinancialStepProps) {
                 Credit Score <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <Input type="number" placeholder="e.g. 300-600" {...field} />
+                <Input
+                  type="number"
+                  placeholder="e.g. 300-600"
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === "" ? 0 : Number(e.target.value)
+                    )
+                  }
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

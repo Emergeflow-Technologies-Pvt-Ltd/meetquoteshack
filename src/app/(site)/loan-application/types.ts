@@ -192,6 +192,23 @@ import {
 } from "@prisma/client";
 import * as z from "zod";
 
+const moneyField = (message: string) =>
+  z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) {
+        return 0;
+      }
+      if (typeof val === "string") {
+        const trimmed = val.trim();
+        if (trimmed === "") return 0;
+        return trimmed;
+      }
+      return val;
+    },
+    z.number().min(0, message)
+  );
+
+
 export const generalLoanFormSchema = z
   .object({
     // Step 0: Eligibility Check
@@ -283,7 +300,7 @@ export const generalLoanFormSchema = z
       .min(1, "Please enter your workplace duration in years"),
 
     // Step 6: Loan Details
-    loanAmount: z.number().min(1, "Please specify how much you need in CAD"),
+    loanAmount: z.coerce.number({ required_error: "Required", invalid_type_error: "Required" }).positive(),
     previousAddress: z.string().min(1, "Previous address is required").optional(),
     estimatedPropertyValue: z.number().min(1).optional(),
     houseType: z.nativeEnum(PropertyType).optional(),
@@ -299,7 +316,7 @@ export const generalLoanFormSchema = z
       })
   .transform((val) => (val ? Number(val) : null)),
 
-    hasCoApplicant: z.boolean(),
+    hasCoApplicant: z.boolean({ required_error: "Required", invalid_type_error: "Required" }),
     coApplicantFullName: z.string().optional(),
     coApplicantDateOfBirth: z.preprocess((arg) => {
       if (typeof arg === "string") {
@@ -325,53 +342,43 @@ export const generalLoanFormSchema = z
     coApplicantPhone: z
       .string()
       .optional(),
-    coApplicantEmail: z.string().email().optional(),
-    monthlyDebts: z.coerce.number().min(0, "Please enter your monthly debts in CAD"),
+        coApplicantEmail: z.string().email().optional(),
+    monthlyDebts: moneyField("Please enter your monthly debts in CAD"),
     monthlyDebtsExist: z.boolean({
       required_error: "Please specify if you have monthly debts",
     }),
     savings: z.coerce.number().min(0, "Please enter your savings in CAD"),
-    mortgage: z.coerce.number().min(0, "Please enter your mortgage amount in CAD"),
-    propertyTaxMonthly: z.coerce.number().min(0, "Please enter your monthly property tax in CAD"),
-    condoFees: z.coerce.number().min(0, "Please enter your condo fees in CAD"),
-    heatingCosts: z.coerce.number().min(0, "Please enter your heating costs in CAD"),
-    homeInsurance: z.coerce.number().min(0, "Please enter your home insurance amount in CAD"),
-    monthlyCarLoanPayment: z.coerce.number().min(0, "Please enter your monthly car loan payment in CAD"),
-    monthlyCreditCardMinimums: z.coerce.number().min(0, "Please enter your monthly credit card minimums in CAD"),
-    monthlyOtherLoanPayments: z.coerce.number().min(0, "Please enter your other loan payments in CAD"),
+    mortgage: moneyField("Please enter your mortgage amount in CAD"),
+    propertyTaxMonthly: moneyField("Please enter your monthly property tax in CAD"),
+    condoFees: moneyField("Please enter your condo fees in CAD"),
+    heatingCosts: moneyField("Please enter your heating costs in CAD"),
+    homeInsurance: moneyField("Please enter your home insurance amount in CAD"),
+    monthlyCarLoanPayment: moneyField("Please enter your monthly car loan payment in CAD"),
+    monthlyCreditCardMinimums: moneyField("Please enter your monthly credit card minimums in CAD"),
+    monthlyOtherLoanPayments: moneyField("Please enter your other loan payments in CAD"),
     otherIncome: z.boolean({
       required_error: "Please specify if you have other income",
     }),
-    otherIncomeAmount: z.coerce.number().min(0, "Please enter your other income amount in CAD").optional(),
+    otherIncomeAmount: moneyField(
+      "Please enter your other income amount in CAD"
+    ).optional(),
     childCareBenefit: z.boolean({
       required_error: "Please specify if you receive child care benefit",
     }),
-    creditScore: z.coerce.number()
+    creditScore: z.coerce
+      .number()
       .min(300, "Credit score must be at least 300")
       .max(900, "Credit score cannot exceed 900"),
   })
   .superRefine((data, ctx) => {
     if (data.housingStatus === HousingStatus.RENT) {
-      if (typeof data.housingPayment !== "number") {
+      if (!data.mortgage || data.mortgage <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Monthly rent is required when housing status is Rent",
-          path: ["housingPayment"],
+          path: ["mortgage"],
         });
       }
-    }
-
-    // optional: add other conditional validations here if needed
-    // e.g. require mortgage-related fields when housingStatus === HousingStatus.OWN
-    if (data.housingStatus === HousingStatus.OWN) {
-      // example: ensure mortgage or property value exists (customize per your rules)
-      // if (typeof data.mortgage !== "number" && typeof data.estimatedPropertyValue !== "number") {
-      //   ctx.addIssue({
-      //     code: z.ZodIssueCode.custom,
-      //     message: "Provide mortgage amount or estimated property value for homeowners",
-      //     path: ["mortgage"],
-      //   });
-      // }
     }
   });
 

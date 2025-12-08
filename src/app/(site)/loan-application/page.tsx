@@ -109,7 +109,8 @@ const form = useForm<GeneralLoanFormValues>({
     loanAmount: undefined,
     creditScore: undefined,
   },
-  mode: "all",
+  mode: "onSubmit",
+  reValidateMode: "onChange",
 });
 
   const watchLoanType = form.watch("loanType");
@@ -315,50 +316,59 @@ const form = useForm<GeneralLoanFormValues>({
     setCurrentStep(currentStep - 1);
   }
 
-  async function onSubmit(data: GeneralLoanFormValues) {
-    try {
-      if (currentStep < formSteps.length - 1) {
-        await onNext();
-        return;
-      }
-      setIsSubmitting(true);
-
-      const payload = {
-        ...data,
-        yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
-        housingPayment: Number(data.housingPayment),
-        grossIncome: Number(data.grossIncome),
-        loanAmount: Number(data.loanAmount),
-      };
-
-      const response = await axios.post("/api/apply/general", payload);
-      console.log("API response:", response.data);
-
-      // Redirect on success
-      router.push("/loan-application/success");
-    } catch (error: unknown) {
-      let description = "Failed to submit form";
-
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        typeof (error as { response?: { data?: { error?: string } } }).response
-          ?.data?.error === "string"
-      ) {
-        description = (error as { response: { data: { error: string } } })
-          .response.data.error;
-      }
-
-      toast({
-        title: "Submission Error",
-        description,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+const handleFinalSubmit = form.handleSubmit(
+  onSubmit,
+  (errors) => {
+    console.log("Validation errors on final submit:", errors);
+    toast({
+      title: "Validation Error",
+      description: "Please fix the highlighted fields before submitting.",
+      variant: "destructive",
+    });
   }
+);
+
+
+
+async function onSubmit(data: GeneralLoanFormValues) {
+  try {
+    setIsSubmitting(true);
+
+    const payload = {
+      ...data,
+      yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
+      housingPayment: Number(data.housingPayment),
+      grossIncome: Number(data.grossIncome),
+      loanAmount: Number(data.loanAmount),
+    };
+
+    const response = await axios.post("/api/apply/general", payload);
+    console.log("API response:", response.data);
+
+    router.push("/loan-application/success");
+  } catch (error: unknown) {
+    let description = "Failed to submit form";
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as { response?: { data?: { error?: string } } }).response
+        ?.data?.error === "string"
+    ) {
+      description = (error as { response: { data: { error: string } } })
+        .response.data.error;
+    }
+
+    toast({
+      title: "Submission Error",
+      description,
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+}
 
   return (
     <Section className="py-24">
@@ -372,19 +382,11 @@ const form = useForm<GeneralLoanFormValues>({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(
-              onSubmit,
-              (errors) => {
-                console.log("Validation errors on final submit:", errors);
-                toast({
-                  title: "Validation Error",
-                  description: "Please fix the highlighted fields before submitting.",
-                  variant: "destructive",
-                });
-              }
-            )}
-            className="space-y-8 p-6"
-          >
+    onSubmit={(e) => {
+      e.preventDefault();
+    }}
+    className="space-y-8 p-6"
+  >
             {currentStep === 0 && (
               <EligibilityStep
                 form={form as UseFormReturn<GeneralLoanFormValues>}
@@ -444,9 +446,13 @@ const form = useForm<GeneralLoanFormValues>({
                   Next
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit"}
-                </Button>
+               <Button
+          type="button"
+          onClick={() => handleFinalSubmit()}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </Button>
               )}
             </div>
           </form>
