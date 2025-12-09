@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, FileText } from "lucide-react";
+import { ChevronLeft, FileText, Lock, User } from "lucide-react";
 import Section from "@/components/shared/section";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ import FinancialOverview from "./components/FinancialOverview";
 import PropertyMortgageDetails from "./components/PropertyMortgageDetails";
 import CoApplicantDetails from "./components/CoApplicantDetails";
 import WorkplaceDetails from "./components/WorkplaceDetails";
+import { PayPerMatchSuccessModal } from "@/components/ui/paypermatchsucces";
 
 export default function ApplicationDetailsPage({
   params,
@@ -24,18 +25,26 @@ export default function ApplicationDetailsPage({
   params: Promise<{ applicationId: string }>;
 }) {
   const router = useRouter();
-  const [application, setApplication] = useState<Prisma.ApplicationGetPayload<{
-    include: {
-      documents: true;
-      messages: true;
-    };
-  }> | null>(null);
+  const [application, setApplication] =
+    useState<
+      Prisma.ApplicationGetPayload<{
+        include: {
+          documents: true;
+          messages: true;
+        };
+      }> | null
+    >(null);
   const [loading, setLoading] = useState(false);
   const { applicationId } = use(params);
   const { data: session } = useSession();
-  const [messages, setMessages] = useState<Prisma.MessageGetPayload<object>[]>(
-    []
-  );
+  const [messages, setMessages] = useState<
+    Prisma.MessageGetPayload<object>[]
+  >([]);
+
+  const [prevStatus, setPrevStatus] = useState<LoanStatus | null>(null);
+  const [justUnlocked, setJustUnlocked] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -69,6 +78,41 @@ export default function ApplicationDetailsPage({
 
     fetchMessages();
   }, [applicationId]);
+
+  useEffect(() => {
+    if (!application) return;
+
+    if (prevStatus === null) {
+      setPrevStatus(application.status);
+      return;
+    }
+
+    if (
+      prevStatus === LoanStatus.ASSIGNED_TO_POTENTIAL_LENDER &&
+      application.status !== prevStatus
+    ) {
+      setJustUnlocked(true);
+      toast({
+        title: "Match unlocked",
+        description:
+          "Payment confirmed. Full loanee details and documents are now available.",
+      });
+    }
+
+    if (prevStatus !== application.status) {
+      setPrevStatus(application.status);
+    }
+  }, [application, prevStatus]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const match = url.searchParams.get("match");
+
+    if (match === "success") {
+      setShowSuccessModal(true);
+    }
+  }, []);
+
 
   const handleAcceptApplication = async () => {
     setLoading(true);
@@ -141,6 +185,36 @@ export default function ApplicationDetailsPage({
     }
   };
 
+  const handlePayPerMatch = async () => {
+    if (!application) return;
+    setLoading(true);
+    try {
+      const res = await axios.post("/api/checkout/paypermatch", {
+        applicationId: application.id,
+      });
+
+      const url = res.data?.url as string | undefined;
+
+      if (!url) {
+        throw new Error("No checkout URL returned");
+      }
+
+      window.location.href = url;
+    } catch (error: any) {
+      console.error("Pay Per Match error:", error);
+      toast({
+        title: "Payment Error",
+        description:
+          error?.response?.data?.error ??
+          error?.message ??
+          "Failed to start payment",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!application) {
     return (
       <Section className="py-12">
@@ -148,6 +222,9 @@ export default function ApplicationDetailsPage({
       </Section>
     );
   }
+
+  const isPotential =
+    application.status === LoanStatus.ASSIGNED_TO_POTENTIAL_LENDER;
 
   const submittedTypes = new Set(
     application.documents.map((doc) => doc.documentType)
@@ -159,24 +236,20 @@ export default function ApplicationDetailsPage({
   return (
     <Section className="py-12">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
-          application.status === LoanStatus.IN_PROGRESS ||
+        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${application.status === LoanStatus.IN_PROGRESS ||
           application.status === LoanStatus.IN_CHAT
-            ? "h-auto lg:h-[88vh]"
-            : ""
-        }`}
-      >
-        {/* LEFT SIDE: Scrollable cards */}
-        <div
-          className={`flex-1 space-y-8 ${
-            application.status === LoanStatus.IN_PROGRESS ||
-            application.status === LoanStatus.IN_CHAT
-              ? "overflow-y-auto lg:pr-4 mb-6"
-              : ""
+          ? "h-auto lg:h-[88vh]"
+          : ""
           }`}
+      >
+        <div
+          className={`flex-1 space-y-4 ${application.status === LoanStatus.IN_PROGRESS ||
+            application.status === LoanStatus.IN_CHAT
+            ? "overflow-y-auto lg:pr-4 mb-6"
+            : ""
+            }`}
         >
-          {/* Header + Accept Button */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-10 pb-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-20 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
               <Button
                 variant="outline"
@@ -192,10 +265,43 @@ export default function ApplicationDetailsPage({
                 <p className="mt-1 text-sm text-gray-500">
                   ID: {application.id}
                 </p>
-                {application.status !== LoanStatus.IN_PROGRESS &&
-                  application.status !== LoanStatus.IN_CHAT &&
-                  application.status !== LoanStatus.APPROVED && (
-                    <div className="mt-3 sm:hidden">
+              </div>
+            </div>
+
+            <div className="sm:flex space-x-4">
+              {isPotential ? (
+                <Button
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={handlePayPerMatch}
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Pay Per Match"}
+                </Button>
+              ) : (
+                <>
+                  {(application.status === LoanStatus.IN_PROGRESS ||
+                    application.status === LoanStatus.IN_CHAT) && (
+                      <>
+                        <Button
+                          variant="default"
+                          onClick={handleApproveApplication}
+                          disabled={loading}
+                        >
+                          {loading ? "Processing..." : "Approve Loan"}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleRejectApplication}
+                          disabled={loading}
+                        >
+                          {loading ? "Processing..." : "Reject Loan"}
+                        </Button>
+                      </>
+                    )}
+
+                  {application.status !== LoanStatus.IN_PROGRESS &&
+                    application.status !== LoanStatus.IN_CHAT &&
+                    application.status !== LoanStatus.APPROVED && (
                       <Button
                         variant="default"
                         onClick={handleAcceptApplication}
@@ -203,117 +309,167 @@ export default function ApplicationDetailsPage({
                       >
                         {loading ? "Processing..." : "Accept Application"}
                       </Button>
-                    </div>
-                  )}
-              </div>
-            </div>
-
-            <div className=" sm:flex space-x-4">
-              {(application.status === LoanStatus.IN_PROGRESS ||
-                application.status === LoanStatus.IN_CHAT) && (
-                <>
-                  <Button
-                    variant="default"
-                    onClick={handleApproveApplication}
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Approve Loan"}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleRejectApplication}
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Reject Loan"}
-                  </Button>
+                    )}
                 </>
               )}
-
-              {application.status !== LoanStatus.IN_PROGRESS &&
-                application.status !== LoanStatus.IN_CHAT &&
-                application.status !== LoanStatus.APPROVED && (
-                  <Button
-                    variant="default"
-                    onClick={handleAcceptApplication}
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Accept Application"}
-                  </Button>
-                )}
             </div>
           </div>
 
-          {/* Cards Section */}
+          {justUnlocked && (
+            <div className="mb-2 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <span>
+                <span className="font-semibold">Match unlocked.</span>{" "}
+                Full loanee details and documents are now visible.
+              </span>
+              <span className="ml-3 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">
+                Unlocked
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Personal Info */}
-              <PersonalDetails application={application} />
+              {isPotential ? (
+                <LockedSection
+                  title="Personal Information"
+                  description="Unlock verified loanee details instantly with Pay Per Match."
+                />
+              ) : (
+                <PersonalDetails application={application} />
+              )}
 
-              {/* Financial Overview */}
+              {/* Financial Overview – always visible */}
               <FinancialOverview application={application} />
 
-              {/* Property & Mortgage Details */}
+              {/* Property & Mortgage Details – always visible */}
               <PropertyMortgageDetails application={application} />
 
-              {/* Co-applicant Details */}
+              {/* Co-applicant Details – visible only if exists */}
               {application.hasCoApplicant && (
                 <CoApplicantDetails application={application} />
               )}
+
+              {/* Workplace – always visible */}
               <WorkplaceDetails application={application} />
             </div>
 
-            {/* Documents */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  Submitted Documents
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {application.documents.length > 0 ? (
-                    application.documents.map((doc) => (
-                      <div key={doc.id} className="p-4 border rounded-lg">
-                        <p className="font-medium">
-                          {documentTypeLabels[doc.documentType]}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Status: {doc.status}
-                        </p>
-                        {doc.fileUrl && (
-                          <a
-                            href={doc.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            View Document
-                          </a>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">No documents submitted</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Documents – locked only in potential state */}
+            {isPotential ? (
+              <LockedDocumentsSection />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    Submitted Documents
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {application.documents.length > 0 ? (
+                      application.documents.map((doc) => (
+                        <div key={doc.id} className="p-4 border rounded-lg">
+                          <p className="font-medium">
+                            {documentTypeLabels[doc.documentType]}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Status: {doc.status}
+                          </p>
+                          {doc.fileUrl && (
+                            <a
+                              href={doc.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              View Document
+                            </a>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500">No documents submitted</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
-        {/* RIGHT SIDE: Chat Box */}
-        <LenderChat
-          application={application}
-          setApplication={setApplication}
-          applicationId={applicationId}
-          messages={messages}
-          setMessages={setMessages}
-          missingDocumentTypes={missingDocumentTypes}
-          documentTypeLabels={documentTypeLabels}
-          LoanStatus={LoanStatus}
-        />
+        {!isPotential && (
+          <LenderChat
+            application={application}
+            setApplication={setApplication}
+            applicationId={applicationId}
+            messages={messages}
+            setMessages={setMessages}
+            missingDocumentTypes={missingDocumentTypes}
+            documentTypeLabels={documentTypeLabels}
+            LoanStatus={LoanStatus}
+          />
+        )}
       </div>
+      <PayPerMatchSuccessModal
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+      />
     </Section>
+
   );
 }
+
+function LockedSection({
+  title,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 flex flex-col">
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-md pointer-events-none" />
+
+      <CardHeader className="relative z-10 pb-4 shrink- bg-white">
+        <CardTitle className="flex items-center gap-2">
+          <User className="w-5 h-5 text-blue-600" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="relative z-10 flex flex-1 flex-col items-center justify-center text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100/70">
+          <img
+            src="/lock.svg"
+            alt="Locked"
+            className="h-13 w-13"
+          />
+        </div>
+      </CardContent>
+    </Card>
+
+  );
+}
+
+function LockedDocumentsSection() {
+  return (
+    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40">
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
+      <CardHeader className="relative z-10 pb-2">
+      </CardHeader>
+      <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
+          <img
+            src="/lock.svg"
+            alt="Locked"
+            className="h-13 w-13"
+          />        </div>
+
+        <p className="mt-1 text-xs text-gray-500 max-w-md">
+          Unlock verified loanee details instantly with Pay Per Match.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+

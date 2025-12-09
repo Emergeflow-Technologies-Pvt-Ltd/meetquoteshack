@@ -25,40 +25,79 @@ import {
 export default async function LenderPoolPage() {
   const session = await getServerSession(authOptions);
 
+  if (!session?.user?.id) {
+    // handle unauthenticated case however you like
+    return null;
+  }
+
+  // 1️⃣ Get the current lender for this user
+  const lender = await prisma.lender.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!lender) {
+    // no lender profile → no applications
+    return (
+      <Section>
+        <p className="text-center mt-16 text-gray-600">
+          No lender profile found for this user.
+        </p>
+      </Section>
+    );
+  }
+
+  // 2️⃣ Available applications (already assigned directly to this lender)
   const availableApplications = await prisma.application.findMany({
     where: {
       status: LoanStatus.ASSIGNED_TO_LENDER,
-      lender: {
-        userId: session?.user?.id,
-      },
+      lenderId: lender.id,
     },
-
     orderBy: { createdAt: "desc" },
   });
 
+  // 3️⃣ Accepted applications (IN_PROGRESS / IN_CHAT)
   const acceptedApplications = await prisma.application.findMany({
     where: {
       status: {
         in: [LoanStatus.IN_PROGRESS, LoanStatus.IN_CHAT],
       },
-      lender: {
-        userId: session?.user?.id,
+      lenderId: lender.id,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // 4️⃣ Approved applications
+  const approvedApplications = await prisma.application.findMany({
+    where: {
+      status: LoanStatus.APPROVED,
+      lenderId: lender.id,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // 5️⃣ Potential applications
+  const potentialApplications = await prisma.application.findMany({
+    where: {
+      status: LoanStatus.ASSIGNED_TO_POTENTIAL_LENDER,
+      potentialLender: {
+        some: {
+          lenderId: lender.id, // ✅ check if THIS lender is in the potentialLender table
+        },
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const approvedApplications = await prisma.application.findMany({
-    where: {
-      status: {
-        in: [LoanStatus.APPROVED],
-      },
-      lender: {
-        userId: session?.user?.id,
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+
+  const lenderStatusLabelMap: Partial<Record<LoanStatus, string>> = {
+    ASSIGNED_TO_POTENTIAL_LENDER: "Potential Assignment",
+    ASSIGNED_TO_LENDER: "Assigned",
+    IN_PROGRESS: "In Progress",
+    IN_CHAT: "In Chat",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+  };
+
 
   return (
     <Section className="py-12">
@@ -86,6 +125,13 @@ export default async function LenderPoolPage() {
             Approved Applications
             <Badge variant="secondary" className="ml-2">
               {approvedApplications.length}
+            </Badge>
+          </TabsTrigger>
+
+          <TabsTrigger value="potential" className="w-full sm:w-auto">
+            Potential Applications
+            <Badge variant="secondary" className="ml-2">
+              {potentialApplications.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -369,6 +415,98 @@ export default async function LenderPoolPage() {
             <p className="text-gray-600 text-center mt-16 py-8 bg-gray-50 rounded-lg">
               No approved applications
             </p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="potential">
+          {potentialApplications.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-16 sm:mt-0">
+              {potentialApplications.map((app) => (
+                <Link
+                  key={app.id}
+                  href={`/lender/dashboard/${app.id}`}
+                  className="block"
+                >
+                  <Card className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200">
+                    <CardHeader className="pb-4 space-y-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg font-semibold text-gray-800">
+                            {app.firstName} {app.lastName}
+                          </CardTitle>
+                          <CardDescription className="text-sm text-gray-500">
+                            Submitted on{" "}
+                            {new Date(app.createdAt).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <Badge
+                          className="text-xs px-2 py-1 rounded-md"
+                          style={{
+                            color: getTextColorLoanStatus(app.status),
+                            backgroundColor: getBackgroundColorLoanStatus(app.status),
+                          }}
+                        >
+                          {lenderStatusLabelMap[app.status] ?? app.status.replace(/_/g, " ")}
+                        </Badge>
+
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-3 text-sm text-gray-700">
+                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                        <div>
+                          <span className="text-gray-500">Loan Amount</span>
+                          <p className="font-medium">
+                            ${app.loanAmount?.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Loan Type</span>
+                          <p className="font-medium">
+                            {loanTypeLabels[app.loanType]}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Employment</span>
+                          <p className="font-medium">
+                            {employmentTypeLabels[app.employmentStatus]}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Gross Income</span>
+                          <p className="font-medium">
+                            ${app.grossIncome.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Housing</span>
+                          <p className="font-medium">{app.housingStatus}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Monthly Debts</span>
+                          <p className="font-medium">
+                            ${app.monthlyDebts.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Savings</span>
+                          <p className="font-medium">
+                            ${app.savings.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Phone no.</span>
+                          <p className="font-medium">{app.personalPhone}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-600 text-center mt-16 py-8 bg-gray-50 rounded-lg">
+              No potential applications            </p>
           )}
         </TabsContent>
       </Tabs>

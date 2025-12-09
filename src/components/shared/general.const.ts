@@ -93,6 +93,7 @@ export const applicationStatusLabels: Record<string, string> = {
     [LoanStatus.APPROVED]: "Approved",
     [LoanStatus.ARCHIVED]: "Archived",
     [LoanStatus.ASSIGNED_TO_LENDER]: "Assigned to lender",
+    [LoanStatus.ASSIGNED_TO_POTENTIAL_LENDER]: "Assigned to potential lender",
     [LoanStatus.IN_CHAT]: "In chat",
     [LoanStatus.IN_PROGRESS]: "In progress",
     [LoanStatus.REJECTED]: "Rejected",

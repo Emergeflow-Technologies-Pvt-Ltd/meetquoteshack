@@ -24,7 +24,7 @@ export async function GET(
       where: {
         id,
         status: {
-          in: ["OPEN", "ASSIGNED_TO_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"],
+          in: ["OPEN", "ASSIGNED_TO_LENDER","ASSIGNED_TO_POTENTIAL_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"],
         },
       },
       include: {
@@ -132,6 +132,7 @@ export async function PATCH(
     const allowedStatuses = [
       "OPEN",
       "ASSIGNED_TO_LENDER",
+      "ASSIGNED_TO_POTENTIAL_LENDER",
       "IN_PROGRESS",
       "IN_CHAT",
       "REJECTED",

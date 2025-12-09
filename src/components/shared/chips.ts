@@ -3,7 +3,9 @@ export const getTextColorLoanStatus = (status: string) => {
         case "OPEN":
             return "#0057B5"; // Blue
         case "ASSIGNED_TO_LENDER":
-            return "#DBB10B"; // Yellow 
+            return "#DBB10B"; // Yellow
+        case "ASSIGNED_TO_POTENTIAL_LENDER":
+            return "#A6AC00"; // Olive 
         case "IN_PROGRESS":
             return "#6100A1"; // Purple 
         case "IN_CHAT":
@@ -25,6 +27,8 @@ export const getBackgroundColorLoanStatus = (status: string) => {
             return "#CCE5FF"; // Light blue
         case "ASSIGNED_TO_LENDER":
             return "#FFF7D7"; // Light yellow
+        case "ASSIGNED_TO_POTENTIAL_LENDER":
+            return "#f2ffd7ff"; // Light yellow
         case "IN_PROGRESS":
             return "#F7EAFF"; // Light purple
         case "IN_CHAT":

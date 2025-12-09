@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { LoanStatus } from "@prisma/client";
 
+//Application moves: ASSIGNED_TO_LENDER → IN_PROGRESS
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string; }>; }
