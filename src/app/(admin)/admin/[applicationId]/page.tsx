@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Agent } from "@prisma/client";
+import { Pencil } from "lucide-react";
 import {
   LoanStatus,
   Application,
@@ -204,7 +205,6 @@ export default function ApplicationPage({ params }: Props) {
 
 
   useEffect(() => {
-    // when the dialog opens, preselect the current assigned agent in the radio group
     if (dialogOpenAgent) {
       setSelectedAgentId(application?.agentId ?? null);
     }
@@ -306,11 +306,10 @@ export default function ApplicationPage({ params }: Props) {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
-  
+
   const handleAssign = async () => {
     if (!application) return;
 
-    // Basic guards
     if (assignmentMode === "single" && !selectedLenderId) {
       toast({
         title: "Select lender",
@@ -365,11 +364,9 @@ export default function ApplicationPage({ params }: Props) {
             ...prev,
             ...returnedApp,
             lenderId:
-              // from backend if present
               (returnedApp &&
                 (returnedApp.lenderId ??
                   (returnedApp as any).lender?.id)) ??
-              // or, for single mode, fall back to what we selected
               (assignmentMode === "single" ? selectedLenderId : null),
             potentialLenderIds:
               returnedPotentialIds.length > 0
@@ -412,74 +409,6 @@ export default function ApplicationPage({ params }: Props) {
     }
   };
 
-  // const handleAssign = async () => {
-  //   if (!application) return;
-
-  //   if (assignmentMode === "single" && !selectedLenderId) {
-  //     toast({ title: "Select lender", description: "Please select a lender.", variant: "destructive" });
-  //     return;
-  //   }
-  //   if (assignmentMode === "multi" && (selectedPotentialLenderIds.length < 1 || selectedPotentialLenderIds.length > 5)) {
-  //     toast({ title: "Choose lenders", description: "Select between 1 and 5 potential lenders.", variant: "destructive" });
-  //     return;
-  //   }
-
-  //   setIsAssigning(true);
-  //   try {
-  //     const payload = {
-  //       status: "ASSIGNED_TO_LENDER",
-  //       mode: assignmentMode, // "single" | "multi"
-  //       lenderId: assignmentMode === "single" ? selectedLenderId : null,
-  //       potentialLenderIds: assignmentMode === "multi" ? selectedPotentialLenderIds : [],
-  //     };
-
-  //     const res = await axios.patch(`/api/applications/${application.id}`, payload);
-
-  //     const returnedApp: Partial<ApplicationWithUser> = res.data.application ?? res.data;
-  //     const returnedPotentialIds: string[] = res.data.potentialLenderIds ?? returnedApp.potentialLenderIds ?? [];
-
-  //     setApplication((prev) =>
-  //       prev
-  //         ? {
-  //           ...prev,
-  //           ...returnedApp,
-  //           lenderId:
-  //             (returnedApp && (returnedApp.lenderId ?? (returnedApp as any).lender?.id)) ??
-  //             (assignmentMode === "single" ? selectedLenderId : null),
-  //           potentialLenderIds:
-  //             returnedPotentialIds.length > 0
-  //               ? returnedPotentialIds
-  //               : assignmentMode === "multi"
-  //                 ? selectedPotentialLenderIds
-  //                 : [], // IMPORTANT: clear potentials when single
-  //           assignmentMode,
-  //         }
-  //         : prev
-  //     );
-
-  //     if (returnedPotentialIds.length > 0) {
-  //       setSelectedPotentialLenderIds(returnedPotentialIds);
-  //     } else if (assignmentMode === "single") {
-  //       setSelectedPotentialLenderIds([]);
-  //     }
-
-  //     if (assignmentMode === "single" && selectedLenderId) {
-  //       setSelectedLenderId(selectedLenderId);
-  //     } else if (returnedApp.lenderId) {
-  //       setSelectedLenderId(returnedApp.lenderId);
-  //     } else if (assignmentMode === "multi") {
-  //       setSelectedLenderId(null);
-  //     }
-
-  //     toast({ title: "Success", description: "Assignment updated.", variant: "default" });
-  //     setDialogOpen(false);
-  //   } catch (err) {
-  //     console.error("Assign error:", err);
-  //     toast({ title: "Error", description: "Failed to assign lenders", variant: "destructive" });
-  //   } finally {
-  //     setIsAssigning(false);
-  //   }
-  // };
 
   const assignAgentHandler = async () => {
     if (!selectedAgentId || !application) return;
@@ -487,7 +416,6 @@ export default function ApplicationPage({ params }: Props) {
     try {
       setIsAssigning(true);
 
-      // Call backend API
       const res = await axios.post(
         `/api/applications/${application.id}/agent`,
         { agentId: selectedAgentId }
@@ -495,13 +423,12 @@ export default function ApplicationPage({ params }: Props) {
 
       const updatedApp = res.data?.application;
 
-      // Update UI immediately
       setApplication((prev) =>
         prev
           ? {
             ...prev,
             agentId: selectedAgentId,
-            agent: updatedApp?.agent ?? prev.agent, // attach agent object if returned by backend
+            agent: updatedApp?.agent ?? prev.agent,
           }
           : prev
       );
@@ -559,577 +486,443 @@ export default function ApplicationPage({ params }: Props) {
             {application?.status.replace(/_/g, " ")}
           </Badge>
         </div>
-
-        {/* Lender assignment section */}
-        {/* <div className="w-full mt-6 pt-4 border-t mb-6">
-          {!["REJECTED", "APPROVED"].includes(application.status as string) && (
-            <div className="flex flex-col sm:flex-row sm:items-start sm:items-center justify-between gap-4">
-              <div>
+        {!["REJECTED", "APPROVED"].includes(application.status as string) && (
+          <div className="w-full">
+            <div className="mt-6 mb-8 w-full">
+              <div className="flex w-full items-center justify-between px-4 py-2">
                 <h3 className="text-lg font-semibold">Assign to Lender</h3>
-              </div>
+                <div className="flex items-center gap-2">
 
-              {hasAnyAssignment ? (
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                  {(() => {
-                    const hasPotentials =
-                      (application?.potentialLenderIds?.length ?? 0) > 0 ||
-                      selectedPotentialLenderIds.length > 0;
+                  {hasAnyAssignment ? (
+                    <div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {(() => {
+                          const hasPotentials =
+                            (application?.potentialLenderIds?.length ?? 0) > 0 ||
+                            selectedPotentialLenderIds.length > 0;
 
-                    if (hasPotentials) {
-                      const count =
-                        (application?.potentialLenderIds?.length ?? 0) ||
-                        selectedPotentialLenderIds.length;
+                          if (hasPotentials) {
+                            const count =
+                              (application?.potentialLenderIds?.length ?? 0) ||
+                              selectedPotentialLenderIds.length;
 
-                      return (
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setDialogOpenPotentialLender(true)}
-                            className="rounded-md px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm"
-                            title="View potential lenders"
-                          >
-                            {count} potential
-                          </button>
-                        </div>
-                      );
-                    }
-                    return (
-                      <Select
-                        value={application.lenderId ?? undefined}
-                        onValueChange={() => { }}
-                        open={false}
-                      >
-                        <SelectTrigger
-                          className="w-[250px] pointer-events-none"
-                        >
-                          <SelectValue placeholder="Assigned lender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {lenders.map((lender) => (
-                            <SelectItem key={lender.id} value={lender.id}>
-                              {lender.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    );
-                  })()}
+                            return (
+                              <Button
+                                type="button"
+                                onClick={() => setDialogOpenPotentialLender(true)}
+                                className="bg-[#FFCAED] hover:bg-[#FFCAEG] text-[#FF2BB8] text-sm px-3 py-1 rounded-md"
+                                title="View potential lenders"
+                              >
+                                {count} potential
+                              </Button>
 
+                            );
+                          }
 
-                  <div className="flex items-center gap-2">
-                    <Dialog open={dialogOpenPotentialLender} onOpenChange={setDialogOpenPotentialLender}>
-                      <DialogContent className="sm:max-w-sm p-6">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h2 className="text-xl font-semibold leading-tight">Selected Potential Lenders</h2>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                              For Application ID:{" "}
-                              <span className="font-medium text-primary-600">
-                                {application?.id}
+                          const assignedLenderName =
+                            lenders.find((l) => l.id === application.lenderId)?.name ??
+                            application.lenderId ??
+                            "Unknown lender";
+
+                          return (
+                            <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
+                              <span className="text-sm font-medium text-slate-800">
+                                Lender: {assignedLenderName}
                               </span>
-                            </p>
-                          </div>
-
-                        </div>
-
-                        <hr className="my-4 border-t border-muted" />
-
-                        <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
-                          {((application.potentialLenderIds && application.potentialLenderIds.length) || selectedPotentialLenderIds.length) ? (
-                            ((application.potentialLenderIds && application.potentialLenderIds.length ? application.potentialLenderIds : selectedPotentialLenderIds)).map((id) => {
-                              const lender = lenders.find(l => l.id === id);
-                              const name = lender?.name ?? id;
-                              const initials = name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
-
-                              const statusLabel = "Verified";
-
-                              return (
-                                <div key={id} className="flex items-center justify-between bg-card rounded-lg px-4 py-3 shadow-sm">
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
-                                      {initials}
-                                    </div>
-                                    <div>
-                                      <div className="text-sm font-medium">{name}</div>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-3">
-                                    <div className="rounded-md px-3 py-1 text-xs font-medium" style={{ backgroundColor: "#E6FFF4", color: "#0F5132" }}>
-                                      {statusLabel}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div className="py-6 text-center text-sm text-muted-foreground">
-                              No potential lenders selected.
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedLenderId(
+                                    selectedLenderId || application.lenderId || null
+                                  );
+                                  setDialogOpen(true);
+                                }}
+                                size="icon"
+                                className="h-7 w-7 bg-amber-400 hover:bg-amber-500 text-white"
+                              >
+                                <Pencil size={16} />
+                              </Button>
                             </div>
-                          )}
+                          );
+                        })()}
+
+                        <Dialog open={dialogOpenPotentialLender} onOpenChange={setDialogOpenPotentialLender}>
+                          <DialogContent className="sm:max-w-sm p-6">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h2 className="text-xl font-semibold leading-tight">Selected Potential Lenders</h2>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                  For Application ID:{" "}
+                                  <span className="font-medium text-primary-600">{application?.id}</span>
+                                </p>
+                              </div>
+                            </div>
+
+                            <hr className="my-4" />
+
+                            <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
+                              {(application.potentialLenderIds?.length || selectedPotentialLenderIds.length) ? (
+                                (application.potentialLenderIds?.length
+                                  ? application.potentialLenderIds
+                                  : selectedPotentialLenderIds
+                                ).map((id) => {
+                                  const lender = lenders.find((l) => l.id === id);
+                                  const name = lender?.name ?? id;
+                                  const initials = name
+                                    .split(" ")
+                                    .map((s) => s[0])
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase();
+
+                                  return (
+                                    <div key={id} className="flex items-center justify-between bg-card rounded-lg px-4 py-3 shadow-sm">
+                                      <div className="flex items-center gap-4">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
+                                          {initials}
+                                        </div>
+                                        <div>
+                                          <div className="text-sm font-medium">{name}</div>
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        <div
+                                          className="rounded-md px-3 py-1 text-xs font-medium"
+                                          style={{ backgroundColor: "#E6FFF4", color: "#0F5132" }}
+                                        >
+                                          Verified
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <div className="py-6 text-center text-sm text-muted-foreground">
+                                  No potential lenders selected.
+                                </div>
+                              )}
+                            </div>
+
+                            <DialogFooter className="mt-6">
+                              <DialogClose asChild>
+                                <Button variant="outline">Close</Button>
+                              </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                          <DialogContent className="sm:max-w-[480px]">
+                            <DialogHeader className="space-y-1">
+                              <DialogTitle>Assign Lender</DialogTitle>
+                              <DialogDescription>
+                                Choose how you want to assign lenders to this loanee.
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <RadioGroup
+                              value={assignmentMode}
+                              onValueChange={(value) => {
+                                const m = value as "single" | "multi";
+                                setAssignmentMode(m);
+                                if (m === "single") setSelectedPotentialLenderIds([]);
+                                else setSelectedLenderId(null);
+                              }}
+                              className="mt-2 space-y-3"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAssignmentMode("single");
+                                  setSelectedPotentialLenderIds([]);
+                                }}
+                                className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
+                      ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                              >
+                                <RadioGroupItem value="single" className="mt-1" />
+                                <div className="w-full">
+                                  <Label>Assign a Lender</Label>
+                                  <p className="text-xs mt-1 text-muted-foreground">Choose one lender.</p>
+
+                                  {assignmentMode === "single" && (
+                                    <div className="mt-4">
+                                      <Select
+                                        value={selectedLenderId || application.lenderId || ""}
+                                        onValueChange={(v) => setSelectedLenderId(v)}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Select lender..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {lenders.map((lender) => (
+                                            <SelectItem key={lender.id} value={lender.id}>
+                                              {lender.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAssignmentMode("multi");
+                                  setSelectedLenderId(null);
+                                }}
+                                className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
+                      ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                              >
+                                <RadioGroupItem value="multi" className="mt-1" />
+
+                                <div className="w-full">
+                                  <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
+                                  <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
+
+                                  {assignmentMode === "multi" && (
+                                    <div className="mt-4 space-y-2">
+                                      <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
+                                        {lenders.map((l) => {
+                                          const checked = selectedPotentialLenderIds.includes(l.id);
+                                          return (
+                                            <Button
+                                              key={l.id}
+                                              variant="outline"
+                                              onClick={() => togglePotentialLender(l.id)}
+                                              className={`w-full flex items-center justify-between px-3 py-2 ${checked ? "border-primary/40 bg-primary/5" : ""
+                                                }`}
+                                            >
+                                              <div className="flex items-center gap-3">
+                                                <Checkbox
+                                                  checked={checked}
+                                                  onCheckedChange={() => togglePotentialLender(l.id)}
+                                                />
+                                                <span className="text-sm">{l.name}</span>
+                                              </div>
+                                            </Button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            </RadioGroup>
+
+                            <DialogFooter className="mt-6">
+                              <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                              </DialogClose>
+
+                              <Button
+                                onClick={handleAssign}
+                                disabled={
+                                  isAssigning ||
+                                  (assignmentMode === "single" && !selectedLenderId) ||
+                                  (assignmentMode === "multi" &&
+                                    (selectedPotentialLenderIds.length < 1 ||
+                                      selectedPotentialLenderIds.length > 5))
+                                }
+                                className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                              >
+                                {isAssigning ? "Saving..." : "Assign"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-center">
+                      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="bg-violet-600 hover:bg-violet-700 text-white">
+                            Assign Lender
+                          </Button>
+                        </DialogTrigger>
+
+                        <DialogContent className="sm:max-w-[480px]">
+                          <DialogHeader>
+                            <DialogTitle>Assign Lender</DialogTitle>
+                            <DialogDescription>Choose how to assign a lender.</DialogDescription>
+                          </DialogHeader>
+
+                          <RadioGroup
+                            value={assignmentMode}
+                            onValueChange={(v) => {
+                              const m = v as "single" | "multi";
+                              setAssignmentMode(m);
+                              if (m === "single") setSelectedPotentialLenderIds([]);
+                              else setSelectedLenderId(null);
+                            }}
+                            className="mt-2 space-y-3"
+                          >
+                            {/* Single */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAssignmentMode("single");
+                                setSelectedPotentialLenderIds([]);
+                              }}
+                              className={`w-full rounded-lg border px-4 py-3 flex items-start gap-3 cursor-pointer transition 
+                    ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                            >
+                              <RadioGroupItem value="single" className="mt-1" />
+
+                              <div className="w-full">
+                                <p className="text-sm font-medium">Assign a Lender</p>
+
+                                {assignmentMode === "single" && (
+                                  <div className="mt-4">
+                                    <Select
+                                      value={selectedLenderId || ""}
+                                      onValueChange={setSelectedLenderId}
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select lender..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {lenders.map((lender) => (
+                                          <SelectItem key={lender.id} value={lender.id}>
+                                            {lender.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+
+                            {/* Multi */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAssignmentMode("multi");
+                                setSelectedLenderId(null);
+                              }}
+                              className={`w-full rounded-lg border px-4 py-3 flex items-start gap-3 cursor-pointer transition 
+                    ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                            >
+                              <RadioGroupItem value="multi" className="mt-1" />
+
+                              <div className="w-full">
+                                <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
+
+                                {assignmentMode === "multi" && (
+                                  <div className="mt-4 space-y-2">
+                                    <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
+                                      {lenders.map((l) => {
+                                        const checked = selectedPotentialLenderIds.includes(l.id);
+
+                                        return (
+                                          <button
+                                            key={l.id}
+                                            type="button"
+                                            onClick={() => togglePotentialLender(l.id)}
+                                            className={`w-full flex items-center justify-between rounded px-2 py-1 text-left cursor-pointer ${checked
+                                              ? "bg-primary/5 border border-primary/40"
+                                              : "border border-transparent hover:border-border"
+                                              }`}
+                                          >
+                                            <input type="checkbox" checked={checked} readOnly className="h-4 w-4 mr-2" />
+                                            <span className="text-sm">{l.name}</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          </RadioGroup>
+
+                          <DialogFooter className="mt-6">
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+
+                            <Button
+                              onClick={handleAssign}
+                              disabled={
+                                isAssigning ||
+                                (assignmentMode === "single" && !selectedLenderId) ||
+                                (assignmentMode === "multi" &&
+                                  (selectedPotentialLenderIds.length < 1 ||
+                                    selectedPotentialLenderIds.length > 5))
+                              }
+                              className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                            >
+                              {isAssigning ? "Saving..." : "Assign"}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
+
+                  {/* Agent Dialog Below */}
+                  <>
+                    <Dialog open={dialogOpenAgent} onOpenChange={setDialogOpenAgent}>
+                      {application?.agentId ? (
+                        <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
+                          <p className="text-sm font-medium text-slate-800">
+                            Agent:{" "}
+                            <span className="font-medium">
+                              {
+                                (agents.find((a) => a.id === application.agentId)?.name ??
+                                  agents.find((a) => a.id === application.agentId)?.user?.name ??
+                                  application.agentId)
+                              }
+                            </span>
+                          </p>
+
+                          <Button
+                            type="button"
+                            onClick={() => setDialogOpenAgent(true)}
+                            size="icon"
+                            className="h-7 w-7 bg-amber-400 hover:bg-amber-500 text-white ml-6 mr-0"
+                          >
+                            <Pencil size={18} />
+                          </Button>
+
                         </div>
+                      ) : (
+                        <DialogTrigger asChild>
+                          <Button className="bg-white text-violet-600 border border-violet-600 hover:bg-violet-50">
+                            Assign Agent
+                          </Button>
+                        </DialogTrigger>
+                      )}
 
-                        <DialogFooter className="mt-6">
-                          <DialogClose asChild>
-                            <Button variant="outline">Close</Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-
-
-
-                    <Button
-                      onClick={() => {
-                        setSelectedLenderId(selectedLenderId || application.lenderId || null);
-                        setDialogOpen(true);
-                      }}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                    >
-                      Reassign Lender
-                    </Button>
-
-                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                      <DialogContent className="sm:max-w-[480px]">
-                        <DialogHeader className="space-y-1">
-                          <DialogTitle>Assign Lender</DialogTitle>
+                      <DialogContent className="sm:max-w-[500px] max-h-[70vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Assign Agent to Loanee</DialogTitle>
                           <DialogDescription>
-                            Choose how you want to assign lenders to this loanee.
+                            Select an agent to manage this loan application
                           </DialogDescription>
                         </DialogHeader>
 
-                        <RadioGroup
-                          value={assignmentMode}
-                          onValueChange={(value) => {
-                            const m = value as "single" | "multi";
-                            setAssignmentMode(m);
-                            if (m === "single") {
-                              setSelectedPotentialLenderIds([]);
-                            } else {
-                              setSelectedLenderId(null);
-                            }
-                          }}
-                          className="mt-2 space-y-3"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAssignmentMode("single");
-                              setSelectedPotentialLenderIds([]);
-                            }}
-                            className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                              ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                          >
-                            <RadioGroupItem value="single" id="r1" className="mt-1" />
-                            <div className="w-full">
-                              <Label htmlFor="r1">Assign a lender</Label>
-                              <p className="text-xs mt-1 text-muted-foreground">Choose one lender to assign this loanee.</p>
-
-                              {assignmentMode === "single" && (
-                                <div className="mt-4">
-                                  <p className="text-xs mb-2 font-medium text-muted-foreground">Select Lender</p>
-                                  <Select
-                                    value={selectedLenderId || application.lenderId || ""}
-                                    onValueChange={(value) => setSelectedLenderId(value)}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select lender..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {lenders.map((lender) => (
-                                        <SelectItem key={lender.id} value={lender.id}>
-                                          {lender.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAssignmentMode("multi");
-                              setSelectedLenderId(null);
-                            }}
-                            className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                              ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                          >
-                            <RadioGroupItem value="multi" className="mt-1" />
-                            <div className="w-full">
-                              <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
-                              <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
-
-                              {assignmentMode === "multi" && (
-                                <div className="mt-4 space-y-2">
-                                  <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
-                                    {lenders.slice(0, 10).map((l) => {
-                                      const checked = selectedPotentialLenderIds.includes(l.id);
-                                      return (
-                                        <Button
-                                          key={l.id}
-                                          variant="outline"
-                                          type="button"
-                                          onClick={() => togglePotentialLender(l.id)}
-                                          className={`w-full flex items-center justify-between px-3 py-2
-                                            ${checked ? "border-primary/40 bg-primary/5" : ""}
-                                          `}
-                                        >
-                                          <div className="flex items-center gap-3">
-                                            <Checkbox
-                                              checked={checked}
-                                              onCheckedChange={() => togglePotentialLender(l.id)}
-                                            />
-                                            <span className="text-sm">{l.name}</span>
-                                          </div>
-                                        </Button>
-
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        </RadioGroup>
-
-                        <DialogFooter className="mt-6">
-                          <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                          </DialogClose>
-
-                          <Button
-                            onClick={async () => {
-                              await handleAssign();
-                            }}
-                            disabled={
-                              isAssigning ||
-                              (assignmentMode === "single" && !selectedLenderId) ||
-                              (assignmentMode === "multi" && (selectedPotentialLenderIds.length < 1 || selectedPotentialLenderIds.length > 5))
-                            }
-                            className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
-                          >
-                            {isAssigning ? "Saving..." : "Assign"}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-purple-600 hover:from-violet-600 hover:to-purple-700 text-white">Assign Lender</Button>
-                    </DialogTrigger>
-
-                    <DialogContent className="sm:max-w-[480px]">
-                      <DialogHeader className="space-y-1">
-                        <DialogTitle>Assign Lender</DialogTitle>
-                        <DialogDescription>Choose how you want to assign lenders to this loanee.</DialogDescription>
-                      </DialogHeader>
-
-                      <RadioGroup
-                        value={assignmentMode}
-                        onValueChange={(value) => {
-                          const m = value as "single" | "multi";
-                          setAssignmentMode(m);
-                          if (m === "single") {
-                            setSelectedPotentialLenderIds([]);
-                          } else {
-                            setSelectedLenderId(null);
-                          }
-                        }}
-                        className="mt-2 space-y-3"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAssignmentMode("single");
-                            setSelectedPotentialLenderIds([]);
-                          }}
-                          className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                            ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                        >
-                          <RadioGroupItem value="single" className="mt-1" />
-
-                          <div className="w-full">
-                            <p className="text-sm font-medium">Assign a Lender</p>
-                            <p className="text-xs mt-1 text-muted-foreground">Choose one lender to assign this loanee.</p>
-
-                            {assignmentMode === "single" && (
-                              <div className="mt-4">
-                                <p className="text-xs mb-2 font-medium text-muted-foreground">Select Lender</p>
-
-                                <Select
-                                  value={selectedLenderId || ""}
-                                  onValueChange={(value) => setSelectedLenderId(value)}
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select lender..." />
-                                  </SelectTrigger>
-
-                                  <SelectContent>
-                                    {lenders.map((lender) => (
-                                      <SelectItem key={lender.id} value={lender.id}>
-                                        {lender.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAssignmentMode("multi");
-                            setSelectedLenderId(null);
-                          }}
-                          className={`w-full rounded-lg border bg-background px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                            ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                        >
-                          <RadioGroupItem value="multi" className="mt-1" />
-
-                          <div className="w-full">
-                            <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
-                            <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
-
-                            {assignmentMode === "multi" && (
-                              <div className="mt-4 space-y-2">
-                                <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
-                                  {lenders.slice(0, 10).map((l) => {
-                                    const checked = selectedPotentialLenderIds.includes(l.id);
-
-                                    return (
-                                      <button
-                                        key={l.id}
-                                        type="button"
-                                        onClick={() => togglePotentialLender(l.id)}
-                                        className={`w-full flex items-center justify-between rounded px-2 py-1 text-left cursor-pointer ${checked ? "bg-primary/5 border border-primary/40" : "border border-transparent hover:border-border"}`}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={checked}
-                                          readOnly
-                                          className="h-4 w-4 mr-2"
-                                        />
-                                        <span className="text-sm">{l.name}</span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-
-                                <p className="text-[11px] text-muted-foreground">
-                                  Selected: {selectedPotentialLenderIds.length > 0 ? selectedPotentialLenderIds.map(id => lenders.find(l => l.id === id)?.name ?? "(Unknown)").join(", ") : "None"}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      </RadioGroup>
-
-                      <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                          <Button variant="outline">Cancel</Button>
-                        </DialogClose>
-
-                        <Button
-                          onClick={handleAssign}
-                          disabled={
-                            isAssigning ||
-                            (assignmentMode === "single" && !selectedLenderId) ||
-                            (assignmentMode === "multi" && (selectedPotentialLenderIds.length < 1 || selectedPotentialLenderIds.length > 5))
-                          }
-                          className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
-                        >
-                          {isAssigning ? "Saving..." : "Assign"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-          
-          <div>
-            <Dialog open={dialogOpenAgent} onOpenChange={setDialogOpenAgent}>
-              <DialogTrigger asChild>
-                <Button className="bg-purple-600 text-white">
-                  {application?.agent ? "Change Agent" : "Assign Agent"}
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="sm:max-w-[640px]">
-                <DialogHeader>
-                  <DialogTitle>Assign Agent to Loanee</DialogTitle>
-                  <DialogDescription>
-                    Select an agent to manage this loan application
-                  </DialogDescription>
-                </DialogHeader>
-
-                <hr className="my-4" />
-
-                {loadingAgents ? (
-                  <div className="py-6 text-center text-muted-foreground">Loading agents...</div>
-                ) : agents.length === 0 ? (
-                  <div className="py-6 text-center text-muted-foreground">No agents available.</div>
-                ) : (
-                  <RadioGroup
-                    value={selectedAgentId ?? ""}
-                    onValueChange={(v: string) => setSelectedAgentId(v || null)}
-                    className="space-y-0 max-h-[44rem] overflow-y-auto"
-                  >
-                    {agents.map((agent, idx) => {
-                      const name = agent.name ?? agent.user?.name ?? "Unknown";
-                      const email = agent.email ?? agent.user?.email ?? "—";
-                      const initials = name
-                        .split(" ")
-                        .map((s) => s[0])
-                        .slice(0, 2)
-                        .join("")
-                        .toUpperCase();
-                      const selected = selectedAgentId === agent.id;
-
-                      return (
-                        <div key={agent.id} className="first:pt-0">
-                          <div
-                            className={`flex items-center justify-between gap-4 px-4 py-4 ${selected ? "bg-primary/5 border border-primary/40" : "bg-card"
-                              }`}
-                          >
-                            <div className="flex items-start gap-4">
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 font-semibold">
-                                {initials}
-                              </div>
-
-                              <div className="min-w-0">
-                                <div className="text-sm font-semibold">{name}</div>
-                                <div className="text-xs text-muted-foreground">{email}</div>
-                                <div className="text-xs text-muted-foreground mt-2">
-                                  {`AGT-${agent.id.slice(0, 8)}`}
-                                </div>
-                              </div>
-                            </div>
-
-                            <RadioGroupItem value={agent.id} id={`agent-${agent.id}`}>
-                              <div
-                                className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${selected ? "border-primary bg-primary/10" : "border-muted-foreground"
-                                  }`}
-                                aria-hidden
-                              >
-                                {selected && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
-                              </div>
-                            </RadioGroupItem>
-                          </div>
-
-                          {idx < agents.length - 1 && <div className="mx-4 border-t border-muted my-2" />}
-                        </div>
-                      );
-                    })}
-                  </RadioGroup>
-                )}
-
-                <DialogFooter className="mt-6 flex items-center justify-end gap-3">
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-
-                  <Button
-                    onClick={assignAgentHandler}
-                    disabled={!selectedAgentId || isAssigning}
-                    className="bg-gradient-to-r from-violet-500 to-purple-600 text-white"
-                  >
-                    {isAssigning ? "Assigning..." : "Assign Agent"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div> */}
-        <div className="w-full mt-6 pt-4 border-t mb-6 bg-red-200">
-          {!["REJECTED", "APPROVED"].includes(application.status as string) && (
-            <div className="flex flex-col sm:flex-row sm:items-start sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold">Assign to Lender</h3>
-              </div>
-
-              {hasAnyAssignment ? (
-                <div className=" w-full">
-
-                  {/* ALL BUTTONS IN A SINGLE LINE */}
-                  <div className="flex items-center gap-3 flex-wrap">
-
-                    {(() => {
-                      const hasPotentials =
-                        (application?.potentialLenderIds?.length ?? 0) > 0 ||
-                        selectedPotentialLenderIds.length > 0;
-
-                      if (hasPotentials) {
-                        const count =
-                          (application?.potentialLenderIds?.length ?? 0) ||
-                          selectedPotentialLenderIds.length;
-
-                        return (
-                          <button
-                            type="button"
-                            onClick={() => setDialogOpenPotentialLender(true)}
-                            className="rounded-md px-3 py-1 bg-slate-100 hover:bg-slate-200 text-sm"
-                            title="View potential lenders"
-                          >
-                            {count} potential
-                          </button>
-                        );
-                      }
-
-                      return (
-                        <Select
-                          value={application.lenderId ?? undefined}
-                          onValueChange={() => { }}
-                          open={false}
-                        >
-                          <SelectTrigger className="w-[250px] pointer-events-none">
-                            <SelectValue placeholder="Assigned lender" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {lenders.map((lender) => (
-                              <SelectItem key={lender.id} value={lender.id}>
-                                {lender.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      );
-                    })()}
-
-                    {/* Dialog: Potential Lender List */}
-                    <Dialog open={dialogOpenPotentialLender} onOpenChange={setDialogOpenPotentialLender}>
-                      <DialogContent className="sm:max-w-sm p-6">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h2 className="text-xl font-semibold leading-tight">Selected Potential Lenders</h2>
-                            <p className="mt-2 text-sm text-muted-foreground">
-                              For Application ID:{" "}
-                              <span className="font-medium text-primary-600">{application?.id}</span>
-                            </p>
-                          </div>
-                        </div>
-
                         <hr className="my-4" />
 
-                        <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
-                          {(application.potentialLenderIds?.length || selectedPotentialLenderIds.length) ? (
-                            (application.potentialLenderIds?.length
-                              ? application.potentialLenderIds
-                              : selectedPotentialLenderIds
-                            ).map((id) => {
-                              const lender = lenders.find((l) => l.id === id);
-                              const name = lender?.name ?? id;
+                        {loadingAgents ? (
+                          <div className="py-6 text-center">Loading agents...</div>
+                        ) : agents.length === 0 ? (
+                          <div className="py-6 text-center text-muted-foreground">
+                            No agents available.
+                          </div>
+                        ) : (
+                          <RadioGroup
+                            value={selectedAgentId ?? ""}
+                            onValueChange={(v) => setSelectedAgentId(v || null)}
+                            className="space-y-0 max-h-[44rem] overflow-y-auto"
+                          >
+                            {agents.map((agent, idx) => {
+                              const name = agent.name ?? agent.user?.name ?? "Unknown";
+                              const email = agent.email ?? agent.user?.email ?? "";
                               const initials = name
                                 .split(" ")
                                 .map((s) => s[0])
@@ -1138,157 +931,39 @@ export default function ApplicationPage({ params }: Props) {
                                 .toUpperCase();
 
                               return (
-                                <div key={id} className="flex items-center justify-between bg-card rounded-lg px-4 py-3 shadow-sm">
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
-                                      {initials}
+                                <div key={agent.id}>
+                                  <div
+                                    className={`flex items-center justify-between px-4 py-2 ${selectedAgentId === agent.id
+                                      ? "bg-primary/5 border border-primary/40"
+                                      : "bg-card"
+                                      }`}
+                                  >
+                                    <div className="flex items-start gap-4">
+                                      <div className="mt-2 h-10 w-10 flex items-center justify-center rounded-full bg-violet-100 text-violet-700 font-semibold">
+                                        {initials}
+                                      </div>
+                                      <div>
+                                        <div className="text-sm font-semibold">{name}</div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {email}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          AGENT CODE
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <div className="text-sm font-medium">{name}</div>
-                                    </div>
+
+                                    <RadioGroupItem value={agent.id} />
                                   </div>
 
-                                  <div>
-                                    <div
-                                      className="rounded-md px-3 py-1 text-xs font-medium"
-                                      style={{ backgroundColor: "#E6FFF4", color: "#0F5132" }}
-                                    >
-                                      Verified
-                                    </div>
-                                  </div>
+                                  {idx < agents.length - 1 && (
+                                    <div className="mx-8 border-t border-muted my-2" />
+                                  )}
                                 </div>
                               );
-                            })
-                          ) : (
-                            <div className="py-6 text-center text-sm text-muted-foreground">
-                              No potential lenders selected.
-                            </div>
-                          )}
-                        </div>
-
-                        <DialogFooter className="mt-6">
-                          <DialogClose asChild>
-                            <Button variant="outline">Close</Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-
-                    {/* REASSIGN BUTTON */}
-                    <Button
-                      onClick={() => {
-                        setSelectedLenderId(
-                          selectedLenderId || application.lenderId || null
-                        );
-                        setDialogOpen(true);
-                      }}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                    >
-                      Reassign Lender
-                    </Button>
-
-                    {/* Reassign Dialog */}
-                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                      <DialogContent className="sm:max-w-[480px]">
-                        <DialogHeader className="space-y-1">
-                          <DialogTitle>Assign Lender</DialogTitle>
-                          <DialogDescription>
-                            Choose how you want to assign lenders to this loanee.
-                          </DialogDescription>
-                        </DialogHeader>
-
-                        <RadioGroup
-                          value={assignmentMode}
-                          onValueChange={(value) => {
-                            const m = value as "single" | "multi";
-                            setAssignmentMode(m);
-                            if (m === "single") setSelectedPotentialLenderIds([]);
-                            else setSelectedLenderId(null);
-                          }}
-                          className="mt-2 space-y-3"
-                        >
-                          {/* Single Lender */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAssignmentMode("single");
-                              setSelectedPotentialLenderIds([]);
-                            }}
-                            className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                      ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                          >
-                            <RadioGroupItem value="single" className="mt-1" />
-                            <div className="w-full">
-                              <Label>Assign a Lender</Label>
-                              <p className="text-xs mt-1 text-muted-foreground">Choose one lender.</p>
-
-                              {assignmentMode === "single" && (
-                                <div className="mt-4">
-                                  <Select
-                                    value={selectedLenderId || application.lenderId || ""}
-                                    onValueChange={(v) => setSelectedLenderId(v)}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select lender..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {lenders.map((lender) => (
-                                        <SelectItem key={lender.id} value={lender.id}>
-                                          {lender.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
-                          </button>
-
-                          {/* Multi Lender */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAssignmentMode("multi");
-                              setSelectedLenderId(null);
-                            }}
-                            className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                      ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                          >
-                            <RadioGroupItem value="multi" className="mt-1" />
-
-                            <div className="w-full">
-                              <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
-                              <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
-
-                              {assignmentMode === "multi" && (
-                                <div className="mt-4 space-y-2">
-                                  <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
-                                    {lenders.map((l) => {
-                                      const checked = selectedPotentialLenderIds.includes(l.id);
-                                      return (
-                                        <Button
-                                          key={l.id}
-                                          variant="outline"
-                                          onClick={() => togglePotentialLender(l.id)}
-                                          className={`w-full flex items-center justify-between px-3 py-2 ${checked ? "border-primary/40 bg-primary/5" : ""
-                                            }`}
-                                        >
-                                          <div className="flex items-center gap-3">
-                                            <Checkbox
-                                              checked={checked}
-                                              onCheckedChange={() => togglePotentialLender(l.id)}
-                                            />
-                                            <span className="text-sm">{l.name}</span>
-                                          </div>
-                                        </Button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        </RadioGroup>
+                            })}
+                          </RadioGroup>
+                        )}
 
                         <DialogFooter className="mt-6">
                           <DialogClose asChild>
@@ -1296,239 +971,23 @@ export default function ApplicationPage({ params }: Props) {
                           </DialogClose>
 
                           <Button
-                            onClick={handleAssign}
-                            disabled={
-                              isAssigning ||
-                              (assignmentMode === "single" && !selectedLenderId) ||
-                              (assignmentMode === "multi" &&
-                                (selectedPotentialLenderIds.length < 1 ||
-                                  selectedPotentialLenderIds.length > 5))
-                            }
-                            className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                            onClick={assignAgentHandler}
+                            disabled={!selectedAgentId || isAssigning}
+                            className="bg-purple-600 text-white"
                           >
-                            {isAssigning ? "Saving..." : "Assign"}
+                            {isAssigning ? "Assigning..." : "Assign"}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
-                  </div>
+                  </>
+
                 </div>
-              ) : (
-                /* When there is no assignment yet */
-                <div className="w-full flex justify-center">
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                        Assign Lender
-                      </Button>
-                    </DialogTrigger>
+              </div>
 
-                    <DialogContent className="sm:max-w-[480px]">
-                      <DialogHeader>
-                        <DialogTitle>Assign Lender</DialogTitle>
-                        <DialogDescription>Choose how to assign a lender.</DialogDescription>
-                      </DialogHeader>
-
-                      <RadioGroup
-                        value={assignmentMode}
-                        onValueChange={(v) => {
-                          const m = v as "single" | "multi";
-                          setAssignmentMode(m);
-                          if (m === "single") setSelectedPotentialLenderIds([]);
-                          else setSelectedLenderId(null);
-                        }}
-                        className="mt-2 space-y-3"
-                      >
-                        {/* Single */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAssignmentMode("single");
-                            setSelectedPotentialLenderIds([]);
-                          }}
-                          className={`w-full rounded-lg border px-4 py-3 flex items-start gap-3 cursor-pointer transition 
-                    ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                        >
-                          <RadioGroupItem value="single" className="mt-1" />
-
-                          <div className="w-full">
-                            <p className="text-sm font-medium">Assign a Lender</p>
-
-                            {assignmentMode === "single" && (
-                              <div className="mt-4">
-                                <Select
-                                  value={selectedLenderId || ""}
-                                  onValueChange={setSelectedLenderId}
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select lender..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {lenders.map((lender) => (
-                                      <SelectItem key={lender.id} value={lender.id}>
-                                        {lender.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </div>
-                        </button>
-
-                        {/* Multi */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAssignmentMode("multi");
-                            setSelectedLenderId(null);
-                          }}
-                          className={`w-full rounded-lg border px-4 py-3 flex items-start gap-3 cursor-pointer transition 
-                    ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
-                        >
-                          <RadioGroupItem value="multi" className="mt-1" />
-
-                          <div className="w-full">
-                            <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
-
-                            {assignmentMode === "multi" && (
-                              <div className="mt-4 space-y-2">
-                                <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
-                                  {lenders.map((l) => {
-                                    const checked = selectedPotentialLenderIds.includes(l.id);
-
-                                    return (
-                                      <button
-                                        key={l.id}
-                                        type="button"
-                                        onClick={() => togglePotentialLender(l.id)}
-                                        className={`w-full flex items-center justify-between rounded px-2 py-1 text-left cursor-pointer ${checked
-                                          ? "bg-primary/5 border border-primary/40"
-                                          : "border border-transparent hover:border-border"
-                                          }`}
-                                      >
-                                        <input type="checkbox" checked={checked} readOnly className="h-4 w-4 mr-2" />
-                                        <span className="text-sm">{l.name}</span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      </RadioGroup>
-
-                      <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                          <Button variant="outline">Cancel</Button>
-                        </DialogClose>
-
-                        <Button
-                          onClick={handleAssign}
-                          disabled={
-                            isAssigning ||
-                            (assignmentMode === "single" && !selectedLenderId) ||
-                            (assignmentMode === "multi" &&
-                              (selectedPotentialLenderIds.length < 1 ||
-                                selectedPotentialLenderIds.length > 5))
-                          }
-                          className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
-                        >
-                          {isAssigning ? "Saving..." : "Assign"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              )}
             </div>
-          )}
-
-        </div>
-
-        {/* Agent Dialog Below */}
-        <div className="bg-blue-200">
-          <Dialog open={dialogOpenAgent} onOpenChange={setDialogOpenAgent}>
-            <DialogTrigger asChild>
-              <Button className="bg-purple-600 text-white">
-                {application?.agent ? "Change Agent" : "Assign Agent"}
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="sm:max-w-[640px]">
-              <DialogHeader>
-                <DialogTitle>Assign Agent to Loanee</DialogTitle>
-                <DialogDescription>Select an agent to manage this loan</DialogDescription>
-              </DialogHeader>
-
-              <hr className="my-4" />
-
-              {loadingAgents ? (
-                <div className="py-6 text-center">Loading agents...</div>
-              ) : agents.length === 0 ? (
-                <div className="py-6 text-center text-muted-foreground">No agents available.</div>
-              ) : (
-                <RadioGroup
-                  value={selectedAgentId ?? ""}
-                  onValueChange={(v) => setSelectedAgentId(v || null)}
-                  className="space-y-0 max-h-[44rem] overflow-y-auto"
-                >
-                  {agents.map((agent, idx) => {
-                    const name = agent.name ?? agent.user?.name ?? "Unknown";
-                    const email = agent.email ?? agent.user?.email ?? "";
-                    const initials = name
-                      .split(" ")
-                      .map((s) => s[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase();
-
-                    return (
-                      <div key={agent.id}>
-                        <div
-                          className={`flex items-center justify-between px-4 py-4 ${selectedAgentId === agent.id
-                            ? "bg-primary/5 border border-primary/40"
-                            : "bg-card"
-                            }`}
-                        >
-                          <div className="flex items-start gap-4">
-                            <div className="h-12 w-12 flex items-center justify-center rounded-full bg-violet-100 text-violet-700 font-semibold">
-                              {initials}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold">{name}</div>
-                              <div className="text-xs text-muted-foreground">{email}</div>
-                            </div>
-                          </div>
-
-                          <RadioGroupItem value={agent.id} />
-                        </div>
-
-                        {idx < agents.length - 1 && <div className="mx-4 border-t border-muted my-2" />}
-                      </div>
-                    );
-                  })}
-                </RadioGroup>
-              )}
-
-              <DialogFooter className="mt-6">
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-
-                <Button
-                  onClick={assignAgentHandler}
-                  disabled={!selectedAgentId || isAssigning}
-                  className="bg-purple-600 text-white"
-                >
-                  {isAssigning ? "Assigning..." : "Assign Agent"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-
+          </div>
+        )}
 
 
 
@@ -1749,7 +1208,6 @@ export default function ApplicationPage({ params }: Props) {
             </Card>
           </div>
 
-          {/* Right Column - Documents */}
           <div className="lg:col-span-2">
             <Card className="mb-6">
               <CardHeader className="pb-3">
