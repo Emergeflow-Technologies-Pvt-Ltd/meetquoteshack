@@ -46,6 +46,7 @@ import {
 } from "@/components/shared/chips";
 import LoaneeChat from "../components/LoaneeChat";
 import { useRouter } from "next/navigation";
+import { PrequalificationSummary } from "@/components/shared/prequalification-summary";
 
 export default function ApplicationPage({
   params,
@@ -632,6 +633,8 @@ export default function ApplicationPage({
                 </div>
               </CardContent>
             </Card>
+
+             <PrequalificationSummary application={application} context="loanee" />
           </div>
         </div>
         {application?.status === "IN_CHAT" && (
