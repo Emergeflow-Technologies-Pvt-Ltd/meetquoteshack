@@ -80,6 +80,8 @@ model Agent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  agentCode String?   @unique
+
   user         User?         @relation(fields: [userId], references: [id])
   applications Application[]
 
@@ -145,6 +147,25 @@ model Application {
   documents                Document[]
   messages                 Message[]
   Notification             Notification[]
+
+  agentCode String?
+  
+  prequalStatus         PrequalStatus?
+  prequalLabel          String?
+  prequalCreditTier     CreditTier?
+
+  prequalDti            Decimal?           @db.Decimal(6, 2)
+  prequalTdsr           Decimal?           @db.Decimal(6, 2)
+  prequalLti            Decimal?           @db.Decimal(6, 2)
+  prequalLtv            Decimal?           @db.Decimal(6, 2)
+
+  prequalPayment        Decimal?           @db.Decimal(12, 2)
+  prequalRoomMonthly    Decimal?           @db.Decimal(12, 2)
+  prequalMortMin        Decimal?           @db.Decimal(14, 2)
+  prequalMortMax        Decimal?           @db.Decimal(14, 2)
+
+  prequalExplanation    String?
+  prequalSnapshot       Json?
 
   @@index([userId])
   @@index([lenderId])
@@ -378,4 +399,17 @@ enum DownPayment {
   FIFTEEN @map("15")
   TWENTY  @map("20")
   MORE    @map("more")
+}
+
+enum PrequalStatus {
+  APPROVED
+  CONDITIONAL
+  DECLINED
+}
+
+enum CreditTier {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
 }
