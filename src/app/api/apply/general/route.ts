@@ -20,6 +20,19 @@ export async function POST(request: Request) {
     const user = await authenticateUser();
     validateRequiredFields(data);
     validateNumericFields(data);
+
+    // 1) resolve agent from agentCode
+    let agentConnect: Prisma.AgentWhereUniqueInput | undefined;
+    if (data.agentCode && data.agentCode.trim() !== "") {
+      const agent = await prisma.agent.findUnique({
+        where: { agentCode: data.agentCode.trim() },
+      });
+
+      if (agent) {
+        agentConnect = { id: agent.id };
+      }
+    }
+
     // 2) prequal
     const prequal = computePrequalification({
       loanAmount: Number(data.loanAmount ?? 0),
@@ -37,6 +50,17 @@ export async function POST(request: Request) {
           id: user.id,
         },
       },
+
+      agentCode:
+        data.agentCode && data.agentCode.trim() !== ""
+          ? data.agentCode.trim()
+          : null,
+
+      ...(agentConnect && {
+        agent: {
+          connect: agentConnect,
+        },
+      }),
 
       loanType: data.loanType,
       hasCoApplicant: data.hasCoApplicant,
@@ -100,6 +124,7 @@ export async function POST(request: Request) {
       prequalExplanation: prequal.statusDetail,
       prequalSnapshot: prequal,
     };
+
     return await createGeneralApplication(formattedData);
   } catch (error) {
     return handleError(error);
@@ -243,7 +268,7 @@ async function createGeneralApplication(
 
 function createErrorResponse(
   title: string,
-  error: { message: string;[key: string]: unknown; },
+  error: { message: string; [key: string]: unknown },
   status: number
 ) {
   return NextResponse.json(error, { status });

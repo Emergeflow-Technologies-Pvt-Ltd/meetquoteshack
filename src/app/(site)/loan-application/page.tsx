@@ -108,6 +108,7 @@ const form = useForm<GeneralLoanFormValues>({
     workplaceEmail: "",
     loanAmount: undefined,
     creditScore: undefined,
+    agentCode: "",
   },
   mode: "onSubmit",
   reValidateMode: "onChange",
@@ -162,7 +163,7 @@ const form = useForm<GeneralLoanFormValues>({
       (keyof GeneralLoanFormValues)[]
     > = {
       // step 0: Eligibility step
-      0: ["isAdult", "hasBankruptcy"],
+      0: ["isAdult", "hasBankruptcy", "agentCode"],
       // step 2: Personal details
       2: [
         "firstName",

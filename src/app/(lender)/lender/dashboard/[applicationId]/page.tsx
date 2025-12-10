@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, FileText, Lock, User } from "lucide-react";
+import { ChevronLeft, FileText, User } from "lucide-react";
 import Section from "@/components/shared/section";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,15 @@ import PropertyMortgageDetails from "./components/PropertyMortgageDetails";
 import CoApplicantDetails from "./components/CoApplicantDetails";
 import WorkplaceDetails from "./components/WorkplaceDetails";
 import { PayPerMatchSuccessModal } from "@/components/ui/paypermatchsucces";
+import Image from "next/image";
+import { PrequalificationSummary } from "@/components/shared/prequalification-summary";
+
+type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
+  include: {
+    documents: true;
+    messages: true;
+  };
+}>;
 
 export default function ApplicationDetailsPage({
   params,
@@ -26,14 +35,7 @@ export default function ApplicationDetailsPage({
 }) {
   const router = useRouter();
   const [application, setApplication] =
-    useState<
-      Prisma.ApplicationGetPayload<{
-        include: {
-          documents: true;
-          messages: true;
-        };
-      }> | null
-    >(null);
+    useState<ApplicationWithRelations | null>(null);
   const [loading, setLoading] = useState(false);
   const { applicationId } = use(params);
   const { data: session } = useSession();
@@ -44,7 +46,6 @@ export default function ApplicationDetailsPage({
   const [prevStatus, setPrevStatus] = useState<LoanStatus | null>(null);
   const [justUnlocked, setJustUnlocked] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -113,7 +114,6 @@ export default function ApplicationDetailsPage({
     }
   }, []);
 
-
   const handleAcceptApplication = async () => {
     setLoading(true);
     try {
@@ -150,7 +150,7 @@ export default function ApplicationDetailsPage({
       });
       router.push("/lender/dashboard");
     } catch (error) {
-      console.error("Error accepting application:", error);
+      console.error("Error rejecting application:", error);
       toast({
         title: "Error",
         description: "Failed to reject application",
@@ -174,7 +174,7 @@ export default function ApplicationDetailsPage({
       });
       router.push("/lender/dashboard");
     } catch (error) {
-      console.error("Error accepting application:", error);
+      console.error("Error approving application:", error);
       toast({
         title: "Error",
         description: "Failed to approve application",
@@ -193,21 +193,30 @@ export default function ApplicationDetailsPage({
         applicationId: application.id,
       });
 
-      const url = res.data?.url as string | undefined;
+        const url = res.data?.url as string | undefined;
 
       if (!url) {
         throw new Error("No checkout URL returned");
       }
 
       window.location.href = url;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Pay Per Match error:", error);
+
+      let description = "Failed to start payment";
+
+      if (axios.isAxiosError(error)) {
+        const maybeError =
+          (error.response?.data as { error?: string } | undefined)?.error;
+
+        description = maybeError ?? error.message ?? description;
+      } else if (error instanceof Error) {
+        description = error.message ?? description;
+      }
+
       toast({
         title: "Payment Error",
-        description:
-          error?.response?.data?.error ??
-          error?.message ??
-          "Failed to start payment",
+        description,
         variant: "destructive",
       });
     } finally {
@@ -236,18 +245,20 @@ export default function ApplicationDetailsPage({
   return (
     <Section className="py-12">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${application.status === LoanStatus.IN_PROGRESS ||
+        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
+          application.status === LoanStatus.IN_PROGRESS ||
           application.status === LoanStatus.IN_CHAT
-          ? "h-auto lg:h-[88vh]"
-          : ""
-          }`}
+            ? "h-auto lg:h-[88vh]"
+            : ""
+        }`}
       >
         <div
-          className={`flex-1 space-y-4 ${application.status === LoanStatus.IN_PROGRESS ||
+          className={`flex-1 space-y-4 ${
+            application.status === LoanStatus.IN_PROGRESS ||
             application.status === LoanStatus.IN_CHAT
-            ? "overflow-y-auto lg:pr-4 mb-6"
-            : ""
-            }`}
+              ? "overflow-y-auto lg:pr-4 mb-6"
+              : ""
+          }`}
         >
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-20 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
@@ -281,23 +292,23 @@ export default function ApplicationDetailsPage({
                 <>
                   {(application.status === LoanStatus.IN_PROGRESS ||
                     application.status === LoanStatus.IN_CHAT) && (
-                      <>
-                        <Button
-                          variant="default"
-                          onClick={handleApproveApplication}
-                          disabled={loading}
-                        >
-                          {loading ? "Processing..." : "Approve Loan"}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={handleRejectApplication}
-                          disabled={loading}
-                        >
-                          {loading ? "Processing..." : "Reject Loan"}
-                        </Button>
-                      </>
-                    )}
+                    <>
+                      <Button
+                        variant="default"
+                        onClick={handleApproveApplication}
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Approve Loan"}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleRejectApplication}
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Reject Loan"}
+                      </Button>
+                    </>
+                  )}
 
                   {application.status !== LoanStatus.IN_PROGRESS &&
                     application.status !== LoanStatus.IN_CHAT &&
@@ -338,62 +349,63 @@ export default function ApplicationDetailsPage({
                 <PersonalDetails application={application} />
               )}
 
-              {/* Financial Overview – always visible */}
               <FinancialOverview application={application} />
 
-              {/* Property & Mortgage Details – always visible */}
               <PropertyMortgageDetails application={application} />
 
-              {/* Co-applicant Details – visible only if exists */}
               {application.hasCoApplicant && (
                 <CoApplicantDetails application={application} />
               )}
 
-              {/* Workplace – always visible */}
               <WorkplaceDetails application={application} />
             </div>
 
-            {/* Documents – locked only in potential state */}
-            {isPotential ? (
-              <LockedDocumentsSection />
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-blue-600" />
-                    Submitted Documents
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {application.documents.length > 0 ? (
-                      application.documents.map((doc) => (
-                        <div key={doc.id} className="p-4 border rounded-lg">
-                          <p className="font-medium">
-                            {documentTypeLabels[doc.documentType]}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Status: {doc.status}
-                          </p>
-                          {doc.fileUrl && (
-                            <a
-                              href={doc.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              View Document
-                            </a>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500">No documents submitted</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <div className="space-y-6">
+              {isPotential ? (
+                <LockedDocsAndPrequalSection />
+              ) : (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        Submitted Documents
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {application.documents.length > 0 ? (
+                          application.documents.map((doc) => (
+                            <div key={doc.id} className="p-4 border rounded-lg">
+                              <p className="font-medium">
+                                {documentTypeLabels[doc.documentType]}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                Status: {doc.status}
+                              </p>
+                              {doc.fileUrl && (
+                                <a
+                                  href={doc.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:underline"
+                                >
+                                  View Document
+                                </a>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500">No documents submitted</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <PrequalificationSummary application={application} />
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -415,12 +427,41 @@ export default function ApplicationDetailsPage({
         onClose={() => setShowSuccessModal(false)}
       />
     </Section>
-
   );
+}
+
+
+function LockedDocsAndPrequalSection() {
+return (
+  <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 min-h-[260px]">
+    <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
+    <CardHeader className="relative z-10 pb-2">
+      <CardTitle className="flex flex-col gap-1 text-sm">
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
+        <Image
+          src="/lock.svg"
+          alt="Locked"
+          width={52}
+          height={52}
+          className="h-13 w-13"
+          priority
+        />
+      </div>
+      <p className="text-xs text-gray-600 max-w-sm">
+        Unlock verified loanee details instantly with Pay Per Match.
+      </p>
+    </CardContent>
+  </Card>
+);
+
 }
 
 function LockedSection({
   title,
+  description,
 }: {
   title: string;
   description: string;
@@ -429,7 +470,7 @@ function LockedSection({
     <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 flex flex-col">
       <div className="absolute inset-0 bg-white/40 backdrop-blur-md pointer-events-none" />
 
-      <CardHeader className="relative z-10 pb-4 shrink- bg-white">
+      <CardHeader className="relative z-10 pb-4 bg-white">
         <CardTitle className="flex items-center gap-2">
           <User className="w-5 h-5 text-blue-600" />
           {title}
@@ -437,39 +478,21 @@ function LockedSection({
       </CardHeader>
 
       <CardContent className="relative z-10 flex flex-1 flex-col items-center justify-center text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100/70">
-          <img
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100/70 mb-3">
+          <Image
             src="/lock.svg"
             alt="Locked"
+            width={52}
+            height={52}
             className="h-13 w-13"
+            priority
           />
         </div>
-      </CardContent>
-    </Card>
-
-  );
-}
-
-function LockedDocumentsSection() {
-  return (
-    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40">
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
-      <CardHeader className="relative z-10 pb-2">
-      </CardHeader>
-      <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
-          <img
-            src="/lock.svg"
-            alt="Locked"
-            className="h-13 w-13"
-          />        </div>
-
-        <p className="mt-1 text-xs text-gray-500 max-w-md">
-          Unlock verified loanee details instantly with Pay Per Match.
-        </p>
+        <p className="text-xs text-gray-600 max-w-sm">{description}</p>
       </CardContent>
     </Card>
   );
 }
+
 
 

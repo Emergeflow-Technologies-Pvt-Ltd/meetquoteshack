@@ -6,6 +6,7 @@ import {
   FormDescription,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import type { UseFormReturn } from "react-hook-form";
 import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
@@ -59,6 +60,27 @@ export function EligibilityStep({ form }: EligibilityStepProps) {
             <FormControl className="mt-4 md:mt-0 ml-auto">
               <Switch checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="agentCode"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Agent Code (optional)</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="Enter agent code eg AG-1001"
+                {...field}
+                value={field.value ?? ""}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                }}
+              />
+            </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
