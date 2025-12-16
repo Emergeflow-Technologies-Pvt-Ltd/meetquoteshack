@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Agent } from "@prisma/client";
-import { Pencil } from "lucide-react";
 import {
   LoanStatus,
   Application,
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 import { getStatusColors } from "@/lib/utils";
-import { ChevronLeft, Eye, Trash2 } from "lucide-react";
+import { ChevronLeft, Eye, Trash2, Pencil } from "lucide-react";
 import DocumentReview from "@/components/admin/DocumentReview";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -57,6 +56,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { AxiosError } from "axios";
 
 interface Props {
   params: Promise<{
@@ -77,6 +77,12 @@ type ApplicationWithUser = Application & {
 };
 
 type AgentWithUser = Agent & { user: User | null };
+
+type ReturnedApplication = Partial<ApplicationWithUser> & {
+  lender?: {
+    id: string;
+  };
+};
 
 export default function ApplicationPage({ params }: Props) {
   const { applicationId } = use(params);
@@ -109,6 +115,7 @@ export default function ApplicationPage({ params }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogOpenPotentialLender, setDialogOpenPotentialLender] = useState(false);
   const [dialogOpenAgent, setDialogOpenAgent] = useState(false);
+  const [isReassignAgent, setIsReassignAgent] = useState(false);
 
   const router = useRouter();
 
@@ -202,13 +209,23 @@ export default function ApplicationPage({ params }: Props) {
     fetchAgents();
   }, []);
 
-
-
   useEffect(() => {
     if (dialogOpenAgent) {
       setSelectedAgentId(application?.agentId ?? null);
     }
   }, [dialogOpenAgent, application]);
+
+  useEffect(() => {
+    if (!dialogOpen) return;
+
+    const modeFromApp =
+      application?.assignmentMode ??
+      ((application?.potentialLenderIds?.length ?? 0) > 0 ? "multi" : "single");
+
+    setAssignmentMode(modeFromApp as "single" | "multi");
+    setSelectedLenderId(application?.lenderId ?? null);
+    setSelectedPotentialLenderIds(application?.potentialLenderIds ?? []);
+  }, [dialogOpen, application]);
 
   const handleAddDocument = async () => {
     if (!selectedDocTypes.length || !application) return;
@@ -366,7 +383,7 @@ export default function ApplicationPage({ params }: Props) {
             lenderId:
               (returnedApp &&
                 (returnedApp.lenderId ??
-                  (returnedApp as any).lender?.id)) ??
+                  (returnedApp as ReturnedApplication).lender?.id)) ??
               (assignmentMode === "single" ? selectedLenderId : null),
             potentialLenderIds:
               returnedPotentialIds.length > 0
@@ -409,7 +426,6 @@ export default function ApplicationPage({ params }: Props) {
     }
   };
 
-
   const assignAgentHandler = async () => {
     if (!selectedAgentId || !application) return;
 
@@ -440,14 +456,16 @@ export default function ApplicationPage({ params }: Props) {
 
       setDialogOpenAgent(false);
 
-    } catch (err: any) {
-      console.error("Assign agent failed:", err);
+    } catch (err: unknown) {
+      const error = err as AxiosError<{ error?: string }>;
+
+      console.error("Assign agent failed:", error);
 
       toast({
         title: "Error",
         description:
-          err?.response?.data?.error ||
-          err?.message ||
+          error.response?.data?.error ||
+          error.message ||
           "Failed to assign agent",
         variant: "destructive",
       });
@@ -486,6 +504,7 @@ export default function ApplicationPage({ params }: Props) {
             {application?.status.replace(/_/g, " ")}
           </Badge>
         </div>
+
         {!["REJECTED", "APPROVED"].includes(application.status as string) && (
           <div className="w-full">
             <div className="mt-6 mb-8 w-full">
@@ -507,14 +526,20 @@ export default function ApplicationPage({ params }: Props) {
                               selectedPotentialLenderIds.length;
 
                             return (
-                              <Button
+                              < Button
                                 type="button"
-                                onClick={() => setDialogOpenPotentialLender(true)}
+                                onClick={() => {
+                                  setAssignmentMode("multi");
+                                  setSelectedPotentialLenderIds(application?.potentialLenderIds ?? []);
+                                  setSelectedLenderId(null);
+                                  setDialogOpen(true);
+                                }}
                                 className="bg-[#FFCAED] hover:bg-[#FFCAEG] text-[#FF2BB8] text-sm px-3 py-1 rounded-md"
-                                title="View potential lenders"
+                                title="Edit potential lenders"
                               >
-                                {count} potential
+                                {count} Potential Lenders
                               </Button>
+
 
                             );
                           }
@@ -532,9 +557,9 @@ export default function ApplicationPage({ params }: Props) {
                               <Button
                                 type="button"
                                 onClick={() => {
-                                  setSelectedLenderId(
-                                    selectedLenderId || application.lenderId || null
-                                  );
+                                  setAssignmentMode(application?.assignmentMode ?? (application?.potentialLenderIds?.length ? "multi" : "single"));
+                                  setSelectedLenderId(application?.lenderId ?? null);
+                                  setSelectedPotentialLenderIds(application?.potentialLenderIds ?? []);
                                   setDialogOpen(true);
                                 }}
                                 size="icon"
@@ -866,7 +891,13 @@ export default function ApplicationPage({ params }: Props) {
 
                   {/* Agent Dialog Below */}
                   <>
-                    <Dialog open={dialogOpenAgent} onOpenChange={setDialogOpenAgent}>
+                    <Dialog
+                      open={dialogOpenAgent}
+                      onOpenChange={(open) => {
+                        setDialogOpenAgent(open);
+                        if (!open) setIsReassignAgent(false);
+                      }}
+                    >
                       {application?.agentId ? (
                         <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
                           <p className="text-sm font-medium text-slate-800">
@@ -882,27 +913,39 @@ export default function ApplicationPage({ params }: Props) {
 
                           <Button
                             type="button"
-                            onClick={() => setDialogOpenAgent(true)}
+                            onClick={() => {
+                              setIsReassignAgent(true);
+                              setDialogOpenAgent(true);
+                            }}
                             size="icon"
                             className="h-7 w-7 bg-amber-400 hover:bg-amber-500 text-white ml-6 mr-0"
                           >
                             <Pencil size={18} />
                           </Button>
-
                         </div>
                       ) : (
-                        <DialogTrigger asChild>
-                          <Button className="bg-white text-violet-600 border border-violet-600 hover:bg-violet-50">
+                        <div>
+                          <Button
+                            onClick={() => {
+                              setIsReassignAgent(false);
+                              setDialogOpenAgent(true);
+                            }}
+                            className="bg-white text-violet-600 border border-violet-600 hover:bg-violet-50"
+                          >
                             Assign Agent
                           </Button>
-                        </DialogTrigger>
+                        </div>
                       )}
 
                       <DialogContent className="sm:max-w-[500px] max-h-[70vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Assign Agent to Loanee</DialogTitle>
+                          <DialogTitle>
+                            {isReassignAgent ? "Reassign Agent to Loanee" : "Assign Agent to Loanee"}
+                          </DialogTitle>
                           <DialogDescription>
-                            Select an agent to manage this loan application
+                            {isReassignAgent
+                              ? "Select a different agent to manage this loan application"
+                              : "Select an agent to manage this loan application"}
                           </DialogDescription>
                         </DialogHeader>
 
