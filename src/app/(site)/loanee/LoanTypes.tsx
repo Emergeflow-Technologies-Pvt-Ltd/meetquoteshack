@@ -35,7 +35,7 @@ export default function LoanTypes() {
     <Section className="bg-gradient-to-b from-white to-violet-50">
       <div className="text-center mb-16">
         <p className="text-violet-600 font-semibold mb-2">Loan Options</p>
-        <h2 className="qs-heading text-3xl lg:text-4xl font-bold mb-4">Find The Right Loan For Your Needs</h2>
+        <h2 className="qs-heading text-3xl lg:text-4xl font-bold mb-4 text-violet-600">Find The Right Loan For Your Needs</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">Choose from our range of flexible loan options designed to meet your specific financial requirements.</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

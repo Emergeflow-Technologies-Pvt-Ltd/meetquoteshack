@@ -23,6 +23,8 @@ export const BecomeAgentSchema = z
       .string()
       .min(4, { message: "Full name is required and must be at least 4 characters long" })
       .max(30, { message: "Full name must not exceed 30 characters" }),
+    business: z
+      .string(),
     phone: z
       .string()
       .regex(/^\d{10}$/, { message: "Phone number must be exactly 10 digits" }),

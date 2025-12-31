@@ -32,11 +32,50 @@ import {
 import { formSteps } from "@/app/(site)/loan-application/steps";
 import { LoanType } from "@prisma/client";
 
+type LoaneePlan = "LOANEE_STAY_SMART" | "LOANEE_BASIC";
+
+function normalizeLoaneePlan(
+  plan: string | null | undefined
+): LoaneePlan | null {
+  if (plan === "LOANEE_STAY_SMART" || plan === "LOANEE_BASIC") {
+    return plan;
+  }
+  return null;
+}
+
+
 export default function GeneralLoanForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: session } = useSession();
+
+  const [access, setAccess] = useState<{
+  subscription?: { plan?: string | null };
+  freeTierActive?: boolean;
+} | null>(null);
+
+const subscriptionPlan = normalizeLoaneePlan(
+  access?.subscription?.plan
+);
+  const freeTierActive = access?.freeTierActive ?? false;
+
+  useEffect(() => {
+  const fetchAccess = async () => {
+    if (!session?.user) return;
+
+    try {
+      const res = await axios.get("/api/subscription/access");
+      setAccess(res.data);
+    } catch (err) {
+      console.error("Failed to fetch access info", err);
+      setAccess(null);
+    }
+  };
+
+  fetchAccess();
+}, [session]);
+
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -420,11 +459,13 @@ async function onSubmit(data: GeneralLoanFormValues) {
               />
             )}
             
-            {currentStep === 6 && (
-              <GeneralLoanStep
-                form={form as UseFormReturn<GeneralLoanFormValues>}
-              />
-            )}
+{currentStep === 6 && (
+  <GeneralLoanStep
+    form={form as UseFormReturn<GeneralLoanFormValues>}
+    subscriptionPlan={subscriptionPlan}
+    freeTierActive={freeTierActive}
+  />
+)}
 
             <div className="flex justify-between pt-4">
               <Button

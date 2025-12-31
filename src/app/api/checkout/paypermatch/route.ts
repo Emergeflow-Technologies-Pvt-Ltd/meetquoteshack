@@ -102,23 +102,37 @@ export async function POST(req: Request) {
     }
 
     // 5️⃣ Create Stripe Checkout Session
-    const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      customer_email: session.user.email ?? undefined,
-      success_url: `${baseUrl}/lender/dashboard/${application.id}?match=success`,
-      cancel_url: `${baseUrl}/lender/dashboard/${application.id}?match=cancelled`,
-      metadata: {
-        applicationId: application.id,
-        lenderUserId: session.user.id, // used by webhook to re-check lender
-        lenderId: lender.id, // helpful for webhook too
-      },
-    });
+const checkoutSession = await stripe.checkout.sessions.create({
+  mode: "payment",
+  line_items: [
+    {
+      price: priceId,
+      quantity: 1,
+    },
+  ],
+  customer_email: session.user.email ?? undefined,
+  success_url: `${baseUrl}/lender/dashboard/${application.id}?match=success`,
+  cancel_url: `${baseUrl}/lender/dashboard/${application.id}?match=cancelled`,
+  metadata: {
+    applicationId: application.id,
+    lenderUserId: session.user.id,
+    lenderId: lender.id,
+  },
+
+  // ---------- Branding / appearance for Stripe Checkout ----------
+  branding_settings: {
+    button_color: "#7C3AED",          // primary CTA color (purple)
+    background_color: "#F9F5FF",      // checkout background
+    border_style: "rounded",
+    font_family: "inter",
+    display_name: "QuoteShack",
+    logo: { type: "url", url: "https://example.com/your-logo.png" },
+    icon: { type: "url", url: "https://example.com/your-icon.png" },
+  },
+
+  locale: "en",
+});
+
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (err) {

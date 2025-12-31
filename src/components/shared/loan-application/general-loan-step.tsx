@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { LoanType } from "@prisma/client";
-
+import { useRouter } from "next/navigation";
 import { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
 import {
   FormField,
@@ -17,53 +17,56 @@ import { computePrequalification } from "@/lib/prequal";
 
 interface GeneralLoanStepProps {
   form: UseFormReturn<GeneralLoanFormValues>;
+  subscriptionPlan?: "LOANEE_BASIC" | "LOANEE_STAY_SMART" | null;
+  freeTierActive?: boolean;
 }
 
-export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
+export function GeneralLoanStep({
+  form,
+  subscriptionPlan,
+  freeTierActive = false,
+}: GeneralLoanStepProps) {
   const hasCoApplicant = form.watch("hasCoApplicant");
 
-  const loanAmount = useWatch({
-    control: form.control,
-    name: "loanAmount",
-  }) ?? 0;
+  const router = useRouter();
+  console.log("🔍 GeneralLoanStep access check:", {
+    subscriptionPlan,
+    freeTierActive,
+    canAccessPrequalification:
+      freeTierActive || subscriptionPlan === "LOANEE_STAY_SMART",
+  });
 
-  const creditScore = useWatch({
-    control: form.control,
-    name: "creditScore",
-  }) ?? 0;
 
-  const grossIncome = useWatch({
-    control: form.control,
-    name: "grossIncome",
-  }) ?? 0;
 
-  const monthlyDebts = useWatch({
-    control: form.control,
-    name: "monthlyDebts",
-  }) ?? 0;
+  const canAccessPrequalification =
+    freeTierActive || subscriptionPlan === "LOANEE_STAY_SMART";
+  const loanAmount =
+    useWatch({ control: form.control, name: "loanAmount" }) ?? 0;
 
-  const estimatedPropertyValue = useWatch({
-    control: form.control,
-    name: "estimatedPropertyValue",
-  }) ?? 0;
+  const creditScore =
+    useWatch({ control: form.control, name: "creditScore" }) ?? 0;
+
+  const grossIncome =
+    useWatch({ control: form.control, name: "grossIncome" }) ?? 0;
+
+  const monthlyDebts =
+    useWatch({ control: form.control, name: "monthlyDebts" }) ?? 0;
+
+  const estimatedPropertyValue =
+    useWatch({ control: form.control, name: "estimatedPropertyValue" }) ?? 0;
 
   const loanType = useWatch({
     control: form.control,
     name: "loanType",
   }) as LoanType | undefined;
 
-  const workplaceDuration = useWatch({
-    control: form.control,
-    name: "workplaceDuration",
-  }) ?? 0;
+  const workplaceDuration =
+    useWatch({ control: form.control, name: "workplaceDuration" }) ?? 0;
 
   const {
     dti,
     tdsr,
     lti,
-    ltv,
-    availableForNewLoanMonthly,
-    proposedLoanPayment,
     creditTier,
     prequalStatus,
     prequalLabel,
@@ -90,7 +93,8 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
       estimatedPropertyValue,
       workplaceDuration,
       loanType,
-    ]);
+    ]
+  );
 
   return (
     <div className="space-y-6">
@@ -107,13 +111,13 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
                   placeholder="50000"
                   {...field}
                   value={field.value ?? ""}
-                  onChange={(e) => {
-                    const value =
+                  onChange={(e) =>
+                    field.onChange(
                       e.target.value === ""
                         ? undefined
-                        : e.target.valueAsNumber;
-                    field.onChange(value);
-                  }}
+                        : e.target.valueAsNumber
+                    )
+                  }
                 />
               </FormControl>
               <FormMessage />
@@ -130,23 +134,18 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
             <FormLabel>Are you planning to add a co-applicant?</FormLabel>
             <FormControl>
               <RadioGroup
-                onValueChange={(value) => field.onChange(value === "yes")}
-                value={
-                  field.value === undefined
-                    ? undefined
-                    : field.value
-                    ? "yes"
-                    : "no"
-                }
-                className="flex flex-row gap-4"
+                value={field.value ? "yes" : "no"}
+                onValueChange={(v) => field.onChange(v === "yes")}
+                className="flex gap-4"
               >
-                <FormItem className="flex items-center space-x-2">
+                <FormItem className="flex items-center gap-2">
                   <FormControl>
                     <RadioGroupItem value="yes" />
                   </FormControl>
                   <FormLabel className="font-normal">Yes</FormLabel>
                 </FormItem>
-                <FormItem className="flex items-center space-x-2">
+
+                <FormItem className="flex items-center gap-2">
                   <FormControl>
                     <RadioGroupItem value="no" />
                   </FormControl>
@@ -154,7 +153,6 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
                 </FormItem>
               </RadioGroup>
             </FormControl>
-            <FormMessage />
           </FormItem>
         )}
       />
@@ -168,12 +166,12 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
               <FormItem>
                 <FormLabel>Co-applicant Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Full Name" {...field} />
+                  <Input {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="coApplicantDateOfBirth"
@@ -183,12 +181,12 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
                 <FormControl>
                   <Input
                     type="date"
-                    {...field}
                     value={
                       field.value
                         ? new Date(field.value).toISOString().split("T")[0]
                         : ""
                     }
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
@@ -219,10 +217,10 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
                 <FormControl>
                   <Input placeholder="e.g. 123-456-7890" {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="coApplicantEmail"
@@ -236,117 +234,91 @@ export function GeneralLoanStep({ form }: GeneralLoanStepProps) {
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
         </div>
       )}
 
-      <div className="mt-8 border rounded-lg p-4 bg-muted space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold">Pre-qualification Summary</p>
-            <p className="text-xs text-muted-foreground">
-              Based on your income, debts, credit score, and requested loan
-              amount.
-            </p>
-          </div>
-          <span
-            className={`px-3 py-1 text-xs rounded-full font-semibold ${
-              prequalStatus === "APPROVED"
+      {canAccessPrequalification && (
+        <div className="mt-8 border rounded-lg p-4 bg-muted space-y-3">
+          <div className="flex justify-between">
+            <div>
+              <p className="text-sm font-semibold">
+                Pre-qualification Summary
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Based on your financial inputs
+              </p>
+            </div>
+
+            <span
+              className={`px-3 py-1 text-xs rounded-full font-semibold ${prequalStatus === "APPROVED"
                 ? "bg-emerald-100 text-emerald-800"
                 : prequalStatus === "CONDITIONAL"
-                ? "bg-amber-100 text-amber-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {prequalLabel}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground">Credit Score</p>
-            <p className="font-medium">
-              {creditScore || "N/A"}{" "}
-              <span className="text-xs text-muted-foreground">
-                ({creditTier})
-              </span>
-            </p>
+                  ? "bg-amber-100 text-amber-800"
+                  : "bg-red-100 text-red-800"
+                }`}
+            >
+              {prequalLabel}
+            </span>
           </div>
 
-          <div>
-            <p className="text-xs text-muted-foreground">DTI (Back-End)</p>
-            <p className="font-medium">
-              {isFinite(dti) ? dti.toFixed(1) : "--"}%
-            </p>
-          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">Credit Score</p>
+              <p className="font-medium">
+                {creditScore} ({creditTier})
+              </p>
+            </div>
 
-          <div>
-            <p className="text-xs text-muted-foreground">TDSR</p>
-            <p className="font-medium">
-              {isFinite(tdsr) ? tdsr.toFixed(1) : "--"}%
-            </p>
-          </div>
+            <div>
+              <p className="text-xs text-muted-foreground">DTI</p>
+              <p className="font-medium">{dti.toFixed(1)}%</p>
+            </div>
 
-          <div>
-            <p className="text-xs text-muted-foreground">LTI</p>
-            <p className="font-medium">
-              {isFinite(lti) ? lti.toFixed(1) : "--"}%
-            </p>
-          </div>
+            <div>
+              <p className="text-xs text-muted-foreground">TDSR</p>
+              <p className="font-medium">{tdsr.toFixed(1)}%</p>
+            </div>
 
-          <div>
-            <p className="text-xs text-muted-foreground">
-              Proposed Loan Payment (est.)
-            </p>
-            <p className="font-medium">
-              {proposedLoanPayment > 0
-                ? `$${proposedLoanPayment.toFixed(2)} / mo`
-                : "--"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">
-              Available for New Loan (DTI rule)
-            </p>
-            <p className="font-medium">
-              {availableForNewLoanMonthly > 0
-                ? `$${availableForNewLoanMonthly.toFixed(2)} / mo`
-                : "--"}
-            </p>
+            <div>
+              <p className="text-xs text-muted-foreground">LTI</p>
+              <p className="font-medium">{lti.toFixed(1)}</p>
+            </div>
           </div>
 
           {isMortgageLike && (
-            <>
-              <div>
-                <p className="text-xs text-muted-foreground">LTV</p>
-                <p className="font-medium">
-                  {ltv > 0 && isFinite(ltv) ? ltv.toFixed(1) : "--"}%
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  Suggested Mortgage Range
-                </p>
-                <p className="font-medium">
-                  {mortgageRangeMin > 0 && mortgageRangeMax > 0
-                    ? `$${mortgageRangeMin.toLocaleString()} - $${mortgageRangeMax.toLocaleString()}`
-                    : "--"}
-                </p>
-              </div>
-            </>
+            <p className="text-xs text-muted-foreground">
+              Suggested Range: ${mortgageRangeMin.toLocaleString()} – $
+              {mortgageRangeMax.toLocaleString()}
+            </p>
+          )}
+
+          {statusDetail && (
+            <p className="text-xs text-muted-foreground">{statusDetail}</p>
           )}
         </div>
+      )}
 
-        {statusDetail && (
-          <p className="text-xs text-muted-foreground mt-2">
-            {statusDetail}
+      {!canAccessPrequalification && (
+        <div className="mt-8 rounded-lg border border-dashed p-4 bg-gray-50">
+          <p className="font-semibold text-gray-800">
+            Pre-qualification available on Smart plan
           </p>
-        )}
-      </div>
+          <p className="text-xs text-gray-600 mt-1">
+            Upgrade to view eligibility, risk score, and loan ranges.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => router.push("/loanee/subscription")}
+            className="mt-3 inline-flex rounded-md bg-violet-600 px-4 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+          >
+            Upgrade to Smart
+          </button>
+        </div>
+      )}
     </div>
   );
 }

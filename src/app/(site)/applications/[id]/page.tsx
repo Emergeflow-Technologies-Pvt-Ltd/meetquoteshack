@@ -1,9 +1,11 @@
+//src\app\(site)\applications\[id]\page.tsx
 "use client";
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Section from "@/components/shared/section";
+import Image from "next/image";
 import {
   Home,
   FileText,
@@ -58,13 +60,20 @@ export default function ApplicationPage({
 
   const [application, setApplication] = useState<
     | (Application & {
-        documents: Document[];
-        lender?: {
-          user?: { id: string };
-        } | null;
-      })
+      documents: Document[];
+      lender?: {
+        user?: { id: string };
+      } | null;
+      agent?: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+      } | null;
+    })
     | null
   >(null);
+
 
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -72,38 +81,115 @@ export default function ApplicationPage({
   const [loadingApp, setLoadingApp] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
+  const [canAccessPrequalification, setCanAccessPrequalification] = useState(false);
+
+
   // Chat States
   const [messages, setMessages] = useState<Message[]>([]);
 
   // Fetch Application + Messages
   useEffect(() => {
     const fetchApplication = async () => {
-      if (session?.user?.email) {
-        try {
-          setLoadingApp(true);
-          const { data } = await axios.get(`/api/applications/${id}`);
-          setApplication(data.application);
+      if (!session?.user?.email) return;
 
-          if (data.application.status === "IN_CHAT") {
-            setLoadingMessages(true);
-            const res = await axios.get(`/api/messages?applicationId=${id}`);
-            setMessages(res.data);
-            setLoadingMessages(false);
-          }
-        } catch (error) {
-          console.error("Error fetching application:", error);
-        } finally {
-          setLoadingApp(false);
+      try {
+        setLoadingApp(true);
+
+        const res = await axios.get(`/api/applications/${id}`);
+
+
+
+        const applicationData = res.data?.application ?? res.data;
+
+        setApplication(applicationData ?? null);
+
+
+        // ✅ Safe status check
+        if (applicationData?.status === "IN_CHAT") {
+          setLoadingMessages(true);
+          const msgRes = await axios.get(
+            `/api/messages?applicationId=${id}`
+          );
+          setMessages(msgRes.data);
+          setLoadingMessages(false);
         }
+      } catch (error) {
+        console.error("Error fetching application:", error);
+        setApplication(null);
+        setCanAccessPrequalification(false);
+      } finally {
+        setLoadingApp(false);
       }
     };
 
     fetchApplication();
   }, [session, id]);
 
-  console.log("this is the data", application);
+
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const fetchAccess = async () => {
+      try {
+        const res = await axios.get("/api/subscription/access");
+
+        setCanAccessPrequalification(
+          Boolean(res.data?.canAccessPrequalification)
+        );
+      } catch (err) {
+        console.error("Failed to fetch access", err);
+        setCanAccessPrequalification(false);
+      }
+    };
+
+    fetchAccess();
+  }, [session]);
+
+
+
+  useEffect(() => {
+  }, [application]);
+
 
   const lenderUserId = application?.lender?.user?.id;
+
+
+
+  type AssignedAgent = {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    agentCode?: string | null;
+    calendlyUrl?: string | null;
+  };
+
+  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(null);
+  const [agentLoading, setAgentLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAssignedAgent() {
+      try {
+        const res = await fetch(
+          `/api/applications/${id}/agent`
+        );
+
+        if (!res.ok) {
+          setAssignedAgent(null);
+          return;
+        }
+
+        const data = await res.json();
+        setAssignedAgent(data.agent);
+      } catch {
+        setAssignedAgent(null);
+      } finally {
+        setAgentLoading(false);
+      }
+    }
+
+    fetchAssignedAgent();
+  }, [application, id]);
 
   const handleFileUpload = async (docId: string, file: File) => {
     if (!session?.user?.email) return;
@@ -196,17 +282,59 @@ export default function ApplicationPage({
   return (
     <Section className="py-12 md:py-24">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
-          application?.status === LoanStatus.IN_CHAT ? "h-auto lg:h-[88vh]" : ""
-        }`}
+        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${application?.status === LoanStatus.IN_CHAT ? "h-auto lg:h-[88vh]" : ""
+          }`}
       >
         <div
-          className={`flex-1 space-y-8 ${
-            application?.status === LoanStatus.IN_CHAT
-              ? "overflow-y-auto lg:pr-4 mb-6"
-              : ""
-          }`}
+          className={`flex-1 space-y-8 ${application?.status === LoanStatus.IN_CHAT
+            ? "overflow-y-auto lg:pr-4 mb-6"
+            : ""
+            }`}
         >
+          {!agentLoading && assignedAgent && (
+            <Card className="border-violet-500 bg-violet-50/60">
+              <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 p-6">
+
+                {/* Left */}
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-white text-xl font-semibold">
+                    {assignedAgent.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500">Assigned Agent</p>
+                    <h2 className="text-lg font-semibold text-violet-700">
+                      {assignedAgent.name}
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {assignedAgent.email} • {assignedAgent.phone}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right */}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      router.push(`/applications/agent/${assignedAgent.id}`)
+                    }
+                  >
+                    View Agent Details
+                  </Button>
+
+                  
+
+                </div>
+
+              </CardContent>
+            </Card>
+          )}
+
+
           <div className="flex justify-between gap-4 sticky top-0 bg-white z-10 pb-4">
             <div className="flex items-center gap-4">
               <button className="rounded-full" onClick={() => router.back()}>
@@ -265,8 +393,8 @@ export default function ApplicationPage({
                       <p className="font-medium">
                         {application?.dateOfBirth
                           ? new Date(
-                              application.dateOfBirth
-                            ).toLocaleDateString()
+                            application.dateOfBirth
+                          ).toLocaleDateString()
                           : "N/A"}
                       </p>
                     </div>
@@ -309,8 +437,8 @@ export default function ApplicationPage({
                       <p className="font-medium">
                         {application?.residencyStatus
                           ? residencyStatusTypeLabels[
-                              application.residencyStatus
-                            ]
+                          application.residencyStatus
+                          ]
                           : null}
                       </p>
                     </div>
@@ -431,8 +559,8 @@ export default function ApplicationPage({
                       <p className="font-medium">
                         {application?.estimatedPropertyValue
                           ? `$${Number(
-                              application.estimatedPropertyValue
-                            ).toLocaleString()}`
+                            application.estimatedPropertyValue
+                          ).toLocaleString()}`
                           : "N/A"}
                       </p>
                     </div>
@@ -488,8 +616,8 @@ export default function ApplicationPage({
                         <p className="font-medium">
                           {application.coApplicantDateOfBirth
                             ? new Date(
-                                application.coApplicantDateOfBirth
-                              ).toLocaleDateString()
+                              application.coApplicantDateOfBirth
+                            ).toLocaleDateString()
                             : "N/A"}
                         </p>
                       </div>
@@ -530,23 +658,21 @@ export default function ApplicationPage({
                   {application?.documents?.map((doc) => (
                     <div
                       key={doc.id}
-                      className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${
-                        doc.status === "APPROVED"
-                          ? "bg-green-50 border-green-200"
-                          : doc.status === "UPLOADED"
+                      className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${doc.status === "APPROVED"
+                        ? "bg-green-50 border-green-200"
+                        : doc.status === "UPLOADED"
                           ? "bg-blue-50 border-blue-200"
                           : "hover:border-primary/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3 mb-3 md:mb-0">
                         <FileText
-                          className={`w-5 h-5 ${
-                            doc.status === "APPROVED"
-                              ? "text-green-500"
-                              : doc.status === "UPLOADED"
+                          className={`w-5 h-5 ${doc.status === "APPROVED"
+                            ? "text-green-500"
+                            : doc.status === "UPLOADED"
                               ? "text-blue-500"
                               : "text-muted-foreground"
-                          }`}
+                            }`}
                         />
                         <div>
                           <p className="font-medium">
@@ -634,7 +760,18 @@ export default function ApplicationPage({
               </CardContent>
             </Card>
 
-             <PrequalificationSummary application={application} context="loanee" />
+            {canAccessPrequalification ? (
+              <PrequalificationSummary
+                application={application}
+                context="loanee"
+              />
+            ) : (
+              <LockedPrequalificationSection
+                onUpgrade={() => router.push("/loanee/subscription")}
+              />
+            )}
+
+
           </div>
         </div>
         {application?.status === "IN_CHAT" && (
@@ -647,5 +784,45 @@ export default function ApplicationPage({
         )}
       </div>
     </Section>
+  );
+}
+
+function LockedPrequalificationSection({
+  onUpgrade,
+}: {
+  onUpgrade: () => void;
+}) {
+  return (
+    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 min-h-[220px]">
+      {/* Blur overlay */}
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
+
+      <CardHeader className="relative z-10 pb-2">
+        <CardTitle className="text-sm font-semibold">
+          Pre-qualification Summary
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="relative z-10 flex flex-col items-center justify-center text-center py-10">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
+          <Image
+            src="/lock.svg"
+            alt="Locked"
+            width={52}
+            height={52}
+            priority
+          />
+        </div>
+
+        <p className="text-xs text-gray-600 max-w-sm mb-4">
+          View eligibility, affordability, and risk insights with Smart plan
+          or during your free trial.
+        </p>
+
+        <Button size="sm" onClick={onUpgrade}>
+          Upgrade to Smart
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

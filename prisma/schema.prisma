@@ -22,6 +22,60 @@ model User {
   agent                    Agent?
   Notification             Notification[]
   sessions                 Session[]
+  stripeCustomerId         String?
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt @default(now())
+  freeTierEndsAt           DateTime?
+  subscriptions            Subscription[]
+  agentReviews AgentReview[]   @relation("UserAgentReviews")
+
+}
+
+model Subscription {
+  id                   String              @id @default(cuid())
+  userId               String
+  role                 UserRole
+  plan                 SubscriptionPlan
+  billingInterval      BillingInterval
+  status               SubscriptionStatus @default(ACTIVE)
+
+  stripeSubscriptionId String?             @unique
+  stripePriceId        String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean             @default(false)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([role])
+  @@index([plan])
+}
+
+
+enum SubscriptionPlan {
+  LOANEE_FREE
+  LOANEE_STAY_SMART
+  LENDER_TRIAL      
+  LENDER_SIMPLE
+  LENDER_STANDARD
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+  NONE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  UNPAID
 }
 
 model Account {
@@ -73,20 +127,57 @@ model Agent {
   name      String
   phone     String
   email     String
-  agency    String? // optional: agency/company name
-  licenseNo String? // optional: license / registration number
-  province  String?
-  approved  Boolean  @default(false)
+  business  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   agentCode String?   @unique
+  calendlyUrl String?
+
+  reviews AgentReview[]
+  agentApplicationUnlocks AgentApplicationUnlock[]
+
 
   user         User?         @relation(fields: [userId], references: [id])
   applications Application[]
 
   @@index([userId])
 }
+
+
+model AgentReview {
+  id            String   @id @default(cuid())
+  rating        Int
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  agentId       String
+  loaneeId      String
+  applicationId String
+
+  agent         Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  loanee        User        @relation("UserAgentReviews", fields: [loaneeId], references: [id], onDelete: Cascade)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId])
+  @@index([agentId])
+}
+
+
+model AgentApplicationUnlock {
+  id            String   @id @default(cuid())
+  applicationId String
+  agentId       String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  agent       Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, agentId])
+  @@index([agentId])
+  @@index([applicationId])
+}
+
 
 model Application {
   id                     String           @id @default(cuid())
@@ -140,6 +231,11 @@ model Application {
   lender                 Lender?          @relation(fields: [lenderId], references: [id])
   agentId                String? // nullable FK
   agent                  Agent?           @relation(fields: [agentId], references: [id])
+
+
+  agentReviews AgentReview[]
+  agentApplicationUnlocks AgentApplicationUnlock[]
+
 
   user                     User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
   potentialLender          PotentialLender[]

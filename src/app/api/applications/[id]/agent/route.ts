@@ -1,10 +1,58 @@
-// app/api/applications/[id]/agent/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 
-export async function POST(request: Request, { params }: { params: any }) {
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function GET(
+  _request: Request,
+  { params }: RouteContext
+) {
   try {
-    // Must await params in App Router API routes
+    const { id: applicationId } = await params;
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: {
+        agent: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            agentCode: true,
+            calendlyUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      return NextResponse.json(
+        { error: "Application not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      agent: application.agent ?? null,
+    });
+  } catch (err) {
+    console.error("GET /api/applications/[id]/agent error:", err);
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
+  }
+}
+
+
+export async function POST(
+  request: Request,
+  { params }: RouteContext
+) {
+  try {
     const { id: applicationId } = await params;
 
     const body = await request.json();
@@ -17,7 +65,6 @@ export async function POST(request: Request, { params }: { params: any }) {
       );
     }
 
-    // Validate application exists
     const existingApp = await prisma.application.findUnique({
       where: { id: applicationId },
     });
@@ -29,7 +76,6 @@ export async function POST(request: Request, { params }: { params: any }) {
       );
     }
 
-    // Validate agent exists
     const agent = await prisma.agent.findUnique({
       where: { id: agentId },
     });
@@ -41,7 +87,6 @@ export async function POST(request: Request, { params }: { params: any }) {
       );
     }
 
-    // Assign agent to application
     await prisma.application.update({
       where: { id: applicationId },
       data: { agentId },
@@ -51,11 +96,10 @@ export async function POST(request: Request, { params }: { params: any }) {
       `Assigned agent ${agentId} -> application ${applicationId}`
     );
 
-    // Return full hydrated application (optional but recommended)
     const updatedApp = await prisma.application.findUnique({
       where: { id: applicationId },
       include: {
-        agent: true, // <-- ensures agent is returned
+        agent: true,
         user: true,
         documents: true,
       },

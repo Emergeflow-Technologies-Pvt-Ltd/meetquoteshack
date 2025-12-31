@@ -161,18 +161,20 @@ export default function ApplicationPage({ params }: Props) {
 
   useEffect(() => {
     const appHasLender = Boolean(application?.lenderId);
-    const appHasPotentials = Array.isArray(application?.potentialLenderIds) && application.potentialLenderIds.length > 0;
-    const uiHasSelectedLender = Boolean(selectedLenderId);
-    const uiHasPotentials = selectedPotentialLenderIds.length > 0;
+    const appHasPotentials =
+      Array.isArray(application?.potentialLenderIds) &&
+      application.potentialLenderIds.length > 0;
 
-    setHasAnyAssignment(appHasLender || appHasPotentials || uiHasSelectedLender || uiHasPotentials);
-  }, [
-    application?.lenderId,
-    application?.potentialLenderIds,
-    selectedLenderId,
-    selectedPotentialLenderIds,
-  ]);
+    setHasAnyAssignment(appHasLender || appHasPotentials);
+  }, [application?.lenderId, application?.potentialLenderIds]);
 
+  useEffect(() => {
+    if (assignmentMode === "single") {
+      setSelectedPotentialLenderIds([]);
+    } else {
+      setSelectedLenderId(null);
+    }
+  }, [assignmentMode]);
 
   useEffect(() => {
     if (fetchRef.current) return;
@@ -216,16 +218,19 @@ export default function ApplicationPage({ params }: Props) {
   }, [dialogOpenAgent, application]);
 
   useEffect(() => {
-    if (!dialogOpen) return;
+    if (!dialogOpen || !application) return;
 
-    const modeFromApp =
-      application?.assignmentMode ??
-      ((application?.potentialLenderIds?.length ?? 0) > 0 ? "multi" : "single");
+    setAssignmentMode(
+      application.assignmentMode ??
+      ((application.potentialLenderIds?.length ?? 0) > 0
+        ? "multi"
+        : "single")
+    );
 
-    setAssignmentMode(modeFromApp as "single" | "multi");
-    setSelectedLenderId(application?.lenderId ?? null);
-    setSelectedPotentialLenderIds(application?.potentialLenderIds ?? []);
+    setSelectedLenderId(application.lenderId ?? null);
+    setSelectedPotentialLenderIds(application.potentialLenderIds ?? []);
   }, [dialogOpen, application]);
+
 
   const handleAddDocument = async () => {
     if (!selectedDocTypes.length || !application) return;
@@ -544,10 +549,13 @@ export default function ApplicationPage({ params }: Props) {
                             );
                           }
 
+                          const assignedLender = application?.lenderId
+                            ? lenders.find((l) => l.id === application.lenderId)
+                            : null;
+
                           const assignedLenderName =
-                            lenders.find((l) => l.id === application.lenderId)?.name ??
-                            application.lenderId ??
-                            "Unknown lender";
+                            assignedLender?.name ?? "Unknown lender";
+
 
                           return (
                             <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
@@ -665,42 +673,46 @@ export default function ApplicationPage({ params }: Props) {
                                 className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
                       ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
                               >
-                                <RadioGroupItem value="single" className="mt-1" />
-                                <div className="w-full">
-                                  <Label>Assign a Lender</Label>
-                                  <p className="text-xs mt-1 text-muted-foreground">Choose one lender.</p>
+                                  <RadioGroupItem value="single" className="mt-1" />
+                                  <div className="w-full">
+                                    <Label>Assign a Lender</Label>
+                                    <p className="text-xs mt-1 text-muted-foreground">Choose one lender.</p>
 
-                                  {assignmentMode === "single" && (
-                                    <div className="mt-4">
-                                      <Select
-                                        value={selectedLenderId || application.lenderId || ""}
-                                        onValueChange={(v) => setSelectedLenderId(v)}
-                                      >
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue placeholder="Select lender..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {lenders.map((lender) => (
-                                            <SelectItem key={lender.id} value={lender.id}>
-                                              {lender.name}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  )}
-                                </div>
+                                    {assignmentMode === "single" && (
+                                      <div className="mt-4">
+                                        <Select
+                                          value={selectedLenderId || application.lenderId || ""}
+                                          onValueChange={(v) => setSelectedLenderId(v)}
+                                        >
+                                          <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select lender..." />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {lenders.map((lender) => (
+                                              <SelectItem key={lender.id} value={lender.id}>
+                                                {lender.name}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    )}
+                                  </div>
                               </button>
 
-                              <button
-                                type="button"
+                              <div
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => {
                                   setAssignmentMode("multi");
                                   setSelectedLenderId(null);
                                 }}
                                 className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                      ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+    ${assignmentMode === "multi"
+                                    ? "border-primary/70 ring-2 ring-primary/20"
+                                    : "border-border hover:border-primary/40"}`}
                               >
+
                                 <RadioGroupItem value="multi" className="mt-1" />
 
                                 <div className="w-full">
@@ -712,29 +724,44 @@ export default function ApplicationPage({ params }: Props) {
                                       <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
                                         {lenders.map((l) => {
                                           const checked = selectedPotentialLenderIds.includes(l.id);
+
                                           return (
-                                            <Button
+                                            <div
                                               key={l.id}
-                                              variant="outline"
+                                              role="button"
+                                              tabIndex={0}
                                               onClick={() => togglePotentialLender(l.id)}
-                                              className={`w-full flex items-center justify-between px-3 py-2 ${checked ? "border-primary/40 bg-primary/5" : ""
-                                                }`}
+                                              onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                  e.preventDefault();
+                                                  togglePotentialLender(l.id);
+                                                }
+                                              }}
+                                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer
+              text-left transition
+              ${checked
+                                                  ? "border-primary/40 bg-primary/5"
+                                                  : "border-border hover:bg-muted/50"}
+            `}
                                             >
-                                              <div className="flex items-center gap-3">
-                                                <Checkbox
-                                                  checked={checked}
-                                                  onCheckedChange={() => togglePotentialLender(l.id)}
-                                                />
-                                                <span className="text-sm">{l.name}</span>
-                                              </div>
-                                            </Button>
+                                              <Checkbox
+                                                checked={checked}
+                                                onCheckedChange={() => togglePotentialLender(l.id)}
+                                                onClick={(e) => e.stopPropagation()}
+                                              />
+
+                                              <span className="text-sm block text-left">
+                                                {l.name}
+                                              </span>
+                                            </div>
                                           );
                                         })}
                                       </div>
                                     </div>
                                   )}
+
                                 </div>
-                              </button>
+                              </div>
                             </RadioGroup>
 
                             <DialogFooter className="mt-6">

@@ -1,7 +1,7 @@
 "use client";
-
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+
 
 export function PayPerMatchSuccessModal({
   open,
@@ -14,22 +14,28 @@ export function PayPerMatchSuccessModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl border border-gray-100 text-center animate-in fade-in zoom-in">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg border border-gray-100 text-center animate-in fade-in zoom-in">
 
-        {/* ✅ Icon */}
-        <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-purple-300/80 shadow-md">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white">
-            <Check className="h-7 w-7 text-purple-600 stroke-[3]" />
-          </div>
+
+        <div className="mx-auto mb-6 mt-4 flex h-24 w-24 items-center justify-center rounded-3xl">
+          <Image
+            src="/paysuccess.svg"
+            alt="Tick"
+            width={89}
+            height={79}
+            priority
+          />
+
         </div>
 
+
         {/* ✅ Title */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold  mb-2">
           Match Activated
         </h2>
 
         {/* ✅ Subtitle */}
-        <p className="text-sm text-gray-500 leading-relaxed mb-8">
+        <p className="text-sm text-gray-500 leading-relaxed mb-8 font-inter">
           Pay Per Match has been processed.
           <br />
           Loanee profile details are now unlocked.

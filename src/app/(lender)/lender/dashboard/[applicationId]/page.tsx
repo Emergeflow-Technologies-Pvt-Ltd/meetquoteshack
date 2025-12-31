@@ -20,6 +20,7 @@ import WorkplaceDetails from "./components/WorkplaceDetails";
 import { PayPerMatchSuccessModal } from "@/components/ui/paypermatchsucces";
 import Image from "next/image";
 import { PrequalificationSummary } from "@/components/shared/prequalification-summary";
+import { PayPerMatchModal } from "@/components/PayPerMatchModal";
 
 type ApplicationWithRelations = Prisma.ApplicationGetPayload<{
   include: {
@@ -46,6 +47,7 @@ export default function ApplicationDetailsPage({
   const [prevStatus, setPrevStatus] = useState<LoanStatus | null>(null);
   const [justUnlocked, setJustUnlocked] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPayPerMatchModal, setShowPayPerMatchModal] = useState(false);
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -185,44 +187,6 @@ export default function ApplicationDetailsPage({
     }
   };
 
-  const handlePayPerMatch = async () => {
-    if (!application) return;
-    setLoading(true);
-    try {
-      const res = await axios.post("/api/checkout/paypermatch", {
-        applicationId: application.id,
-      });
-
-        const url = res.data?.url as string | undefined;
-
-      if (!url) {
-        throw new Error("No checkout URL returned");
-      }
-
-      window.location.href = url;
-    } catch (error) {
-      console.error("Pay Per Match error:", error);
-
-      let description = "Failed to start payment";
-
-      if (axios.isAxiosError(error)) {
-        const maybeError =
-          (error.response?.data as { error?: string } | undefined)?.error;
-
-        description = maybeError ?? error.message ?? description;
-      } else if (error instanceof Error) {
-        description = error.message ?? description;
-      }
-
-      toast({
-        title: "Payment Error",
-        description,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!application) {
     return (
@@ -245,20 +209,18 @@ export default function ApplicationDetailsPage({
   return (
     <Section className="py-12">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
-          application.status === LoanStatus.IN_PROGRESS ||
+        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${application.status === LoanStatus.IN_PROGRESS ||
           application.status === LoanStatus.IN_CHAT
-            ? "h-auto lg:h-[88vh]"
-            : ""
-        }`}
+          ? "h-auto lg:h-[88vh]"
+          : ""
+          }`}
       >
         <div
-          className={`flex-1 space-y-4 ${
-            application.status === LoanStatus.IN_PROGRESS ||
+          className={`flex-1 space-y-4 ${application.status === LoanStatus.IN_PROGRESS ||
             application.status === LoanStatus.IN_CHAT
-              ? "overflow-y-auto lg:pr-4 mb-6"
-              : ""
-          }`}
+            ? "overflow-y-auto lg:pr-4 mb-6"
+            : ""
+            }`}
         >
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-20 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
@@ -283,7 +245,7 @@ export default function ApplicationDetailsPage({
               {isPotential ? (
                 <Button
                   className="bg-purple-600 hover:bg-purple-700 text-white"
-                  onClick={handlePayPerMatch}
+                  onClick={() => setShowPayPerMatchModal(true)}
                   disabled={loading}
                 >
                   {loading ? "Processing..." : "Pay Per Match"}
@@ -292,23 +254,23 @@ export default function ApplicationDetailsPage({
                 <>
                   {(application.status === LoanStatus.IN_PROGRESS ||
                     application.status === LoanStatus.IN_CHAT) && (
-                    <>
-                      <Button
-                        variant="default"
-                        onClick={handleApproveApplication}
-                        disabled={loading}
-                      >
-                        {loading ? "Processing..." : "Approve Loan"}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleRejectApplication}
-                        disabled={loading}
-                      >
-                        {loading ? "Processing..." : "Reject Loan"}
-                      </Button>
-                    </>
-                  )}
+                      <>
+                        <Button
+                          variant="default"
+                          onClick={handleApproveApplication}
+                          disabled={loading}
+                        >
+                          {loading ? "Processing..." : "Approve Loan"}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleRejectApplication}
+                          disabled={loading}
+                        >
+                          {loading ? "Processing..." : "Reject Loan"}
+                        </Button>
+                      </>
+                    )}
 
                   {application.status !== LoanStatus.IN_PROGRESS &&
                     application.status !== LoanStatus.IN_CHAT &&
@@ -426,36 +388,44 @@ export default function ApplicationDetailsPage({
         open={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
       />
+
+      <PayPerMatchModal
+        open={showPayPerMatchModal}
+        onClose={() => setShowPayPerMatchModal(false)}
+        applicationId={application.id}
+        role="LENDER"
+      />
+
     </Section>
   );
 }
 
 
 function LockedDocsAndPrequalSection() {
-return (
-  <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 min-h-[260px]">
-    <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
-    <CardHeader className="relative z-10 pb-2">
-      <CardTitle className="flex flex-col gap-1 text-sm">
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
-        <Image
-          src="/lock.svg"
-          alt="Locked"
-          width={52}
-          height={52}
-          className="h-13 w-13"
-          priority
-        />
-      </div>
-      <p className="text-xs text-gray-600 max-w-sm">
-        Unlock verified loanee details instantly with Pay Per Match.
-      </p>
-    </CardContent>
-  </Card>
-);
+  return (
+    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 min-h-[260px]">
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
+      <CardHeader className="relative z-10 pb-2">
+        <CardTitle className="flex flex-col gap-1 text-sm">
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
+          <Image
+            src="/lock.svg"
+            alt="Locked"
+            width={52}
+            height={52}
+            className="h-13 w-13"
+            priority
+          />
+        </div>
+        <p className="text-xs text-gray-600 max-w-sm">
+          Unlock verified loanee details instantly with Pay Per Match.
+        </p>
+      </CardContent>
+    </Card>
+  );
 
 }
 
@@ -493,6 +463,3 @@ function LockedSection({
     </Card>
   );
 }
-
-
-

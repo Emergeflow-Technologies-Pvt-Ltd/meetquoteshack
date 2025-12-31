@@ -3,12 +3,13 @@ import Section from "@/components/shared/section";
 import Faq from "@/components/shared/Faq";
 import faqData from "@/data/faq";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Crown, Zap } from "lucide-react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 export default function Lenders() {
@@ -275,7 +276,147 @@ export default function Lenders() {
               Sign Up Now
             </Button>
         </motion.div>
-      </Section>
+      </Section>        <Section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-violet-50 opacity-50" />
+          <div className="relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center max-w-5xl mx-auto space-y-6 px-4"
+            >
+              <span className="inline-flex items-center gap-2 text-violet-600 font-semibold bg-violet-50 px-4 py-2 rounded-full text-sm mb-4">
+              </span>
+              <h1 className="qs-heading font-bold text-2xl md:text-3xl lg:text-2xl xl:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-violet-700 to-violet-900 ">
+                Simple, Transparent Pricing
+              </h1>
+
+              <p className="text-gray-600 text-lg md:text-md max-w-3xl mx-auto leading-relaxed">
+                Choose the access model that fits your role on QuoteShack
+              </p>
+              <>
+      <div className="max-w-3xl mx-auto flex justify-center">
+        <div className="grid w-full justify-center gap-8 md:grid-cols-2">
+          {/* BASIC PLAN */}
+          <Card className="relative w-[368px] min-h-[500px] rounded-[8.44px] border border-[#E5E7EB] bg-white flex flex-col justify-between">
+            <CardHeader className="px-5 pt-5 pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#D1FAE5] text-[#10B981]">
+                  <Zap className="h-5 w-5" />
+                </div>
+              </div>
+
+              <div className="text-left">
+                <CardTitle className="text-[18px] font-semibold text-[#111827]">
+                  Basic
+                </CardTitle>
+                <CardDescription className="text-[14px] text-[#6B7280] mt-1 mb-5">
+                  Perfect for getting started
+                </CardDescription>
+              </div>
+
+              <div className="mb-6">
+                <span className="text-[38px] font-bold text-[#22C55E]">$25</span>
+                <span className="text-gray-500 ml-1">/month</span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="px-4 pb-10 pt-4 flex flex-col justify-between flex-1">
+              <ul className="space-y-2 text-sm text-[#111827]">
+                <li className="flex gap-3"><Check className="h-4 w-4 text-[#10B981]" /> Access to lending pool</li>
+                <li className="flex gap-3"><Check className="h-4 w-4 text-[#10B981]" /> Collect borrower documents</li>
+                <li className="flex gap-3"><Check className="h-4 w-4 text-[#10B981]" /> Chat with borrowers</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* STANDARD PLAN */}
+          <Card className="relative w-[368px] min-h-[500px] border-2 border-violet-400 bg-white flex flex-col justify-between">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="rounded-full bg-violet-600 px-4 py-1 text-xs font-medium text-white">
+                Most Popular
+              </span>
+            </div>
+
+            <CardHeader className="px-5 pt-5 pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-violet-100 text-violet-600">
+                  <Crown className="h-5 w-5" />
+                </div>
+              </div>
+
+              <CardTitle className="text-[18px] font-semibold text-gray-900">
+                Standard
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-500 mb-5">
+                Most popular for growing lenders
+              </CardDescription>
+
+              <div className="mt-4">
+                <span className="text-[38px] font-bold text-violet-600">$49</span>
+                <span className="text-gray-500 ml-1">/month</span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="px-4 pb-10 pt-4 flex flex-col justify-between flex-1">
+              <ul className="space-y-2 text-sm text-[#111827]">
+                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Access to lending pool</li>
+                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Collect borrower documents</li>
+                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Chat with borrowers</li>
+                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Risk assessment reports</li>
+                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Analytics reports</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+              </>
+              {/* Pricing Help CTA */}
+              <div className="mt-16">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+                >
+                  {/* soft background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-violet-50 opacity-60" />
+
+                  <div className="relative px-6 py-10 md:px-12 md:py-14 text-center space-y-4">
+                    <div className="flex justify-center items-center gap-2 text-gray-900 font-semibold text-lg md:text-xl">
+                      <span className="text-violet-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-trending-up"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
+                      </span>
+                      Have questions about pricing?
+                    </div>
+
+                    <p className="text-gray-600 max-w-2xl mx-auto">
+                      Our team is here to help you choose the right plan for your needs.
+                    </p>
+
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // you can replace this with router.push or modal trigger
+                          window.dispatchEvent(new CustomEvent("open-loanee-modal"));
+                        }}
+                        className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-900 hover:bg-gray-50 transition"
+                      >
+                        Contact Sales
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+
+            </motion.div>
+          </div>
+        </Section>
+
+
 
       {/* FAQ Section */}
       <Section className="py-16 bg-gradient-to-b from-white to-violet-50">

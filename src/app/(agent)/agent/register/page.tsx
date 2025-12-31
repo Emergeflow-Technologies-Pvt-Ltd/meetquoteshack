@@ -32,6 +32,7 @@ export default function RegisterAsagent() {
     resolver: zodResolver(BecomeAgentSchema),
     defaultValues: {
       name: "",
+      business: "",
       phone: "",
       email: "",
       password: "",
@@ -109,6 +110,20 @@ export default function RegisterAsagent() {
                       </FormItem>
                     )}
                     name="name"
+                    control={control}
+                  />
+
+                  <FormField
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Business Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Company Name" {...field} />
+                        </FormControl>
+                        <FormMessage>{errors.name?.message}</FormMessage>
+                      </FormItem>
+                    )}
+                    name="business"
                     control={control}
                   />
                   

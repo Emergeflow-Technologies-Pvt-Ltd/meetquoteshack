@@ -1,215 +1,236 @@
-"use client";
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import prisma from "@/lib/db";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
+import { LoanStatus } from "@prisma/client";
 import Section from "@/components/shared/section";
-import { Plus, User, Mail, Phone } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import {
+  getBackgroundColorLoanStatus,
+  getTextColorLoanStatus,
+} from "@/components/shared/chips";
+import {
+  employmentTypeLabels,
+  loanTypeLabels,
+} from "@/components/shared/general.const";
+import AgentInviteCode from "./[applicationId]/components/AgentInviteCode";
+import AgentCalendlyLink from "./[applicationId]/components/AgentCalendlyLink";
 
-type Loanee = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  appliedAt?: string | null;
-  applicationId?: string | null;
-};
+export default async function AgentDashboardPage() {
+  const session = await getServerSession(authOptions);
 
-const DUMMY_LOANEES: Loanee[] = [
-  {
-    id: "ln_1",
-    name: "Ravi Sharma",
-    email: "ravi.sharma@example.com",
-    phone: "9876543210",
-    appliedAt: "2025-11-20T10:12:00.000Z",
-    applicationId: "app_101",
-  },
-  {
-    id: "ln_2",
-    name: "Sneha Patil",
-    email: "sneha.patil@example.com",
-    phone: "9123456780",
-    appliedAt: null,
-    applicationId: null,
-  },
-  {
-    id: "ln_3",
-    name: "Amit Kulkarni",
-    email: "amit.k@example.com",
-    phone: "9988776655",
-    appliedAt: "2025-11-26T09:00:00.000Z",
-    applicationId: "app_109",
-  },
-];
-
-export default function AgentDashboardPage() {
-  const [loanees, setLoanees] = useState<Loanee[]>(DUMMY_LOANEES);
-  const [query, setQuery] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-
-  const stats = {
-    total: loanees.length,
-    withApplication: loanees.filter((l) => l.applicationId).length,
-    pending: loanees.filter((l) => !l.applicationId).length,
-  };
-
-  function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !email) return;
-
-    const newLoanee: Loanee = {
-      id: `ln_${Math.random().toString(36).slice(2, 9)}`,
-      name,
-      email,
-      phone: phone || undefined,
-      appliedAt: null,
-      applicationId: null,
-    };
-
-    setLoanees((s) => [newLoanee, ...s]);
-    setName("");
-    setEmail("");
-    setPhone("");
+  if (!session?.user?.id) {
+    return null;
   }
 
-  const filtered = loanees.filter((l) =>
-    `${l.name} ${l.email} ${l.phone ?? ""}`.toLowerCase().includes(query.toLowerCase())
-  );
+  const agent = await prisma.agent.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!agent) {
+    return (
+      <Section>
+        <p className="text-center mt-16 text-gray-600">
+          No agent profile found for this user.
+        </p>
+      </Section>
+    );
+  }
+
+  // const agentUnlocks = await prisma.agentApplicationUnlock.findMany({
+  //   where: {
+  //     agentId: agent.id,
+  //   },
+  //   select: {
+  //     applicationId: true,
+  //   },
+  // });
+
+  // const unlockedApplicationIds = new Set(
+  //   agentUnlocks.map((u) => u.applicationId)
+  // );
+
+
+  const assignedApplications = await prisma.application.findMany({
+    where: {
+      agentId: agent.id,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const joinedUsingAgentCode = await prisma.application.findMany({
+    where: {
+      agentCode: agent.agentCode,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const lenderStatusLabelMap: Partial<Record<LoanStatus, string>> = {
+    ASSIGNED_TO_POTENTIAL_LENDER: "Potential Assignment",
+    ASSIGNED_TO_LENDER: "Assigned",
+    IN_PROGRESS: "In Progress",
+    IN_CHAT: "In Chat",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+  };
+
+  const renderApplicationsGrid = (
+    apps: Awaited<typeof assignedApplications>,
+    emptyText: string
+  ) => {
+    if (apps.length === 0) {
+      return (
+        <p className="text-gray-600 text-center mt-16 py-8 bg-gray-50 rounded-lg">
+          {emptyText}
+        </p>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mt-16 sm:mt-0 gap-4">
+        {apps.map((app) => (
+          <Link
+            key={app.id}
+            href={`/agent/dashboard/${app.id}`}
+            className="block"
+          >
+            <Card className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200">
+              <CardHeader className="pb-4 space-y-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg font-semibold text-gray-800">
+                      {app.firstName} {app.lastName}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-gray-500">
+                      Submitted on{" "}
+                      {new Date(app.createdAt).toLocaleDateString()}
+                    </CardDescription>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge
+                      className="text-xs px-2 py-1 rounded-md"
+                      style={{
+                        color: getTextColorLoanStatus(app.status),
+                        backgroundColor: getBackgroundColorLoanStatus(app.status),
+                      }}
+                    >
+                      {lenderStatusLabelMap[app.status] ??
+                        app.status.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
+
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-3 text-sm text-gray-700">
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div>
+                    <span className="text-gray-500">Loan Amount</span>
+                    <p className="font-medium">
+                      ${app.loanAmount?.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Loan Type</span>
+                    <p className="font-medium">
+                      {loanTypeLabels[app.loanType]}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Employment</span>
+                    <p className="font-medium">
+                      {employmentTypeLabels[app.employmentStatus]}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Gross Income</span>
+                    <p className="font-medium">
+                      ${app.grossIncome.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Housing</span>
+                    <p className="font-medium">{app.housingStatus}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Monthly Debts</span>
+                    <p className="font-medium">
+                      ${app.monthlyDebts.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Savings</span>
+                    <p className="font-medium">
+                      ${app.savings.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Phone no.</span>
+                    <p className="font-medium">{app.personalPhone}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Section className="py-12">
-
-      <h1 className="text-3xl  font-bold mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent">
-        Agent Dashboard       
-        </h1>  
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT: Stats & Invite */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Agent Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <div className="text-sm text-gray-500">Total Loanees</div>
-                  <div className="font-medium">{stats.total}</div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="text-sm text-gray-500">With Application</div>
-                  <div className="font-medium">{stats.withApplication}</div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="text-sm text-gray-500">Pending (not applied)</div>
-                  <div className="font-medium">{stats.pending}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Invite a Loanee</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleInvite} className="space-y-3">
-                <div className="flex flex-col">
-                  <label className="text-sm mb-1">Full name</label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-sm mb-1">Email</label>
-                  <Input value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-sm mb-1">Phone (optional)</label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button type="submit" className="flex items-center gap-2">
-                    <Plus /> Invite
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* MIDDLE: Loanee list */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">My Loanees</h2>
-            <div className="w-64">
-              <Input
-                placeholder="Search loanees by name, email or phone"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            {filtered.map((l) => (
-              <Card key={l.id}>
-                <CardContent>
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                      <User />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{l.name}</div>
-                          <div className="text-sm text-gray-500">{l.email}</div>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {l.applicationId ? (
-                            <span className="px-2 py-1 rounded bg-green-50 text-green-700">Applied</span>
-                          ) : (
-                            <span className="px-2 py-1 rounded bg-yellow-50 text-yellow-700">Pending</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="mt-2 flex gap-4 items-center text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-4 h-4" /> {l.email}
-                        </div>
-                        {l.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="w-4 h-4" /> {l.phone}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-3 flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => alert(`Open profile ${l.id}`)}>
-                          View Profile
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => alert(`Send invite link to ${l.email}`)}>
-                          Resend Invite
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {filtered.length === 0 && (
-              <Card>
-                <CardContent>
-                  <div className="text-center text-gray-500 py-8">No loanees found.</div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-700 to-purple-700 bg-clip-text text-transparent">
+          Agent Dashboard
+        </h1>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <AgentInviteCode inviteCode={agent.agentCode!} />
+        <AgentCalendlyLink calendlyUrl={agent.calendlyUrl ?? ""} />
+      </div>
+
+      <Tabs defaultValue="joined" className="w-full">
+        <TabsList className="mb-6 mt-8 flex justify-start sm:flex-row gap-2 sm:gap-4">
+
+          <TabsTrigger value="joined" className="w-full sm:w-auto">
+            Joined with My Agent Code
+            <Badge variant="secondary" className="ml-2">
+              {joinedUsingAgentCode.length}
+            </Badge>
+          </TabsTrigger>
+
+          <TabsTrigger value="assigned" className="w-full sm:w-auto">
+            Applications Assigned to Me
+            <Badge variant="secondary" className="ml-2">
+              {assignedApplications.length}
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="joined">
+          {renderApplicationsGrid(
+            joinedUsingAgentCode,
+            "No applications have been submitted using your agent code yet."
+          )}
+        </TabsContent>
+
+
+        <TabsContent value="assigned">
+          {renderApplicationsGrid(
+            assignedApplications,
+            "No applications have been assigned to you yet."
+          )}
+        </TabsContent>
+      </Tabs>
     </Section>
   );
 }
