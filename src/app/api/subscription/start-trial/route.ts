@@ -3,9 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import {
-  UserRole,
-} from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 export async function POST() {
   try {
@@ -33,8 +31,7 @@ export async function POST() {
       }
 
       const trialEndsAt = new Date();
-trialEndsAt.setDate(trialEndsAt.getDate() + 60);
-
+      trialEndsAt.setDate(trialEndsAt.getDate() + 60);
 
       await prisma.user.update({
         where: { id: userId },
@@ -55,9 +52,7 @@ trialEndsAt.setDate(trialEndsAt.getDate() + 60);
         );
       }
 
-      const trialEndsAt = new Date(
-        Date.now() + 90 * 24 * 60 * 60 * 1000
-      );
+      const trialEndsAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
 
       await prisma.user.update({
         where: { id: userId },
@@ -71,9 +66,11 @@ trialEndsAt.setDate(trialEndsAt.getDate() + 60);
         { status: 200 }
       );
     }
-
   } catch (err) {
     console.error("[START_TRIAL_ERROR]", err);
-    return NextResponse.json({ error: "Failed to start trial" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to start trial" },
+      { status: 500 }
+    );
   }
 }

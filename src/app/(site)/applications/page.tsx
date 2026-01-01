@@ -34,19 +34,19 @@ export default async function ApplicationsPage() {
   });
 
   const inprogressApplications = await prisma.application.findMany({
-  where: {
-    status: {
-      in: [
-        LoanStatus.ASSIGNED_TO_LENDER,
-        LoanStatus.IN_PROGRESS,
-        LoanStatus.IN_CHAT,
-      ],
+    where: {
+      status: {
+        in: [
+          LoanStatus.ASSIGNED_TO_POTENTIAL_LENDER,
+          LoanStatus.ASSIGNED_TO_LENDER,
+          LoanStatus.IN_PROGRESS,
+          LoanStatus.IN_CHAT,
+        ],
+      },
+      userId: session?.user?.id,
     },
-    userId: session?.user?.id,
-  },
-  orderBy: { createdAt: "desc" },
-});
-
+    orderBy: { createdAt: "desc" },
+  });
 
   const approvedOrRejectedApplications = await prisma.application.findMany({
     where: {
@@ -60,12 +60,12 @@ export default async function ApplicationsPage() {
 
   return (
     <Section className="py-12">
-      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent">
+      <h1 className="mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
         My Applications
       </h1>
 
       <Tabs defaultValue="open" className="w-full">
-        <TabsList className="mb-6 mt-8  flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-start">
+        <TabsList className="mb-6 mt-8 flex flex-col gap-2 sm:flex-row sm:justify-start sm:gap-4">
           <TabsTrigger value="open" className="w-full sm:w-auto">
             Open Applications{" "}
             <Badge variant="secondary" className="ml-2">
@@ -88,7 +88,7 @@ export default async function ApplicationsPage() {
 
         <TabsContent value="open">
           {openApplications.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-16 sm:mt-0">
+            <div className="mt-16 grid grid-cols-1 gap-4 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3">
               {openApplications.map((app) => (
                 <Link
                   key={app.id}
@@ -97,10 +97,10 @@ export default async function ApplicationsPage() {
                 >
                   <Card
                     key={app.id}
-                    className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200"
+                    className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg"
                   >
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -111,7 +111,7 @@ export default async function ApplicationsPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -125,7 +125,7 @@ export default async function ApplicationsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">
@@ -177,14 +177,14 @@ export default async function ApplicationsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-8 bg-gray-50 rounded-lg">
+            <p className="rounded-lg bg-gray-50 py-8 text-center text-gray-600">
               No applications found
             </p>
           )}
         </TabsContent>
         <TabsContent value="in-progress">
           {inprogressApplications.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 mt-16 sm:mt-0 lg:grid-cols-3 gap-4">
+            <div className="mt-16 grid grid-cols-1 gap-4 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3">
               {inprogressApplications.map((app) => (
                 <Link
                   key={app.id}
@@ -193,10 +193,10 @@ export default async function ApplicationsPage() {
                 >
                   <Card
                     key={app.id}
-                    className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200"
+                    className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg"
                   >
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -207,7 +207,7 @@ export default async function ApplicationsPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -221,7 +221,7 @@ export default async function ApplicationsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">
@@ -273,14 +273,14 @@ export default async function ApplicationsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-8 bg-gray-50 rounded-lg">
+            <p className="rounded-lg bg-gray-50 py-8 text-center text-gray-600">
               No applications found
             </p>
           )}
         </TabsContent>
         <TabsContent value="approved-rejected">
           {approvedOrRejectedApplications.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 mt-16 sm:mt-0 lg:grid-cols-3 gap-4">
+            <div className="mt-16 grid grid-cols-1 gap-4 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3">
               {approvedOrRejectedApplications.map((app) => (
                 <Link
                   key={app.id}
@@ -289,10 +289,10 @@ export default async function ApplicationsPage() {
                 >
                   <Card
                     key={app.id}
-                    className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200"
+                    className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg"
                   >
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -303,7 +303,7 @@ export default async function ApplicationsPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -317,7 +317,7 @@ export default async function ApplicationsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">
@@ -369,7 +369,7 @@ export default async function ApplicationsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-8 bg-gray-50 rounded-lg">
+            <p className="rounded-lg bg-gray-50 py-8 text-center text-gray-600">
               No applications found
             </p>
           )}

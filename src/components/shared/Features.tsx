@@ -1,6 +1,13 @@
 "use client";
 import React, { FC, ElementType } from "react";
-import { Zap, Network, FileText, LayoutDashboard, Bell, HeadphonesIcon } from "lucide-react";
+import {
+  Zap,
+  Network,
+  FileText,
+  LayoutDashboard,
+  Bell,
+  HeadphonesIcon,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import Section from "@/components/shared/section";
@@ -26,21 +33,21 @@ const InfoCard: FC<CardProps> = ({ Icon, title, description, index = 0 }) => (
     whileHover={{ y: -5 }}
     viewport={{ once: true }}
   >
-    <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 p-6 transition-all duration-300 hover:shadow-xl dark:shadow-none">
-      <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
+    <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-white to-gray-50 p-6 transition-all duration-300 hover:shadow-xl dark:from-gray-900 dark:to-gray-950 dark:shadow-none">
+      <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
       <div className="relative flex flex-col gap-6">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/25">
-            <Icon className="w-6 h-6" />
+            <Icon className="h-6 w-6" />
           </div>
           <h3 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
             {title}
           </h3>
         </div>
-        
+
         <CardContent className="p-0">
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p className="leading-relaxed text-gray-600 dark:text-gray-400">
             {description}
           </p>
         </CardContent>
@@ -91,11 +98,11 @@ export default function ChooseUs() {
 
   return (
     <Section
-      className="bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-950 py-24"
+      className="bg-gradient-to-b from-white to-gray-50 py-24 dark:from-black dark:to-gray-950"
       header="Why Choose QuoteShack"
       subHeader="Experience the future of loan applications with our innovative platform"
     >
-      <div className="grid grid-cols-1 gap-6 mt-16 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {cards.map((card, index) => (
           <InfoCard key={index} {...card} index={index} />
         ))}

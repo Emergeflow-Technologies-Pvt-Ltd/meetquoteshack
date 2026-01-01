@@ -25,7 +25,7 @@ export default function LeaveReviewAction({
     <>
       <Button
         disabled={hasReviewed}
-        className="bg-violet-600 hover:bg-violet-700 text-white gap-2 disabled:opacity-50"
+        className="gap-2 bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50"
         onClick={() => {
           if (hasReviewed) {
             alert("You have already submitted a review for this agent.");
@@ -34,10 +34,9 @@ export default function LeaveReviewAction({
           setOpen(true);
         }}
       >
-        <Star className="w-4 h-4" />
+        <Star className="h-4 w-4" />
         {hasReviewed ? "Review Submitted" : "Leave a Review"}
       </Button>
-
 
       <LeaveReviewModal
         open={open}
@@ -49,4 +48,3 @@ export default function LeaveReviewAction({
     </>
   );
 }
-

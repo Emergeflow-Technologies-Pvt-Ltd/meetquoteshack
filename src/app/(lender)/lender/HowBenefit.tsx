@@ -47,14 +47,14 @@ const benefits = [
 
 export default function HowBenefit() {
   return (
-    <Section className="bg-violet-50 py-16 mt-20" fullWidth={true}>
-      <div className="px-4 lg:px-0 max-w-7xl mx-auto">
+    <Section className="mt-20 bg-violet-50 py-16" fullWidth={true}>
+      <div className="mx-auto max-w-7xl px-4 lg:px-0">
         <h1 className="text-center text-3xl font-bold">How You Benefit</h1>
-        <div className="mt-10 pb-5 mx-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mx-5 mt-10 grid grid-cols-1 gap-6 pb-5 md:grid-cols-2 lg:grid-cols-4">
           {benefits.map((benefit) => (
             <Card
               key={benefit.title}
-              className="shadow-xl hover:shadow-2xl p-5 rounded-2xl cursor-pointer transition duration-400 transform hover:scale-105"
+              className="duration-400 transform cursor-pointer rounded-2xl p-5 shadow-xl transition hover:scale-105 hover:shadow-2xl"
             >
               <CardHeader>
                 <Image
@@ -67,7 +67,7 @@ export default function HowBenefit() {
               </CardHeader>
 
               <CardContent className="text-center">
-                <h3 className="font-bold text-lg">{benefit.title}</h3>
+                <h3 className="text-lg font-bold">{benefit.title}</h3>
                 <ul className="list-none pl-2 opacity-70">
                   {benefit.description.map((item, index) => (
                     <li key={index}>{item}</li>

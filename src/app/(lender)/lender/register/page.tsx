@@ -89,16 +89,16 @@ export default function RegisterAsLender() {
   };
 
   return (
-    <Section className="mt-20 ">
-      <div className="max-w-3xl mx-auto">
+    <Section className="mt-20">
+      <div className="mx-auto max-w-3xl">
         <Card className="p-6">
           {" "}
           {/* Wrapping the form in a Card component */}
           <CardHeader className="mb-8">
-            <CardTitle className="text-center text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-center text-3xl font-bold text-transparent">
               Become a Lender
             </CardTitle>
-            <p className="text-center mt-2 text-muted-foreground">
+            <p className="mt-2 text-center text-muted-foreground">
               Join our network of trusted lenders and start investing today
             </p>
           </CardHeader>
@@ -108,7 +108,7 @@ export default function RegisterAsLender() {
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-6"
               >
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     render={({ field }) => (
                       <FormItem>
@@ -137,7 +137,7 @@ export default function RegisterAsLender() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     render={({ field }) => (
                       <FormItem>
@@ -166,7 +166,7 @@ export default function RegisterAsLender() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     render={({ field }) => (
                       <FormItem>
@@ -226,7 +226,7 @@ export default function RegisterAsLender() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     render={({ field }) => (
                       <FormItem>
@@ -266,7 +266,7 @@ export default function RegisterAsLender() {
                 </div>
 
                 <div className="mt-6 space-y-4">
-                  <p className="text-sm text-gray-600 bg-gray-100 border border-gray-300 p-3 rounded-md">
+                  <p className="rounded-md border border-gray-300 bg-gray-100 p-3 text-sm text-gray-600">
                     <strong className="text-purple-700">Important:</strong>{" "}
                     Please make sure to remember the <strong>email</strong> and{" "}
                     <strong>password</strong> you just entered. You’ll need them
@@ -275,7 +275,7 @@ export default function RegisterAsLender() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-medium py-6 rounded-lg transition-all duration-300"
+                    className="w-full rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 py-6 font-medium text-white transition-all duration-300 hover:from-violet-600 hover:to-purple-700"
                   >
                     {isSubmitting ? "Submitting..." : "Submit Application"}
                   </Button>

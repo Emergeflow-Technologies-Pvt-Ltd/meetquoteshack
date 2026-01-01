@@ -28,8 +28,8 @@ import { FinancialStep } from "@/components/shared/loan-application/FinancialSte
 import {
   generalLoanFormSchema,
   GeneralLoanFormValues,
-} from "@/app/(site)/loan-application/types";
-import { formSteps } from "@/app/(site)/loan-application/steps";
+} from "@/app/(site)/loanee/loan-application/types";
+import { formSteps } from "@/app/(site)/loanee/loan-application/steps";
 import { LoanType } from "@prisma/client";
 
 type LoaneePlan = "LOANEE_STAY_SMART" | "LOANEE_BASIC";
@@ -43,7 +43,6 @@ function normalizeLoaneePlan(
   return null;
 }
 
-
 export default function GeneralLoanForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
@@ -51,31 +50,28 @@ export default function GeneralLoanForm() {
   const { data: session } = useSession();
 
   const [access, setAccess] = useState<{
-  subscription?: { plan?: string | null };
-  freeTierActive?: boolean;
-} | null>(null);
+    subscription?: { plan?: string | null };
+    freeTierActive?: boolean;
+  } | null>(null);
 
-const subscriptionPlan = normalizeLoaneePlan(
-  access?.subscription?.plan
-);
+  const subscriptionPlan = normalizeLoaneePlan(access?.subscription?.plan);
   const freeTierActive = access?.freeTierActive ?? false;
 
   useEffect(() => {
-  const fetchAccess = async () => {
-    if (!session?.user) return;
+    const fetchAccess = async () => {
+      if (!session?.user) return;
 
-    try {
-      const res = await axios.get("/api/subscription/access");
-      setAccess(res.data);
-    } catch (err) {
-      console.error("Failed to fetch access info", err);
-      setAccess(null);
-    }
-  };
+      try {
+        const res = await axios.get("/api/subscription/access");
+        setAccess(res.data);
+      } catch (err) {
+        console.error("Failed to fetch access info", err);
+        setAccess(null);
+      }
+    };
 
-  fetchAccess();
-}, [session]);
-
+    fetchAccess();
+  }, [session]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -99,59 +95,59 @@ const subscriptionPlan = normalizeLoaneePlan(
     "CAR",
   ];
 
-const form = useForm<GeneralLoanFormValues>({
-  resolver: zodResolver(generalLoanFormSchema),
-  defaultValues: {
-    loanType: undefined,
-    childCareBenefit: undefined,
-    estimatedPropertyValue: undefined,
-    hasCoApplicant: undefined,
-    monthlyDebts: undefined,
-    monthlyDebtsExist: undefined,
-    otherIncome: undefined,
-    otherIncomeAmount: undefined,
-    savings: undefined,
-    sin: undefined,
-    isAdult: false,
-    downPayment: undefined,
-    vehicleType: undefined,
-    houseType: undefined,
-    tradeInCurrentVehicle: undefined,
-    hasBankruptcy: false,
-    firstName: "",
-    lastName: "",
-    personalEmail: "",
-    personalPhone: "",
-    dateOfBirth: undefined,
-    maritalStatus: undefined,
-    currentAddress: "",
-    yearsAtCurrentAddress: undefined,
-    housingStatus: undefined,
-    housingPayment: undefined,
-    residencyStatus: undefined,
-    mortgage : undefined,
-    condoFees : undefined,
-    propertyTaxMonthly: undefined,
-    homeInsurance: undefined,
-    monthlyCarLoanPayment : undefined,
-    monthlyCreditCardMinimums : undefined,
-    monthlyOtherLoanPayments : undefined,
-    heatingCosts: undefined,
-    generalEducationLevel: undefined,
-    generalFieldOfStudy: "",
-    employmentStatus: undefined,
-    grossIncome: undefined,
-    workplaceName: "",
-    workplaceAddress: "",
-    workplacePhone: "",
-    workplaceEmail: "",
-    loanAmount: undefined,
-    creditScore: undefined,
-    agentCode: "",
-  },
-  mode: "onSubmit",
-  reValidateMode: "onChange",
-});
+  const form = useForm<GeneralLoanFormValues>({
+    resolver: zodResolver(generalLoanFormSchema),
+    defaultValues: {
+      loanType: undefined,
+      childCareBenefit: undefined,
+      estimatedPropertyValue: undefined,
+      hasCoApplicant: false,
+      monthlyDebts: undefined,
+      monthlyDebtsExist: undefined,
+      otherIncome: undefined,
+      otherIncomeAmount: undefined,
+      savings: undefined,
+      sin: undefined,
+      isAdult: false,
+      downPayment: undefined,
+      vehicleType: undefined,
+      houseType: undefined,
+      tradeInCurrentVehicle: undefined,
+      hasBankruptcy: false,
+      firstName: "",
+      lastName: "",
+      personalEmail: "",
+      personalPhone: "",
+      dateOfBirth: undefined,
+      maritalStatus: undefined,
+      currentAddress: "",
+      yearsAtCurrentAddress: undefined,
+      housingStatus: undefined,
+      housingPayment: undefined,
+      residencyStatus: undefined,
+      mortgage: undefined,
+      condoFees: undefined,
+      propertyTaxMonthly: undefined,
+      homeInsurance: undefined,
+      monthlyCarLoanPayment: undefined,
+      monthlyCreditCardMinimums: undefined,
+      monthlyOtherLoanPayments: undefined,
+      heatingCosts: undefined,
+      generalEducationLevel: undefined,
+      generalFieldOfStudy: "",
+      employmentStatus: undefined,
+      grossIncome: undefined,
+      workplaceName: "",
+      workplaceAddress: "",
+      workplacePhone: "",
+      workplaceEmail: "",
+      loanAmount: undefined,
+      creditScore: undefined,
+      agentCode: "",
+    },
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+  });
 
   const watchLoanType = form.watch("loanType");
   const watchEstimatedPropertyValue = form.watch("estimatedPropertyValue");
@@ -231,7 +227,15 @@ const form = useForm<GeneralLoanFormValues>({
         "workplaceEmail",
       ],
       // step 5: Financial details
-      5: ["monthlyDebtsExist", "monthlyDebts", "savings", "otherIncome", "otherIncomeAmount", "creditScore", "childCareBenefit"],
+      5: [
+        "monthlyDebtsExist",
+        "monthlyDebts",
+        "savings",
+        "otherIncome",
+        "otherIncomeAmount",
+        "creditScore",
+        "childCareBenefit",
+      ],
       // step 6: Final loan details
       6: ["loanAmount", "hasCoApplicant"],
     };
@@ -356,65 +360,60 @@ const form = useForm<GeneralLoanFormValues>({
     setCurrentStep(currentStep - 1);
   }
 
-const handleFinalSubmit = form.handleSubmit(
-  onSubmit,
-  (errors) => {
+  const handleFinalSubmit = form.handleSubmit(onSubmit, (errors) => {
     console.log("Validation errors on final submit:", errors);
     toast({
       title: "Validation Error",
       description: "Please fix the highlighted fields before submitting.",
       variant: "destructive",
     });
-  }
-);
+  });
 
+  async function onSubmit(data: GeneralLoanFormValues) {
+    try {
+      setIsSubmitting(true);
 
+      const payload = {
+        ...data,
+        yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
+        housingPayment: Number(data.housingPayment),
+        grossIncome: Number(data.grossIncome),
+        loanAmount: Number(data.loanAmount),
+      };
 
-async function onSubmit(data: GeneralLoanFormValues) {
-  try {
-    setIsSubmitting(true);
+      const response = await axios.post("/api/apply/general", payload);
+      console.log("API response:", response.data);
 
-    const payload = {
-      ...data,
-      yearsAtCurrentAddress: Number(data.yearsAtCurrentAddress),
-      housingPayment: Number(data.housingPayment),
-      grossIncome: Number(data.grossIncome),
-      loanAmount: Number(data.loanAmount),
-    };
+      router.push("/loanee/loan-application/success");
+    } catch (error: unknown) {
+      let description = "Failed to submit form";
 
-    const response = await axios.post("/api/apply/general", payload);
-    console.log("API response:", response.data);
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { error?: string } } }).response
+          ?.data?.error === "string"
+      ) {
+        description = (error as { response: { data: { error: string } } })
+          .response.data.error;
+      }
 
-    router.push("/loan-application/success");
-  } catch (error: unknown) {
-    let description = "Failed to submit form";
-
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "response" in error &&
-      typeof (error as { response?: { data?: { error?: string } } }).response
-        ?.data?.error === "string"
-    ) {
-      description = (error as { response: { data: { error: string } } })
-        .response.data.error;
+      toast({
+        title: "Submission Error",
+        description,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    toast({
-      title: "Submission Error",
-      description,
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmitting(false);
   }
-}
 
   return (
     <Section className="py-24">
-      <Card className="w-full max-w-4xl mx-auto">
+      <Card className="mx-auto w-full max-w-4xl">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-center text-2xl font-bold">
             Loan Application
           </CardTitle>
           <FormHeader currentStep={currentStep} steps={formSteps} />
@@ -422,11 +421,11 @@ async function onSubmit(data: GeneralLoanFormValues) {
 
         <Form {...form}>
           <form
-    onSubmit={(e) => {
-      e.preventDefault();
-    }}
-    className="space-y-8 p-6"
-  >
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="space-y-8 p-6"
+          >
             {currentStep === 0 && (
               <EligibilityStep
                 form={form as UseFormReturn<GeneralLoanFormValues>}
@@ -452,20 +451,20 @@ async function onSubmit(data: GeneralLoanFormValues) {
                 form={form as UseFormReturn<GeneralLoanFormValues>}
               />
             )}
-            
+
             {currentStep === 5 && (
               <FinancialStep
                 form={form as UseFormReturn<GeneralLoanFormValues>}
               />
             )}
-            
-{currentStep === 6 && (
-  <GeneralLoanStep
-    form={form as UseFormReturn<GeneralLoanFormValues>}
-    subscriptionPlan={subscriptionPlan}
-    freeTierActive={freeTierActive}
-  />
-)}
+
+            {currentStep === 6 && (
+              <GeneralLoanStep
+                form={form as UseFormReturn<GeneralLoanFormValues>}
+                subscriptionPlan={subscriptionPlan}
+                freeTierActive={freeTierActive}
+              />
+            )}
 
             <div className="flex justify-between pt-4">
               <Button
@@ -488,13 +487,13 @@ async function onSubmit(data: GeneralLoanFormValues) {
                   Next
                 </Button>
               ) : (
-               <Button
-          type="button"
-          onClick={() => handleFinalSubmit()}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Submitting..." : "Submit"}
-        </Button>
+                <Button
+                  type="button"
+                  onClick={() => handleFinalSubmit()}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
+                </Button>
               )}
             </div>
           </form>

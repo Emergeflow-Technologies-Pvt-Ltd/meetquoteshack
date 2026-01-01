@@ -1,6 +1,5 @@
-// src/app/lender/start/page.tsx
-import PaywallClient from "@/components/shared/PaywallClient";
+import { redirect } from "next/navigation";
 
 export default function LenderStartPage() {
-  return <PaywallClient initialMode="chooser" />;
+  redirect("/lender/dashboard");
 }

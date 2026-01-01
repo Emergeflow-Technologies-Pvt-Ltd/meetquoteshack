@@ -5,7 +5,17 @@ import { Mail, MapPin, PhoneOutgoing } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
-const ContactCard = ({ Icon, title, content, email }: { Icon: React.ComponentType<unknown>, title: string, content: string, email: string }) => (
+const ContactCard = ({
+  Icon,
+  title,
+  content,
+  email,
+}: {
+  Icon: React.ComponentType<unknown>;
+  title: string;
+  content: string;
+  email: string;
+}) => (
   <motion.div
     initial={{
       opacity: 0,
@@ -23,9 +33,7 @@ const ContactCard = ({ Icon, title, content, email }: { Icon: React.ComponentTyp
     whileHover={{ scale: 1.02 }}
     viewport={{ once: true }}
   >
-    <Card
-      className="flex flex-col items-center justify-center text-center"
-    >
+    <Card className="flex flex-col items-center justify-center text-center">
       <CardHeader>
         <Icon />
       </CardHeader>
@@ -34,7 +42,7 @@ const ContactCard = ({ Icon, title, content, email }: { Icon: React.ComponentTyp
       </h2>
       <CardContent>
         <p className="mt-2 text-gray-500">{content}</p>
-        <p className="mt-2 text-primary-800">{email}</p>
+        <p className="text-primary-800 mt-2">{email}</p>
       </CardContent>
     </Card>
   </motion.div>
@@ -42,12 +50,8 @@ const ContactCard = ({ Icon, title, content, email }: { Icon: React.ComponentTyp
 
 export default function Contact() {
   return (
-    <Section
-      id="contact"
-      className="px-4 py-10 md:py-20"
-      header="Get In Touch"
-    >
-      <div className="grid grid-cols-1 gap-12 mt-16 md:grid-cols-2 lg:grid-cols-3">
+    <Section id="contact" className="px-4 py-10 md:py-20" header="Get In Touch">
+      <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3">
         <ContactCard
           Icon={Mail as React.ComponentType<unknown>}
           title="Email"

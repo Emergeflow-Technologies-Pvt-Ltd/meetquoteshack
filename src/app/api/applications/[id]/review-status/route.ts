@@ -63,7 +63,6 @@ export async function POST(req: Request) {
       );
     }
 
-
     // ✅ Prevent duplicate review
     const existingReview = await prisma.agentReview.findUnique({
       where: { applicationId },
@@ -89,9 +88,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ review });
   } catch (error) {
     console.error("POST /agent-reviews error:", error);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

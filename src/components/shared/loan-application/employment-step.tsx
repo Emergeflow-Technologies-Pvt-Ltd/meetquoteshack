@@ -173,7 +173,8 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
               return (
                 <FormItem>
                   <FormLabel>
-                    Total Work Experience <span className="text-red-500">*</span>
+                    Total Work Experience{" "}
+                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -197,6 +198,6 @@ export function EmploymentStep({ form }: EmploymentStepProps) {
           />
         </div>
       </div>
-      </div>
+    </div>
   );
 }

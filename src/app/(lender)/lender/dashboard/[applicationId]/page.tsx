@@ -40,9 +40,9 @@ export default function ApplicationDetailsPage({
   const [loading, setLoading] = useState(false);
   const { applicationId } = use(params);
   const { data: session } = useSession();
-  const [messages, setMessages] = useState<
-    Prisma.MessageGetPayload<object>[]
-  >([]);
+  const [messages, setMessages] = useState<Prisma.MessageGetPayload<object>[]>(
+    []
+  );
 
   const [prevStatus, setPrevStatus] = useState<LoanStatus | null>(null);
   const [justUnlocked, setJustUnlocked] = useState(false);
@@ -187,7 +187,6 @@ export default function ApplicationDetailsPage({
     }
   };
 
-
   if (!application) {
     return (
       <Section className="py-12">
@@ -209,21 +208,23 @@ export default function ApplicationDetailsPage({
   return (
     <Section className="py-12">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${application.status === LoanStatus.IN_PROGRESS ||
+        className={`flex flex-col md:mb-6 lg:flex-row lg:gap-6 ${
+          application.status === LoanStatus.IN_PROGRESS ||
           application.status === LoanStatus.IN_CHAT
-          ? "h-auto lg:h-[88vh]"
-          : ""
-          }`}
+            ? "h-auto lg:h-[88vh]"
+            : ""
+        }`}
       >
         <div
-          className={`flex-1 space-y-4 ${application.status === LoanStatus.IN_PROGRESS ||
+          className={`flex-1 space-y-4 ${
+            application.status === LoanStatus.IN_PROGRESS ||
             application.status === LoanStatus.IN_CHAT
-            ? "overflow-y-auto lg:pr-4 mb-6"
-            : ""
-            }`}
+              ? "mb-6 overflow-y-auto lg:pr-4"
+              : ""
+          }`}
         >
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-20 pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
+          <div className="sticky top-0 z-20 flex flex-col gap-4 bg-white pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
               <Button
                 variant="outline"
                 onClick={() => router.back()}
@@ -241,10 +242,10 @@ export default function ApplicationDetailsPage({
               </div>
             </div>
 
-            <div className="sm:flex space-x-4">
+            <div className="space-x-4 sm:flex">
               {isPotential ? (
                 <Button
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-purple-600 text-white hover:bg-purple-700"
                   onClick={() => setShowPayPerMatchModal(true)}
                   disabled={loading}
                 >
@@ -254,23 +255,23 @@ export default function ApplicationDetailsPage({
                 <>
                   {(application.status === LoanStatus.IN_PROGRESS ||
                     application.status === LoanStatus.IN_CHAT) && (
-                      <>
-                        <Button
-                          variant="default"
-                          onClick={handleApproveApplication}
-                          disabled={loading}
-                        >
-                          {loading ? "Processing..." : "Approve Loan"}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={handleRejectApplication}
-                          disabled={loading}
-                        >
-                          {loading ? "Processing..." : "Reject Loan"}
-                        </Button>
-                      </>
-                    )}
+                    <>
+                      <Button
+                        variant="default"
+                        onClick={handleApproveApplication}
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Approve Loan"}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleRejectApplication}
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Reject Loan"}
+                      </Button>
+                    </>
+                  )}
 
                   {application.status !== LoanStatus.IN_PROGRESS &&
                     application.status !== LoanStatus.IN_CHAT &&
@@ -291,8 +292,8 @@ export default function ApplicationDetailsPage({
           {justUnlocked && (
             <div className="mb-2 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
               <span>
-                <span className="font-semibold">Match unlocked.</span>{" "}
-                Full loanee details and documents are now visible.
+                <span className="font-semibold">Match unlocked.</span> Full
+                loanee details and documents are now visible.
               </span>
               <span className="ml-3 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">
                 Unlocked
@@ -301,7 +302,7 @@ export default function ApplicationDetailsPage({
           )}
 
           <div className="grid grid-cols-1 gap-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {isPotential ? (
                 <LockedSection
                   title="Personal Information"
@@ -330,15 +331,15 @@ export default function ApplicationDetailsPage({
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-blue-600" />
+                        <FileText className="h-5 w-5 text-blue-600" />
                         Submitted Documents
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {application.documents.length > 0 ? (
                           application.documents.map((doc) => (
-                            <div key={doc.id} className="p-4 border rounded-lg">
+                            <div key={doc.id} className="rounded-lg border p-4">
                               <p className="font-medium">
                                 {documentTypeLabels[doc.documentType]}
                               </p>
@@ -358,7 +359,9 @@ export default function ApplicationDetailsPage({
                             </div>
                           ))
                         ) : (
-                          <p className="text-gray-500">No documents submitted</p>
+                          <p className="text-gray-500">
+                            No documents submitted
+                          </p>
                         )}
                       </div>
                     </CardContent>
@@ -395,22 +398,19 @@ export default function ApplicationDetailsPage({
         applicationId={application.id}
         role="LENDER"
       />
-
     </Section>
   );
 }
 
-
 function LockedDocsAndPrequalSection() {
   return (
-    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 min-h-[260px]">
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
+    <Card className="relative min-h-[260px] overflow-hidden border border-dashed bg-gray-300/40">
+      <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-sm" />
       <CardHeader className="relative z-10 pb-2">
-        <CardTitle className="flex flex-col gap-1 text-sm">
-        </CardTitle>
+        <CardTitle className="flex flex-col gap-1 text-sm"></CardTitle>
       </CardHeader>
       <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-purple-100">
           <Image
             src="/lock.svg"
             alt="Locked"
@@ -420,13 +420,12 @@ function LockedDocsAndPrequalSection() {
             priority
           />
         </div>
-        <p className="text-xs text-gray-600 max-w-sm">
+        <p className="max-w-sm text-xs text-gray-600">
           Unlock verified loanee details instantly with Pay Per Match.
         </p>
       </CardContent>
     </Card>
   );
-
 }
 
 function LockedSection({
@@ -437,18 +436,18 @@ function LockedSection({
   description: string;
 }) {
   return (
-    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 flex flex-col">
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-md pointer-events-none" />
+    <Card className="relative flex flex-col overflow-hidden border border-dashed bg-gray-300/40">
+      <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-md" />
 
-      <CardHeader className="relative z-10 pb-4 bg-white">
+      <CardHeader className="relative z-10 bg-white pb-4">
         <CardTitle className="flex items-center gap-2">
-          <User className="w-5 h-5 text-blue-600" />
+          <User className="h-5 w-5 text-blue-600" />
           {title}
         </CardTitle>
       </CardHeader>
 
       <CardContent className="relative z-10 flex flex-1 flex-col items-center justify-center text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100/70 mb-3">
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-purple-100/70">
           <Image
             src="/lock.svg"
             alt="Locked"
@@ -458,7 +457,7 @@ function LockedSection({
             priority
           />
         </div>
-        <p className="text-xs text-gray-600 max-w-sm">{description}</p>
+        <p className="max-w-sm text-xs text-gray-600">{description}</p>
       </CardContent>
     </Card>
   );

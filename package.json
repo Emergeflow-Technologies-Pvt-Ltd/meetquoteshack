@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "docker:dev": "cd Docker/development && docker compose -p quoteshack_stack up --build -d",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
@@ -88,6 +90,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.3",
     "postcss": "^8",
+    "prettier": "^3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.21.0",
     "typescript": "^5"

@@ -43,7 +43,7 @@ const HeroImage: FC<ImageProps> = ({ src, index = 0 }) => (
       width={500}
       height={500}
       layout="responsive"
-      className={`w-full md:max-w-[600px] h-auto rounded-xl opacity-90 ${
+      className={`h-auto w-full rounded-xl opacity-90 md:max-w-[600px] ${
         index === 0 ? "" : index === 1 ? "mt-10" : "mt-20"
       }`}
     />
@@ -55,7 +55,7 @@ export default function Hero() {
   const { toast } = useToast();
   const router = useRouter();
 
-    const handleFindLoanClick = () => {
+  const handleFindLoanClick = () => {
     const role = session?.user?.role;
 
     if (!session) {
@@ -66,11 +66,12 @@ export default function Hero() {
 
     // If session exists, never open the loanee login page
     if (role === "LOANEE") {
-      router.push("/loan-application");
+      router.push("/loanee/loan-application");
     } else if (role === "LENDER") {
       toast({
         title: "Access Denied",
-        description: "You are logged in as a lender. Please log out to apply as a loanee.",
+        description:
+          "You are logged in as a lender. Please log out to apply as a loanee.",
         variant: "destructive",
       });
     } else {
@@ -112,11 +113,11 @@ export default function Hero() {
   };
 
   return (
-    <Section id="hero" className="relative overflow-hidden pt-48 mb-32 w-full">
+    <Section id="hero" className="relative mb-32 w-full overflow-hidden pt-48">
       <div className="container mx-auto">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 px-4 lg:px-0">
+        <div className="flex flex-col items-center justify-between gap-10 px-4 lg:flex-row lg:px-0">
           <div className="max-w-3xl text-center lg:text-start">
-            <div className="flex items-center gap-1 justify-center md:justify-start">
+            <div className="flex items-center justify-center gap-1 md:justify-start">
               <FileStack size={20} />
               <p className="inline-block font-semibold md:text-lg">
                 Simplify your loan application
@@ -124,9 +125,9 @@ export default function Hero() {
             </div>
 
             <div className="mt-5">
-              <h1 className="qs-heading block font-bold opacity-90 text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-black dark:text-white">
+              <h1 className="qs-heading block text-4xl font-bold text-black opacity-90 dark:text-white md:text-5xl lg:text-6xl xl:text-7xl">
                 The World&apos;s Smartest Quick
-                <span className="inline-block text-primary px-2">
+                <span className="inline-block px-2 text-primary">
                   Loan Matching
                 </span>
                 Platform
@@ -134,23 +135,23 @@ export default function Hero() {
             </div>
 
             <div className="my-5">
-              <p className="max-w-2xl md:text-lg opacity-70 text-gray-700 dark:text-gray-300">
+              <p className="max-w-2xl text-gray-700 opacity-70 dark:text-gray-300 md:text-lg">
                 QuoteShack matches borrowers with the best quick loan types,
                 lenders and rates based on their financial behaviour.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Button
-                  className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
-                  size="lg"
-                  onClick={handleFindLoanClick}
-                >
-                  Find A Loan
-                </Button>
+            <div className="flex flex-col justify-center gap-4 sm:flex-row md:justify-start">
+              <Button
+                className="rounded-lg bg-violet-600 px-8 py-6 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:bg-violet-700 hover:shadow-xl"
+                size="lg"
+                onClick={handleFindLoanClick}
+              >
+                Find A Loan
+              </Button>
 
               <Button
                 variant="outline"
-                className="border-violet-600 text-violet-600 hover:bg-violet-50 px-8 py-6 text-lg rounded-lg transition-all duration-200 font-semibold"
+                className="rounded-lg border-violet-600 px-8 py-6 text-lg font-semibold text-violet-600 transition-all duration-200 hover:bg-violet-50"
                 size="lg"
                 onClick={handleBecomeLenderClick}
               >
@@ -158,12 +159,12 @@ export default function Hero() {
               </Button>
             </div>
 
-            <div className="mt-10 flex items-center gap-6 justify-center md:justify-start">
+            <div className="mt-10 flex items-center justify-center gap-6 md:justify-start">
               <div className="flex -space-x-2">
                 {[...Array(4)].map((_, i) => (
                   <div
                     key={i}
-                    className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-200 to-blue-200 border-2 border-white"
+                    className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-violet-200 to-blue-200"
                   />
                 ))}
               </div>
@@ -175,7 +176,7 @@ export default function Hero() {
                   {[...Array(5)].map((_, i) => (
                     <svg
                       key={i}
-                      className="w-4 h-4"
+                      className="h-4 w-4"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -188,7 +189,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-5">
+          <div className="grid grid-cols-1 gap-6 pb-5 md:grid-cols-3">
             {images.map((image, index) => (
               <HeroImage key={index} {...image} index={index} />
             ))}

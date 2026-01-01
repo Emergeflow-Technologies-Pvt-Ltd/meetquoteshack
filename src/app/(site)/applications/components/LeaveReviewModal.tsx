@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
 
 type Props = {
   open: boolean;
@@ -16,21 +20,20 @@ type Props = {
   agent: {
     id: string;
     name: string;
-
   };
-}
+};
 
 export default function LeaveReviewModal({
-    open,
-    onClose,
-    agentId,
-    applicationId,
-    agent,
-  }: Props) {
+  open,
+  onClose,
+  agentId,
+  applicationId,
+  agent,
+}: Props) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const initials = agent.name
     .split(" ")
     .map((n) => n[0])
@@ -42,18 +45,15 @@ export default function LeaveReviewModal({
 
     setLoading(true);
 
-    const res = await fetch(
-      `/api/agent/${agentId}/reviews`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicationId,
-          rating,
-          comment,
-        }),
-      }
-    );
+    const res = await fetch(`/api/agent/${agentId}/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        applicationId,
+        rating,
+        comment,
+      }),
+    });
 
     setLoading(false);
 
@@ -67,24 +67,23 @@ export default function LeaveReviewModal({
     window.location.reload();
   }
 
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden">
-        <div className="px-6 pt-6 pb-2">
+      <DialogContent className="max-w-lg overflow-hidden p-0">
+        <div className="px-6 pb-2 pt-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
               Rate Your Agent
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             Your feedback helps us improve the experience.
           </p>
         </div>
 
         <div className="px-6">
-          <div className="flex items-center gap-4 bg-violet-50 rounded-lg p-4">
-            <div className="h-10 w-10 rounded-full bg-violet-600 text-white flex items-center justify-center font-semibold">
+          <div className="flex items-center gap-4 rounded-lg bg-violet-50 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-600 font-semibold text-white">
               {initials}
             </div>
             <div>
@@ -96,9 +95,9 @@ export default function LeaveReviewModal({
           </div>
         </div>
 
-        <div className="px-6 py-6 space-y-6">
+        <div className="space-y-6 px-6 py-6">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="mb-2 block text-sm font-medium">
               Star Rating <span className="text-red-500">*</span>
             </label>
 
@@ -107,21 +106,22 @@ export default function LeaveReviewModal({
                 <Star
                   key={i}
                   onClick={() => setRating(i)}
-                  className={`w-7 h-7 cursor-pointer transition ${i <= rating
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                    }`}
+                  className={`h-7 w-7 cursor-pointer transition ${
+                    i <= rating
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-300"
+                  }`}
                 />
               ))}
             </div>
 
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-gray-500">
               Select a rating from 1 to 5
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="mb-2 block text-sm font-medium">
               Your Feedback <span className="text-red-500">*</span>
             </label>
 
@@ -134,9 +134,9 @@ export default function LeaveReviewModal({
           </div>
         </div>
 
-        <div className="px-6 pb-6 space-y-3">
+        <div className="space-y-3 px-6 pb-6">
           <Button
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white text-base py-6"
+            className="w-full bg-violet-600 py-6 text-base text-white hover:bg-violet-700"
             onClick={submitReview}
             disabled={rating === 0 || loading}
           >
@@ -145,13 +145,12 @@ export default function LeaveReviewModal({
 
           <button
             onClick={onClose}
-            className="w-full text-center text-gray-500 hover:text-gray-700 text-sm"
+            className="w-full text-center text-sm text-gray-500 hover:text-gray-700"
           >
             Cancel
           </button>
         </div>
       </DialogContent>
     </Dialog>
-
   );
 }

@@ -23,7 +23,11 @@ const PLANS: Plan[] = [
     subtitle: "Perfect for getting started",
     priceLabel: "$25",
     priceSuffix: "/month",
-    features: ["Access to lending pool", "Collect borrower document", "Chat with borrowers"],
+    features: [
+      "Access to lending pool",
+      "Collect borrower document",
+      "Chat with borrowers",
+    ],
   },
   {
     id: "smart",
@@ -31,7 +35,13 @@ const PLANS: Plan[] = [
     subtitle: "Most popular for growing lenders",
     priceLabel: "$49",
     priceSuffix: "/month",
-    features: ["Access to lending pool", "Collect borrower document", "Chat with borrowers", "Risk assessment report", "Analytics reports"],
+    features: [
+      "Access to lending pool",
+      "Collect borrower document",
+      "Chat with borrowers",
+      "Risk assessment report",
+      "Analytics reports",
+    ],
     badge: { text: "Most Popular", bg: "#7C3AED", textColor: "#fff" },
     featured: true,
   },
@@ -46,7 +56,9 @@ export default function SubscribeModalLoanee({
   onClose: () => void;
   initialPlanId?: string;
 }) {
-  const [selectedId, setSelectedId] = useState<string | undefined>(initialPlanId ?? PLANS[0].id);
+  const [selectedId, setSelectedId] = useState<string | undefined>(
+    initialPlanId ?? PLANS[0].id
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -90,7 +102,6 @@ export default function SubscribeModalLoanee({
       alert("Checkout error: " + msg);
       setLoading(false);
     }
-
   };
 
   const handleProceed = async () => {
@@ -104,21 +115,32 @@ export default function SubscribeModalLoanee({
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-      <div className="relative z-10 w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex items-start justify-between px-6 py-5 border-b">
+      <div className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-start justify-between border-b px-6 py-5">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Select Plan Type</h2>
-            <p className="text-sm text-gray-500 mt-1">Choose the plan that best fits your needs</p>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Select Plan Type
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Choose the plan that best fits your needs
+            </p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X />
           </button>
         </div>
 
         <div className="px-6 py-6">
-          <div className="max-w-3xl mx-auto flex justify-center">
+          <div className="mx-auto flex max-w-3xl justify-center">
             <div className="grid w-full justify-center gap-8 md:grid-cols-2">
               {PLANS.map((plan) => {
                 const active = plan.id === selectedId;
@@ -128,29 +150,43 @@ export default function SubscribeModalLoanee({
                     <div
                       key={plan.id}
                       onClick={() => setSelectedId(plan.id)}
-                      className={`relative w-[368px] min-h-[539px] rounded-[8.44px] border ${active ? "border-violet-400 shadow-lg" : "border-[#E5E7EB]"} bg-white flex flex-col justify-between cursor-pointer`}
+                      className={`relative min-h-[539px] w-[368px] rounded-[8.44px] border ${active ? "border-violet-400 shadow-lg" : "border-[#E5E7EB]"} flex cursor-pointer flex-col justify-between bg-white`}
                     >
-                      <div className="px-5 pt-5 pb-4">
-                        <div className="flex items-center gap-3 mb-2">
+                      <div className="px-5 pb-4 pt-5">
+                        <div className="mb-2 flex items-center gap-3">
                           <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#D1FAE5] text-[#10B981]">
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <svg
+                              className="h-5 w-5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            >
                               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                             </svg>
                           </div>
                         </div>
 
                         <div className="text-left">
-                          <div className="text-[18px] font-semibold text-[#111827]">{plan.title}</div>
-                          <div className="text-[14px] text-[#6B7280] mt-1 mb-5">{plan.subtitle}</div>
+                          <div className="text-[18px] font-semibold text-[#111827]">
+                            {plan.title}
+                          </div>
+                          <div className="mb-5 mt-1 text-[14px] text-[#6B7280]">
+                            {plan.subtitle}
+                          </div>
                         </div>
 
                         <div className="mb-6">
-                          <span className="text-[38px] mt-3 font-bold leading-tight text-[#22C55E]">{plan.priceLabel}</span>
-                          <span className="relative -top-[6px] text-[16px] text-gray-500 ml-1 align-baseline">{plan.priceSuffix}</span>
+                          <span className="mt-3 text-[38px] font-bold leading-tight text-[#22C55E]">
+                            {plan.priceLabel}
+                          </span>
+                          <span className="relative -top-[6px] ml-1 align-baseline text-[16px] text-gray-500">
+                            {plan.priceSuffix}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="px-4 pb-10 pt-4 flex flex-col justify-between flex-1">
+                      <div className="flex flex-1 flex-col justify-between px-4 pb-10 pt-4">
                         <ul className="space-y-2 text-[15px] text-[#111827]">
                           {plan.features.map((f) => (
                             <li key={f} className="flex items-start gap-3">
@@ -166,7 +202,7 @@ export default function SubscribeModalLoanee({
                               setSelectedId(plan.id);
                               window.location.href = "/applications";
                             }}
-                            className="mt-5 mb-8 inline-flex w-full items-center justify-center rounded-md border border-[#22C55E] px-4 py-3 text-[15px] font-semibold text-[#22C55E] hover:bg-[#ECFDF3] transition"
+                            className="mb-8 mt-5 inline-flex w-full items-center justify-center rounded-md border border-[#22C55E] px-4 py-3 text-[15px] font-semibold text-[#22C55E] transition hover:bg-[#ECFDF3]"
                           >
                             Continue Free
                           </button>
@@ -180,7 +216,7 @@ export default function SubscribeModalLoanee({
                   <div
                     key={plan.id}
                     onClick={() => setSelectedId(plan.id)}
-                    className={`relative w-[368px] min-h-[539px] flex flex-col justify-between ${plan.featured ? "border-2 border-violet-400 shadow-lg" : "border border-[#E5E7EB]"} bg-white rounded-[8.44px] cursor-pointer`}
+                    className={`relative flex min-h-[539px] w-[368px] flex-col justify-between ${plan.featured ? "border-2 border-violet-400 shadow-lg" : "border border-[#E5E7EB]"} cursor-pointer rounded-[8.44px] bg-white`}
                   >
                     {plan.badge && (
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -190,27 +226,41 @@ export default function SubscribeModalLoanee({
                       </div>
                     )}
 
-                    <div className="pb-4 pt-5 px-5">
-                      <div className="flex items-center gap-3 mb-2">
+                    <div className="px-5 pb-4 pt-5">
+                      <div className="mb-2 flex items-center gap-3">
                         <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-violet-100 text-violet-600">
-                          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                          >
                             <path d="M12 2l3 7h7l-5.5 4 2 7L12 16 6.5 20l2-7L3 9h7z" />
                           </svg>
                         </div>
                       </div>
 
                       <div className="text-left">
-                        <div className="text-[18px] font-semibold text-gray-900">{plan.title}</div>
-                        <div className="text-sm text-gray-500 mb-5">{plan.subtitle}</div>
+                        <div className="text-[18px] font-semibold text-gray-900">
+                          {plan.title}
+                        </div>
+                        <div className="mb-5 text-sm text-gray-500">
+                          {plan.subtitle}
+                        </div>
                       </div>
 
                       <div className="mt-7">
-                        <span className="text-[38px] mt-3 font-bold leading-tight text-violet-600">{plan.priceLabel}</span>
-                        <span className="relative -top-[6px] text-[16px] text-gray-500 ml-1 align-baseline">{plan.priceSuffix}</span>
+                        <span className="mt-3 text-[38px] font-bold leading-tight text-violet-600">
+                          {plan.priceLabel}
+                        </span>
+                        <span className="relative -top-[6px] ml-1 align-baseline text-[16px] text-gray-500">
+                          {plan.priceSuffix}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="px-4 pb-10 pt-4 flex flex-col justify-between flex-1">
+                    <div className="flex flex-1 flex-col justify-between px-4 pb-10 pt-4">
                       <ul className="space-y-2 text-[15px] text-[#111827]">
                         {plan.features.map((f) => (
                           <li key={f} className="flex items-start gap-3">
@@ -222,7 +272,7 @@ export default function SubscribeModalLoanee({
                       <div>
                         <button
                           onClick={() => startCheckout(plan.id)}
-                          className="mt-5 mb-8 inline-flex w-full items-center justify-center rounded-md bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-violet-700 transition"
+                          className="mb-8 mt-5 inline-flex w-full items-center justify-center rounded-md bg-violet-600 px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-violet-700"
                         >
                           Subscribe
                         </button>
@@ -240,13 +290,17 @@ export default function SubscribeModalLoanee({
             <button
               onClick={handleProceed}
               disabled={loading}
-              className="w-full bg-violet-600 text-white py-3 rounded-lg font-semibold hover:bg-violet-700 transition disabled:opacity-60"
+              className="w-full rounded-lg bg-violet-600 py-3 font-semibold text-white transition hover:bg-violet-700 disabled:opacity-60"
             >
-              {loading ? "Processing..." : selected?.id === "basic" ? "Continue Free" : "Proceed to Payment"}
+              {loading
+                ? "Processing..."
+                : selected?.id === "basic"
+                  ? "Continue Free"
+                  : "Proceed to Payment"}
             </button>
 
             <div className="text-center">
-              <button onClick={onClose} className="text-violet-600 mt-2">
+              <button onClick={onClose} className="mt-2 text-violet-600">
                 Cancel
               </button>
             </div>

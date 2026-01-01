@@ -30,10 +30,11 @@ function YesNoToggle({
       {["true", "false"].map((val) => (
         <label
           key={val}
-          className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${String(value) === val
-            ? "border-gray-400 bg-gray-100"
-            : "border-gray-300 hover:border-gray-400"
-            }`}
+          className={`flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 transition-all ${
+            String(value) === val
+              ? "border-gray-400 bg-gray-100"
+              : "border-gray-300 hover:border-gray-400"
+          }`}
         >
           <input
             type="radio"
@@ -65,40 +66,48 @@ export function FinancialStep({ form }: FinancialStepProps) {
     name: "otherIncome",
   }) as boolean | undefined;
 
-  const mortgage = useWatch({
-    control: form.control,
-    name: "mortgage",
-  }) ?? 0;
-  const propertyTaxMonthly = useWatch({
-    control: form.control,
-    name: "propertyTaxMonthly",
-  }) ?? 0;
-  const condoFees = useWatch({
-    control: form.control,
-    name: "condoFees",
-  }) ?? 0;
-  const heatingCost = useWatch({
-    control: form.control,
-    name: "heatingCosts",
-  }) ?? 0;
-  const homeInsurance = useWatch({
-    control: form.control,
-    name: "homeInsurance",
-  }) ?? 0;
+  const mortgage =
+    useWatch({
+      control: form.control,
+      name: "mortgage",
+    }) ?? 0;
+  const propertyTaxMonthly =
+    useWatch({
+      control: form.control,
+      name: "propertyTaxMonthly",
+    }) ?? 0;
+  const condoFees =
+    useWatch({
+      control: form.control,
+      name: "condoFees",
+    }) ?? 0;
+  const heatingCost =
+    useWatch({
+      control: form.control,
+      name: "heatingCosts",
+    }) ?? 0;
+  const homeInsurance =
+    useWatch({
+      control: form.control,
+      name: "homeInsurance",
+    }) ?? 0;
 
   // other debts
-  const monthlyCarLoanPayment = useWatch({
-    control: form.control,
-    name: "monthlyCarLoanPayment",
-  }) ?? 0;
-  const monthlyCreditCardMinimums = useWatch({
-    control: form.control,
-    name: "monthlyCreditCardMinimums",
-  }) ?? 0;
-  const monthlyOtherLoanPayments = useWatch({
-    control: form.control,
-    name: "monthlyOtherLoanPayments",
-  }) ?? 0;
+  const monthlyCarLoanPayment =
+    useWatch({
+      control: form.control,
+      name: "monthlyCarLoanPayment",
+    }) ?? 0;
+  const monthlyCreditCardMinimums =
+    useWatch({
+      control: form.control,
+      name: "monthlyCreditCardMinimums",
+    }) ?? 0;
+  const monthlyOtherLoanPayments =
+    useWatch({
+      control: form.control,
+      name: "monthlyOtherLoanPayments",
+    }) ?? 0;
 
   const toNumber = useCallback((v: unknown) => {
     if (typeof v === "number") return isFinite(v) ? v : 0;
@@ -163,7 +172,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <FormField
           control={form.control}
           name="savings"
@@ -211,7 +220,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
         />
       </div>
 
-      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
           name="mortgage"
@@ -234,7 +243,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
                 />
               </FormControl>
               <FormMessage />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {housingStatus === HousingStatus.RENT
                   ? "Enter your monthly rent."
                   : "Enter your monthly mortgage payment."}
@@ -245,7 +254,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
       </div>
 
       {monthlyDebtsExist === true && (
-        <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="propertyTaxMonthly"
@@ -422,7 +431,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <FormField
           control={form.control}
           name="otherIncome"
@@ -472,7 +481,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <FormField
           control={form.control}
           name="childCareBenefit"

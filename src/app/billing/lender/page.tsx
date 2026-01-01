@@ -10,91 +10,85 @@ export default function LenderBillingPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [freeTierEndsAt, setFreeTierEndsAt] = useState<string | null>(null);
 
-  const plan = (searchParams.get("plan") ?? "simple") as
-    | "simple"
-    | "standard";
+  const plan = (searchParams.get("plan") ?? "simple") as "simple" | "standard";
   const interval = (searchParams.get("interval") ?? "monthly") as
     | "monthly"
     | "yearly";
 
   useEffect(() => {
-  const startCheckout = async () => {
-    try {
-      // 1️⃣ Ensure free tier is started
-      await fetch("/api/subscription/start-trial", {
-        method: "POST",
-      });
+    const startCheckout = async () => {
+      try {
+        // 1️⃣ Ensure free tier is started
+        await fetch("/api/subscription/start-trial", {
+          method: "POST",
+        });
 
-      // 2️⃣ Then try checkout
-      const res = await fetch("/api/checkout/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, interval }),
-      });
+        // 2️⃣ Then try checkout
+        const res = await fetch("/api/checkout/subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan, interval }),
+        });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
 
-        setError(data.error ?? "Something went wrong");
-        setMessage(data.message ?? null);
-        setFreeTierEndsAt(data.freeTierEndsAt ?? null);
-        return;
+          setError(data.error ?? "Something went wrong");
+          setMessage(data.message ?? null);
+          setFreeTierEndsAt(data.freeTierEndsAt ?? null);
+          return;
+        }
+
+        const data = (await res.json()) as { url?: string };
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          setError("Missing checkout URL");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to start checkout");
       }
+    };
 
-      const data = (await res.json()) as { url?: string };
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError("Missing checkout URL");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to start checkout");
-    }
-  };
-
-  startCheckout();
-}, [plan, interval]);
-
+    startCheckout();
+  }, [plan, interval]);
 
   if (error) {
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="text-center space-y-3 max-w-md">
-        <p className="text-red-600 font-semibold">{error}</p>
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="max-w-md space-y-3 text-center">
+          <p className="font-semibold text-red-600">{error}</p>
 
-        {message && (
-          <p className="text-sm text-gray-600">{message}</p>
-        )}
+          {message && <p className="text-sm text-gray-600">{message}</p>}
 
-        {freeTierEndsAt && (
-          <p className="text-xs text-gray-500">
-            Free access ends on{" "}
-            <span className="font-medium">
-              {new Date(freeTierEndsAt).toLocaleDateString(undefined, {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-})}
-            </span>
-          </p>
-        )}
+          {freeTierEndsAt && (
+            <p className="text-xs text-gray-500">
+              Free access ends on{" "}
+              <span className="font-medium">
+                {new Date(freeTierEndsAt).toLocaleDateString(undefined, {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </p>
+          )}
 
-        <button
-          onClick={() => router.push("/lender/dashboard")}
-          className="mt-4 inline-flex items-center rounded-md bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
-        >
-          Back to dashboard
-        </button>
+          <button
+            onClick={() => router.push("/lender/dashboard")}
+            className="mt-4 inline-flex items-center rounded-md bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+          >
+            Back to dashboard
+          </button>
+        </div>
       </div>
-    </div>
-  );
-}
-
+    );
+  }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="text-center space-y-3">
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="space-y-3 text-center">
         <p className="text-sm text-gray-500">
           Redirecting to secure checkout...
         </p>

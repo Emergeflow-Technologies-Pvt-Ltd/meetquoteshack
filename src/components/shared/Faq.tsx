@@ -14,8 +14,8 @@ interface Props {
 
 const Faq = memo(({ data }: Props) => {
   return (
-    <Section id="faq" header="FAQ" className="py-20 max-w-screen-lg">
-      <div className="text-center space-y-4 max-w-2xl mx-auto px-4 lg:px-0">
+    <Section id="faq" header="FAQ" className="max-w-screen-lg py-20">
+      <div className="mx-auto max-w-2xl space-y-4 px-4 text-center lg:px-0">
         <p className="opacity-70">
           Get answers to all questions you have and boost your knowledge so you
           can save, invest and spend smarter. See all questions here!

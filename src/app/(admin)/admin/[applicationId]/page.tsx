@@ -92,18 +92,12 @@ export default function ApplicationPage({ params }: Props) {
   const fetchRef = useRef(false);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>(
-    []
-  );
+  const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([]);
   const [lenders, setLenders] = useState<User[]>([]);
   const [agents, setAgents] = useState<AgentWithUser[]>([]);
   const [loadingAgents, setLoadingAgents] = useState<boolean>(true);
-  const [selectedLenderId, setSelectedLenderId] = useState<string | null>(
-    null
-  );
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(
-    null
-  );
+  const [selectedLenderId, setSelectedLenderId] = useState<string | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [selectedPotentialLenderIds, setSelectedPotentialLenderIds] = useState<
     string[]
   >([]);
@@ -113,7 +107,8 @@ export default function ApplicationPage({ params }: Props) {
   );
   const [isAssigning, setIsAssigning] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogOpenPotentialLender, setDialogOpenPotentialLender] = useState(false);
+  const [dialogOpenPotentialLender, setDialogOpenPotentialLender] =
+    useState(false);
   const [dialogOpenAgent, setDialogOpenAgent] = useState(false);
   const [isReassignAgent, setIsReassignAgent] = useState(false);
 
@@ -134,7 +129,10 @@ export default function ApplicationPage({ params }: Props) {
         setSelectedLenderId(null);
       }
 
-      if (Array.isArray(app.potentialLenderIds) && app.potentialLenderIds.length) {
+      if (
+        Array.isArray(app.potentialLenderIds) &&
+        app.potentialLenderIds.length
+      ) {
         setSelectedPotentialLenderIds(app.potentialLenderIds);
       } else {
         setSelectedPotentialLenderIds([]);
@@ -222,15 +220,12 @@ export default function ApplicationPage({ params }: Props) {
 
     setAssignmentMode(
       application.assignmentMode ??
-      ((application.potentialLenderIds?.length ?? 0) > 0
-        ? "multi"
-        : "single")
+        ((application.potentialLenderIds?.length ?? 0) > 0 ? "multi" : "single")
     );
 
     setSelectedLenderId(application.lenderId ?? null);
     setSelectedPotentialLenderIds(application.potentialLenderIds ?? []);
   }, [dialogOpen, application]);
-
 
   const handleAddDocument = async () => {
     if (!selectedDocTypes.length || !application) return;
@@ -244,15 +239,19 @@ export default function ApplicationPage({ params }: Props) {
       setApplication((prev) =>
         prev
           ? {
-            ...prev,
-            documents: [...prev.documents, ...newDocs],
-          }
+              ...prev,
+              documents: [...prev.documents, ...newDocs],
+            }
           : null
       );
       setSelectedDocTypes([]);
     } catch (error) {
       console.error("Failed to add document requirements:", error);
-      toast({ title: "Error", description: "Failed to add documents", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to add documents",
+        variant: "destructive",
+      });
     }
   };
 
@@ -274,22 +273,26 @@ export default function ApplicationPage({ params }: Props) {
       setApplication((prev) =>
         prev
           ? {
-            ...prev,
-            documents: prev.documents.filter((doc) => doc.id !== docId),
-          }
+              ...prev,
+              documents: prev.documents.filter((doc) => doc.id !== docId),
+            }
           : null
       );
     } catch (error) {
       console.error("Failed to remove document:", error);
-      toast({ title: "Error", description: "Failed to remove document", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to remove document",
+        variant: "destructive",
+      });
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex animate-pulse flex-col items-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
           <span className="text-gray-600">Loading application details...</span>
         </div>
       </div>
@@ -298,9 +301,9 @@ export default function ApplicationPage({ params }: Props) {
 
   if (!application) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex animate-pulse flex-col items-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
           <span className="text-gray-600">Loading application details...</span>
         </div>
       </div>
@@ -313,10 +316,13 @@ export default function ApplicationPage({ params }: Props) {
       setApplication((prev) => (prev ? { ...prev, status: "REJECTED" } : null));
     } catch (error) {
       console.error("Failed to update status:", error);
-      toast({ title: "Error", description: "Failed to reject application", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to reject application",
+        variant: "destructive",
+      });
     }
   };
-
 
   const availableToAdd = availableDocumentTypes.filter(
     (docType) =>
@@ -359,44 +365,45 @@ export default function ApplicationPage({ params }: Props) {
       const payload =
         assignmentMode === "single"
           ? {
-            status: "ASSIGNED_TO_LENDER" as LoanStatus,
-            mode: "single" as const,
-            lenderId: selectedLenderId,
-            potentialLenderIds: [] as string[],
-          }
+              status: "ASSIGNED_TO_LENDER" as LoanStatus,
+              mode: "single" as const,
+              lenderId: selectedLenderId,
+              potentialLenderIds: [] as string[],
+            }
           : {
-            status: "ASSIGNED_TO_POTENTIAL_LENDER" as LoanStatus,
-            mode: "multi" as const,
-            lenderId: null,
-            potentialLenderIds: selectedPotentialLenderIds,
-          };
+              status: "ASSIGNED_TO_POTENTIAL_LENDER" as LoanStatus,
+              mode: "multi" as const,
+              lenderId: null,
+              potentialLenderIds: selectedPotentialLenderIds,
+            };
 
-      const res = await axios.patch(`/api/applications/${application.id}`, payload);
+      const res = await axios.patch(
+        `/api/applications/${application.id}`,
+        payload
+      );
 
       const returnedApp: Partial<ApplicationWithUser> =
         res.data.application ?? res.data;
       const returnedPotentialIds: string[] =
-        res.data.potentialLenderIds ??
-        returnedApp.potentialLenderIds ??
-        [];
+        res.data.potentialLenderIds ?? returnedApp.potentialLenderIds ?? [];
 
       setApplication((prev) =>
         prev
           ? {
-            ...prev,
-            ...returnedApp,
-            lenderId:
-              (returnedApp &&
-                (returnedApp.lenderId ??
-                  (returnedApp as ReturnedApplication).lender?.id)) ??
-              (assignmentMode === "single" ? selectedLenderId : null),
-            potentialLenderIds:
-              returnedPotentialIds.length > 0
-                ? returnedPotentialIds
-                : assignmentMode === "multi"
-                  ? selectedPotentialLenderIds
-                  : [],
-          }
+              ...prev,
+              ...returnedApp,
+              lenderId:
+                (returnedApp &&
+                  (returnedApp.lenderId ??
+                    (returnedApp as ReturnedApplication).lender?.id)) ??
+                (assignmentMode === "single" ? selectedLenderId : null),
+              potentialLenderIds:
+                returnedPotentialIds.length > 0
+                  ? returnedPotentialIds
+                  : assignmentMode === "multi"
+                    ? selectedPotentialLenderIds
+                    : [],
+            }
           : prev
       );
 
@@ -447,20 +454,20 @@ export default function ApplicationPage({ params }: Props) {
       setApplication((prev) =>
         prev
           ? {
-            ...prev,
-            agentId: selectedAgentId,
-            agent: updatedApp?.agent ?? prev.agent,
-          }
+              ...prev,
+              agentId: selectedAgentId,
+              agent: updatedApp?.agent ?? prev.agent,
+            }
           : prev
       );
 
       toast({
         title: "Agent Assigned",
-        description: "Agent has been successfully assigned to this application.",
+        description:
+          "Agent has been successfully assigned to this application.",
       });
 
       setDialogOpenAgent(false);
-
     } catch (err: unknown) {
       const error = err as AxiosError<{ error?: string }>;
 
@@ -479,11 +486,10 @@ export default function ApplicationPage({ params }: Props) {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between gap-4 mt-8 pb-4">
+      <div className="mx-auto max-w-7xl">
+        <div className="mt-8 flex justify-between gap-4 pb-4">
           <div className="flex items-center gap-4">
             <button className="rounded-full" onClick={() => router.back()}>
               <ChevronLeft className="h-4 w-4" />
@@ -493,7 +499,9 @@ export default function ApplicationPage({ params }: Props) {
               <h1 className="text-2xl font-semibold text-gray-900">
                 Application Details
               </h1>
-              <p className="mt-1 text-sm text-gray-500">ID: {application?.id}</p>
+              <p className="mt-1 text-sm text-gray-500">
+                ID: {application?.id}
+              </p>
             </div>
           </div>
 
@@ -512,18 +520,17 @@ export default function ApplicationPage({ params }: Props) {
 
         {!["REJECTED", "APPROVED"].includes(application.status as string) && (
           <div className="w-full">
-            <div className="mt-6 mb-8 w-full">
+            <div className="mb-8 mt-6 w-full">
               <div className="flex w-full items-center justify-between px-4 py-2">
                 <h3 className="text-lg font-semibold">Assign to Lender</h3>
                 <div className="flex items-center gap-2">
-
                   {hasAnyAssignment ? (
                     <div>
-                      <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex flex-wrap items-center gap-3">
                         {(() => {
                           const hasPotentials =
-                            (application?.potentialLenderIds?.length ?? 0) > 0 ||
-                            selectedPotentialLenderIds.length > 0;
+                            (application?.potentialLenderIds?.length ?? 0) >
+                              0 || selectedPotentialLenderIds.length > 0;
 
                           if (hasPotentials) {
                             const count =
@@ -531,21 +538,21 @@ export default function ApplicationPage({ params }: Props) {
                               selectedPotentialLenderIds.length;
 
                             return (
-                              < Button
+                              <Button
                                 type="button"
                                 onClick={() => {
                                   setAssignmentMode("multi");
-                                  setSelectedPotentialLenderIds(application?.potentialLenderIds ?? []);
+                                  setSelectedPotentialLenderIds(
+                                    application?.potentialLenderIds ?? []
+                                  );
                                   setSelectedLenderId(null);
                                   setDialogOpen(true);
                                 }}
-                                className="bg-[#FFCAED] hover:bg-[#FFCAEG] text-[#FF2BB8] text-sm px-3 py-1 rounded-md"
+                                className="rounded-md bg-[#FFCAED] px-3 py-1 text-sm text-[#FF2BB8] hover:bg-[#FFCAEG]"
                                 title="Edit potential lenders"
                               >
                                 {count} Potential Lenders
                               </Button>
-
-
                             );
                           }
 
@@ -556,7 +563,6 @@ export default function ApplicationPage({ params }: Props) {
                           const assignedLenderName =
                             assignedLender?.name ?? "Unknown lender";
 
-
                           return (
                             <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
                               <span className="text-sm font-medium text-slate-800">
@@ -565,13 +571,22 @@ export default function ApplicationPage({ params }: Props) {
                               <Button
                                 type="button"
                                 onClick={() => {
-                                  setAssignmentMode(application?.assignmentMode ?? (application?.potentialLenderIds?.length ? "multi" : "single"));
-                                  setSelectedLenderId(application?.lenderId ?? null);
-                                  setSelectedPotentialLenderIds(application?.potentialLenderIds ?? []);
+                                  setAssignmentMode(
+                                    application?.assignmentMode ??
+                                      (application?.potentialLenderIds?.length
+                                        ? "multi"
+                                        : "single")
+                                  );
+                                  setSelectedLenderId(
+                                    application?.lenderId ?? null
+                                  );
+                                  setSelectedPotentialLenderIds(
+                                    application?.potentialLenderIds ?? []
+                                  );
                                   setDialogOpen(true);
                                 }}
                                 size="icon"
-                                className="h-7 w-7 bg-amber-400 hover:bg-amber-500 text-white"
+                                className="h-7 w-7 bg-amber-400 text-white hover:bg-amber-500"
                               >
                                 <Pencil size={16} />
                               </Button>
@@ -579,27 +594,37 @@ export default function ApplicationPage({ params }: Props) {
                           );
                         })()}
 
-                        <Dialog open={dialogOpenPotentialLender} onOpenChange={setDialogOpenPotentialLender}>
-                          <DialogContent className="sm:max-w-sm p-6">
+                        <Dialog
+                          open={dialogOpenPotentialLender}
+                          onOpenChange={setDialogOpenPotentialLender}
+                        >
+                          <DialogContent className="p-6 sm:max-w-sm">
                             <div className="flex items-start justify-between">
                               <div>
-                                <h2 className="text-xl font-semibold leading-tight">Selected Potential Lenders</h2>
+                                <h2 className="text-xl font-semibold leading-tight">
+                                  Selected Potential Lenders
+                                </h2>
                                 <p className="mt-2 text-sm text-muted-foreground">
                                   For Application ID:{" "}
-                                  <span className="font-medium text-primary-600">{application?.id}</span>
+                                  <span className="text-primary-600 font-medium">
+                                    {application?.id}
+                                  </span>
                                 </p>
                               </div>
                             </div>
 
                             <hr className="my-4" />
 
-                            <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
-                              {(application.potentialLenderIds?.length || selectedPotentialLenderIds.length) ? (
+                            <div className="max-h-72 space-y-4 overflow-y-auto pr-2">
+                              {application.potentialLenderIds?.length ||
+                              selectedPotentialLenderIds.length ? (
                                 (application.potentialLenderIds?.length
                                   ? application.potentialLenderIds
                                   : selectedPotentialLenderIds
                                 ).map((id) => {
-                                  const lender = lenders.find((l) => l.id === id);
+                                  const lender = lenders.find(
+                                    (l) => l.id === id
+                                  );
                                   const name = lender?.name ?? id;
                                   const initials = name
                                     .split(" ")
@@ -609,20 +634,28 @@ export default function ApplicationPage({ params }: Props) {
                                     .toUpperCase();
 
                                   return (
-                                    <div key={id} className="flex items-center justify-between bg-card rounded-lg px-4 py-3 shadow-sm">
+                                    <div
+                                      key={id}
+                                      className="flex items-center justify-between rounded-lg bg-card px-4 py-3 shadow-sm"
+                                    >
                                       <div className="flex items-center gap-4">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                                           {initials}
                                         </div>
                                         <div>
-                                          <div className="text-sm font-medium">{name}</div>
+                                          <div className="text-sm font-medium">
+                                            {name}
+                                          </div>
                                         </div>
                                       </div>
 
                                       <div>
                                         <div
                                           className="rounded-md px-3 py-1 text-xs font-medium"
-                                          style={{ backgroundColor: "#E6FFF4", color: "#0F5132" }}
+                                          style={{
+                                            backgroundColor: "#E6FFF4",
+                                            color: "#0F5132",
+                                          }}
                                         >
                                           Verified
                                         </div>
@@ -650,7 +683,8 @@ export default function ApplicationPage({ params }: Props) {
                             <DialogHeader className="space-y-1">
                               <DialogTitle>Assign Lender</DialogTitle>
                               <DialogDescription>
-                                Choose how you want to assign lenders to this loanee.
+                                Choose how you want to assign lenders to this
+                                loanee.
                               </DialogDescription>
                             </DialogHeader>
 
@@ -659,7 +693,8 @@ export default function ApplicationPage({ params }: Props) {
                               onValueChange={(value) => {
                                 const m = value as "single" | "multi";
                                 setAssignmentMode(m);
-                                if (m === "single") setSelectedPotentialLenderIds([]);
+                                if (m === "single")
+                                  setSelectedPotentialLenderIds([]);
                                 else setSelectedLenderId(null);
                               }}
                               className="mt-2 space-y-3"
@@ -670,34 +705,47 @@ export default function ApplicationPage({ params }: Props) {
                                   setAssignmentMode("single");
                                   setSelectedPotentialLenderIds([]);
                                 }}
-                                className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-                      ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                                className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 text-left transition ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
                               >
-                                  <RadioGroupItem value="single" className="mt-1" />
-                                  <div className="w-full">
-                                    <Label>Assign a Lender</Label>
-                                    <p className="text-xs mt-1 text-muted-foreground">Choose one lender.</p>
+                                <RadioGroupItem
+                                  value="single"
+                                  className="mt-1"
+                                />
+                                <div className="w-full">
+                                  <Label>Assign a Lender</Label>
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    Choose one lender.
+                                  </p>
 
-                                    {assignmentMode === "single" && (
-                                      <div className="mt-4">
-                                        <Select
-                                          value={selectedLenderId || application.lenderId || ""}
-                                          onValueChange={(v) => setSelectedLenderId(v)}
-                                        >
-                                          <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select lender..." />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {lenders.map((lender) => (
-                                              <SelectItem key={lender.id} value={lender.id}>
-                                                {lender.name}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    )}
-                                  </div>
+                                  {assignmentMode === "single" && (
+                                    <div className="mt-4">
+                                      <Select
+                                        value={
+                                          selectedLenderId ||
+                                          application.lenderId ||
+                                          ""
+                                        }
+                                        onValueChange={(v) =>
+                                          setSelectedLenderId(v)
+                                        }
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Select lender..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {lenders.map((lender) => (
+                                            <SelectItem
+                                              key={lender.id}
+                                              value={lender.id}
+                                            >
+                                              {lender.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+                                </div>
                               </button>
 
                               <div
@@ -707,50 +755,68 @@ export default function ApplicationPage({ params }: Props) {
                                   setAssignmentMode("multi");
                                   setSelectedLenderId(null);
                                 }}
-                                className={`w-full rounded-lg border px-4 py-3 text-left flex items-start gap-3 cursor-pointer transition
-    ${assignmentMode === "multi"
+                                className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 text-left transition ${
+                                  assignmentMode === "multi"
                                     ? "border-primary/70 ring-2 ring-primary/20"
-                                    : "border-border hover:border-primary/40"}`}
+                                    : "border-border hover:border-primary/40"
+                                }`}
                               >
-
-                                <RadioGroupItem value="multi" className="mt-1" />
+                                <RadioGroupItem
+                                  value="multi"
+                                  className="mt-1"
+                                />
 
                                 <div className="w-full">
-                                  <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
-                                  <p className="text-xs mt-1 text-muted-foreground">Choose potential lenders.</p>
+                                  <p className="text-sm font-medium">
+                                    Select Potential Lenders (1–5)
+                                  </p>
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    Choose potential lenders.
+                                  </p>
 
                                   {assignmentMode === "multi" && (
                                     <div className="mt-4 space-y-2">
-                                      <div className="border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto">
+                                      <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
                                         {lenders.map((l) => {
-                                          const checked = selectedPotentialLenderIds.includes(l.id);
+                                          const checked =
+                                            selectedPotentialLenderIds.includes(
+                                              l.id
+                                            );
 
                                           return (
                                             <div
                                               key={l.id}
                                               role="button"
                                               tabIndex={0}
-                                              onClick={() => togglePotentialLender(l.id)}
+                                              onClick={() =>
+                                                togglePotentialLender(l.id)
+                                              }
                                               onKeyDown={(e) => {
-                                                if (e.key === "Enter" || e.key === " ") {
+                                                if (
+                                                  e.key === "Enter" ||
+                                                  e.key === " "
+                                                ) {
                                                   e.preventDefault();
                                                   togglePotentialLender(l.id);
                                                 }
                                               }}
-                                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer
-              text-left transition
-              ${checked
+                                              className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
+                                                checked
                                                   ? "border-primary/40 bg-primary/5"
-                                                  : "border-border hover:bg-muted/50"}
-            `}
+                                                  : "border-border hover:bg-muted/50"
+                                              } `}
                                             >
                                               <Checkbox
                                                 checked={checked}
-                                                onCheckedChange={() => togglePotentialLender(l.id)}
-                                                onClick={(e) => e.stopPropagation()}
+                                                onCheckedChange={() =>
+                                                  togglePotentialLender(l.id)
+                                                }
+                                                onClick={(e) =>
+                                                  e.stopPropagation()
+                                                }
                                               />
 
-                                              <span className="text-sm block text-left">
+                                              <span className="block text-left text-sm">
                                                 {l.name}
                                               </span>
                                             </div>
@@ -759,7 +825,6 @@ export default function ApplicationPage({ params }: Props) {
                                       </div>
                                     </div>
                                   )}
-
                                 </div>
                               </div>
                             </RadioGroup>
@@ -773,12 +838,13 @@ export default function ApplicationPage({ params }: Props) {
                                 onClick={handleAssign}
                                 disabled={
                                   isAssigning ||
-                                  (assignmentMode === "single" && !selectedLenderId) ||
+                                  (assignmentMode === "single" &&
+                                    !selectedLenderId) ||
                                   (assignmentMode === "multi" &&
                                     (selectedPotentialLenderIds.length < 1 ||
                                       selectedPotentialLenderIds.length > 5))
                                 }
-                                className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                                className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
                               >
                                 {isAssigning ? "Saving..." : "Assign"}
                               </Button>
@@ -791,7 +857,7 @@ export default function ApplicationPage({ params }: Props) {
                     <div className="flex justify-center">
                       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button className="bg-violet-600 hover:bg-violet-700 text-white">
+                          <Button className="bg-violet-600 text-white hover:bg-violet-700">
                             Assign Lender
                           </Button>
                         </DialogTrigger>
@@ -799,7 +865,9 @@ export default function ApplicationPage({ params }: Props) {
                         <DialogContent className="sm:max-w-[480px]">
                           <DialogHeader>
                             <DialogTitle>Assign Lender</DialogTitle>
-                            <DialogDescription>Choose how to assign a lender.</DialogDescription>
+                            <DialogDescription>
+                              Choose how to assign a lender.
+                            </DialogDescription>
                           </DialogHeader>
 
                           <RadioGroup
@@ -807,7 +875,8 @@ export default function ApplicationPage({ params }: Props) {
                             onValueChange={(v) => {
                               const m = v as "single" | "multi";
                               setAssignmentMode(m);
-                              if (m === "single") setSelectedPotentialLenderIds([]);
+                              if (m === "single")
+                                setSelectedPotentialLenderIds([]);
                               else setSelectedLenderId(null);
                             }}
                             className="mt-2 space-y-3"
@@ -819,13 +888,14 @@ export default function ApplicationPage({ params }: Props) {
                                 setAssignmentMode("single");
                                 setSelectedPotentialLenderIds([]);
                               }}
-                              className={`w-full rounded-lg border px-4 py-3 flex items-start gap-3 cursor-pointer transition 
-                    ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                              className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 transition ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
                             >
                               <RadioGroupItem value="single" className="mt-1" />
 
                               <div className="w-full">
-                                <p className="text-sm font-medium">Assign a Lender</p>
+                                <p className="text-sm font-medium">
+                                  Assign a Lender
+                                </p>
 
                                 {assignmentMode === "single" && (
                                   <div className="mt-4">
@@ -838,7 +908,10 @@ export default function ApplicationPage({ params }: Props) {
                                       </SelectTrigger>
                                       <SelectContent>
                                         {lenders.map((lender) => (
-                                          <SelectItem key={lender.id} value={lender.id}>
+                                          <SelectItem
+                                            key={lender.id}
+                                            value={lender.id}
+                                          >
                                             {lender.name}
                                           </SelectItem>
                                         ))}
@@ -856,32 +929,46 @@ export default function ApplicationPage({ params }: Props) {
                                 setAssignmentMode("multi");
                                 setSelectedLenderId(null);
                               }}
-                              className={`w-full rounded-lg border px-4 py-3 flex items-start gap-3 cursor-pointer transition 
-                    ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                              className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 transition ${assignmentMode === "multi" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
                             >
                               <RadioGroupItem value="multi" className="mt-1" />
 
                               <div className="w-full">
-                                <p className="text-sm font-medium">Select Potential Lenders (1–5)</p>
+                                <p className="text-sm font-medium">
+                                  Select Potential Lenders (1–5)
+                                </p>
 
                                 {assignmentMode === "multi" && (
                                   <div className="mt-4 space-y-2">
-                                    <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
+                                    <div className="max-h-40 overflow-y-auto rounded-md border p-2">
                                       {lenders.map((l) => {
-                                        const checked = selectedPotentialLenderIds.includes(l.id);
+                                        const checked =
+                                          selectedPotentialLenderIds.includes(
+                                            l.id
+                                          );
 
                                         return (
                                           <button
                                             key={l.id}
                                             type="button"
-                                            onClick={() => togglePotentialLender(l.id)}
-                                            className={`w-full flex items-center justify-between rounded px-2 py-1 text-left cursor-pointer ${checked
-                                              ? "bg-primary/5 border border-primary/40"
-                                              : "border border-transparent hover:border-border"
-                                              }`}
+                                            onClick={() =>
+                                              togglePotentialLender(l.id)
+                                            }
+                                            className={`flex w-full cursor-pointer items-center justify-between rounded px-2 py-1 text-left ${
+                                              checked
+                                                ? "border border-primary/40 bg-primary/5"
+                                                : "border border-transparent hover:border-border"
+                                            }`}
                                           >
-                                            <input type="checkbox" checked={checked} readOnly className="h-4 w-4 mr-2" />
-                                            <span className="text-sm">{l.name}</span>
+                                            <input
+                                              type="checkbox"
+                                              checked={checked}
+                                              readOnly
+                                              className="mr-2 h-4 w-4"
+                                            />
+                                            <span className="text-sm">
+                                              {l.name}
+                                            </span>
                                           </button>
                                         );
                                       })}
@@ -901,12 +988,13 @@ export default function ApplicationPage({ params }: Props) {
                               onClick={handleAssign}
                               disabled={
                                 isAssigning ||
-                                (assignmentMode === "single" && !selectedLenderId) ||
+                                (assignmentMode === "single" &&
+                                  !selectedLenderId) ||
                                 (assignmentMode === "multi" &&
                                   (selectedPotentialLenderIds.length < 1 ||
                                     selectedPotentialLenderIds.length > 5))
                               }
-                              className="bg-[#9b87f5] hover:bg-[#7c6cf0] text-white"
+                              className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
                             >
                               {isAssigning ? "Saving..." : "Assign"}
                             </Button>
@@ -930,11 +1018,11 @@ export default function ApplicationPage({ params }: Props) {
                           <p className="text-sm font-medium text-slate-800">
                             Agent:{" "}
                             <span className="font-medium">
-                              {
-                                (agents.find((a) => a.id === application.agentId)?.name ??
-                                  agents.find((a) => a.id === application.agentId)?.user?.name ??
-                                  application.agentId)
-                              }
+                              {agents.find((a) => a.id === application.agentId)
+                                ?.name ??
+                                agents.find((a) => a.id === application.agentId)
+                                  ?.user?.name ??
+                                application.agentId}
                             </span>
                           </p>
 
@@ -945,7 +1033,7 @@ export default function ApplicationPage({ params }: Props) {
                               setDialogOpenAgent(true);
                             }}
                             size="icon"
-                            className="h-7 w-7 bg-amber-400 hover:bg-amber-500 text-white ml-6 mr-0"
+                            className="ml-6 mr-0 h-7 w-7 bg-amber-400 text-white hover:bg-amber-500"
                           >
                             <Pencil size={18} />
                           </Button>
@@ -957,17 +1045,19 @@ export default function ApplicationPage({ params }: Props) {
                               setIsReassignAgent(false);
                               setDialogOpenAgent(true);
                             }}
-                            className="bg-white text-violet-600 border border-violet-600 hover:bg-violet-50"
+                            className="border border-violet-600 bg-white text-violet-600 hover:bg-violet-50"
                           >
                             Assign Agent
                           </Button>
                         </div>
                       )}
 
-                      <DialogContent className="sm:max-w-[500px] max-h-[70vh] overflow-y-auto">
+                      <DialogContent className="max-h-[70vh] overflow-y-auto sm:max-w-[500px]">
                         <DialogHeader>
                           <DialogTitle>
-                            {isReassignAgent ? "Reassign Agent to Loanee" : "Assign Agent to Loanee"}
+                            {isReassignAgent
+                              ? "Reassign Agent to Loanee"
+                              : "Assign Agent to Loanee"}
                           </DialogTitle>
                           <DialogDescription>
                             {isReassignAgent
@@ -979,7 +1069,9 @@ export default function ApplicationPage({ params }: Props) {
                         <hr className="my-4" />
 
                         {loadingAgents ? (
-                          <div className="py-6 text-center">Loading agents...</div>
+                          <div className="py-6 text-center">
+                            Loading agents...
+                          </div>
                         ) : agents.length === 0 ? (
                           <div className="py-6 text-center text-muted-foreground">
                             No agents available.
@@ -988,11 +1080,13 @@ export default function ApplicationPage({ params }: Props) {
                           <RadioGroup
                             value={selectedAgentId ?? ""}
                             onValueChange={(v) => setSelectedAgentId(v || null)}
-                            className="space-y-0 max-h-[44rem] overflow-y-auto"
+                            className="max-h-[44rem] space-y-0 overflow-y-auto"
                           >
                             {agents.map((agent, idx) => {
-                              const name = agent.name ?? agent.user?.name ?? "Unknown";
-                              const email = agent.email ?? agent.user?.email ?? "";
+                              const name =
+                                agent.name ?? agent.user?.name ?? "Unknown";
+                              const email =
+                                agent.email ?? agent.user?.email ?? "";
                               const initials = name
                                 .split(" ")
                                 .map((s) => s[0])
@@ -1003,17 +1097,20 @@ export default function ApplicationPage({ params }: Props) {
                               return (
                                 <div key={agent.id}>
                                   <div
-                                    className={`flex items-center justify-between px-4 py-2 ${selectedAgentId === agent.id
-                                      ? "bg-primary/5 border border-primary/40"
-                                      : "bg-card"
-                                      }`}
+                                    className={`flex items-center justify-between px-4 py-2 ${
+                                      selectedAgentId === agent.id
+                                        ? "border border-primary/40 bg-primary/5"
+                                        : "bg-card"
+                                    }`}
                                   >
                                     <div className="flex items-start gap-4">
-                                      <div className="mt-2 h-10 w-10 flex items-center justify-center rounded-full bg-violet-100 text-violet-700 font-semibold">
+                                      <div className="mt-2 flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 font-semibold text-violet-700">
                                         {initials}
                                       </div>
                                       <div>
-                                        <div className="text-sm font-semibold">{name}</div>
+                                        <div className="text-sm font-semibold">
+                                          {name}
+                                        </div>
                                         <div className="text-xs text-muted-foreground">
                                           {email}
                                         </div>
@@ -1027,7 +1124,7 @@ export default function ApplicationPage({ params }: Props) {
                                   </div>
 
                                   {idx < agents.length - 1 && (
-                                    <div className="mx-8 border-t border-muted my-2" />
+                                    <div className="mx-8 my-2 border-t border-muted" />
                                   )}
                                 </div>
                               );
@@ -1051,17 +1148,13 @@ export default function ApplicationPage({ params }: Props) {
                       </DialogContent>
                     </Dialog>
                   </>
-
                 </div>
               </div>
-
             </div>
           </div>
         )}
 
-
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left Column - Applicant Info */}
           <div className="space-y-6">
             <Card>
@@ -1143,7 +1236,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Employment Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {employmentTypeLabels[application.employmentStatus]}
                     </p>
                   </div>
@@ -1206,7 +1299,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Housing Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {housingStatusTypeLabels[application.housingStatus]}
                     </p>
                   </div>
@@ -1225,7 +1318,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Residency Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {residencyStatusTypeLabels[application.residencyStatus]}
                     </p>
                   </div>
@@ -1233,7 +1326,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Marital Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {maritalStatusLabels[application.maritalStatus]}
                     </p>
                   </div>
@@ -1247,7 +1340,7 @@ export default function ApplicationPage({ params }: Props) {
               </CardHeader>
               <CardContent className="space-y-4">
                 {application.applicationStatusHistory &&
-                  application.applicationStatusHistory.length > 0 ? (
+                application.applicationStatusHistory.length > 0 ? (
                   <div className="space-y-3">
                     {application.applicationStatusHistory.map(
                       (entry: ApplicationStatusHistory, index: number) => (
@@ -1283,7 +1376,7 @@ export default function ApplicationPage({ params }: Props) {
               <CardHeader className="pb-3">
                 <CardTitle>Loan Details</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-xs font-medium text-gray-500">
                     Loan Amount
@@ -1364,7 +1457,7 @@ export default function ApplicationPage({ params }: Props) {
                 <CardHeader className="pb-3">
                   <CardTitle>Co-Applicant Details</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-xs font-medium text-gray-500">
                       Full Name
@@ -1381,8 +1474,8 @@ export default function ApplicationPage({ params }: Props) {
                     <p className="text-sm text-gray-900">
                       {application.coApplicantDateOfBirth
                         ? new Date(
-                          application.coApplicantDateOfBirth
-                        ).toLocaleDateString()
+                            application.coApplicantDateOfBirth
+                          ).toLocaleDateString()
                         : "N/A"}
                     </p>
                   </div>
@@ -1448,19 +1541,19 @@ export default function ApplicationPage({ params }: Props) {
                   {!["REJECTED", "APPROVED"].includes(
                     application?.status as string
                   ) && (
-                      <Button
-                        onClick={handleAddDocument}
-                        disabled={!selectedDocTypes.length}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        Add ({selectedDocTypes.length})
-                      </Button>
-                    )}
+                    <Button
+                      onClick={handleAddDocument}
+                      disabled={!selectedDocTypes.length}
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Add ({selectedDocTypes.length})
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
                 {selectedDocTypes.length > 0 && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-100">
+                  <div className="mb-4 rounded border border-blue-100 bg-blue-50 p-3">
                     <div className="flex flex-wrap gap-2">
                       {selectedDocTypes.map((docType) => {
                         const docTypeConfig = availableDocumentTypes.find(
@@ -1469,7 +1562,7 @@ export default function ApplicationPage({ params }: Props) {
                         return (
                           <Badge
                             key={docType}
-                            className="bg-white border border-blue-200 text-blue-800 flex items-center gap-1 px-2 py-1"
+                            className="flex items-center gap-1 border border-blue-200 bg-white px-2 py-1 text-blue-800"
                           >
                             {docTypeConfig?.label}
                             <button
@@ -1497,7 +1590,7 @@ export default function ApplicationPage({ params }: Props) {
                     return (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between p-3 border rounded hover:bg-gray-50"
+                        className="flex items-center justify-between rounded border p-3 hover:bg-gray-50"
                       >
                         <div>
                           <p className="font-medium text-gray-900">
@@ -1532,9 +1625,9 @@ export default function ApplicationPage({ params }: Props) {
                                     );
                                   });
                               }}
-                              className="hover:bg-blue-50 border-blue-200 text-blue-600"
+                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
                             >
-                              <Eye className="w-4 h-4 mr-2" />
+                              <Eye className="mr-2 h-4 w-4" />
                               View
                             </Button>
                           )}
@@ -1542,9 +1635,9 @@ export default function ApplicationPage({ params }: Props) {
                             variant="outline"
                             onClick={() => handleRemoveDocument(doc.id)}
                             disabled={doc.fileKey !== null}
-                            className="hover:bg-red-50 border-red-200 text-red-600"
+                            className="border-red-200 text-red-600 hover:bg-red-50"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                         <DocumentReview
@@ -1561,17 +1654,17 @@ export default function ApplicationPage({ params }: Props) {
             {!["REJECTED", "APPROVED"].includes(
               application?.status as string
             ) && (
-                <div className="flex w-full justify-end mt-6">
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      handleRejectApplication();
-                    }}
-                  >
-                    Reject Application
-                  </Button>
-                </div>
-              )}
+              <div className="mt-6 flex w-full justify-end">
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    handleRejectApplication();
+                  }}
+                >
+                  Reject Application
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

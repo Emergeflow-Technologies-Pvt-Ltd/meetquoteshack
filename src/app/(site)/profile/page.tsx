@@ -2,17 +2,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { headers } from "next/headers";
+import Image from "next/image";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Section from "@/components/shared/section";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Shield, Zap } from "lucide-react";
-import { UserRole } from "@prisma/client";
+import {
+  Calendar,
+  Calendar1,
+  CircleCheckBig,
+  Mail,
+  Shield,
+  Sparkles,
+  Zap,
+} from "lucide-react";
+import { SubscriptionPlan, UserRole } from "@prisma/client";
 
 import ManageSubscriptionButton from "@/components/shared/ManageSubscriptionButton";
 import ManageSubscriptionOpener from "@/components/ManageSubscriptionOpener";
@@ -26,7 +30,7 @@ export default async function ProfilePage() {
 
   if (!session?.user?.email || !session.user.id) {
     return (
-      <Section className="py-12 max-w-7xl mx-auto px-4">
+      <Section className="mx-auto max-w-7xl px-4 py-12">
         <p className="text-center text-sm text-gray-500">
           You must be logged in to view your profile.
         </p>
@@ -49,7 +53,6 @@ export default async function ProfilePage() {
   const isLoanee = user.role === UserRole.LOANEE;
   const isLender = user.role === UserRole.LENDER;
   const isAgent = user.role === UserRole.AGENT;
-
 
   let subData: any = null;
 
@@ -76,7 +79,6 @@ export default async function ProfilePage() {
     }
   }
 
-
   let lenderAccess = null;
 
   if (isLender) {
@@ -87,7 +89,6 @@ export default async function ProfilePage() {
       user.freeTierEndsAt
     );
   }
-
 
   let agentReviews: any[] = [];
 
@@ -112,23 +113,21 @@ export default async function ProfilePage() {
     user.applications.find((app) => app.agentCode) ?? null;
 
   return (
-    <Section className="py-12 max-w-7xl mx-auto px-4 space-y-8">
+    <Section className="mx-auto max-w-7xl space-y-8 px-4 py-12">
       <Card className="border-2">
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <div className="flex flex-col items-start gap-6 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-4 md:flex-row md:items-center">
             <div className="space-y-3">
-              <h2 className="text-3xl font-bold text-gray-900">
-                {user.name}
-              </h2>
+              <h2 className="text-3xl font-bold text-gray-900">{user.name}</h2>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Mail className="w-5 h-5" />
+                  <Mail className="h-5 w-5" />
                   {user.email}
                 </div>
 
-                <Badge className="px-3 py-1 bg-green-100 text-green-800">
-                  <Shield className="w-4 h-4 mr-1" />
+                <Badge className="bg-green-100 px-3 py-1 text-green-800">
+                  <Shield className="mr-1 h-4 w-4" />
                   Verified Account
                 </Badge>
               </div>
@@ -140,13 +139,13 @@ export default async function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-blue-600" />
+            <Shield className="h-5 w-5 text-blue-600" />
             Account Details
           </CardTitle>
         </CardHeader>
 
         <CardContent>
-          <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+          <div className="space-y-2 rounded-lg bg-gray-50 p-4">
             <p className="text-sm text-gray-600">
               <span className="font-medium">Email:</span> {user.email}
             </p>
@@ -166,7 +165,6 @@ export default async function ProfilePage() {
                     return user.role;
                 }
               })()}
-
             </p>
             <p className="text-sm text-gray-600">
               <span className="font-medium">Status:</span> Active
@@ -190,14 +188,14 @@ export default async function ProfilePage() {
                     {latestApplicationWithAgentCode.agentCode}
                   </Badge>
                 ) : (
-                  <span className="text-gray-500 ml-1">
+                  <span className="ml-1 text-gray-500">
                     No agent code used yet
                   </span>
                 )}
               </div>
 
               {latestApplicationWithAgentCode?.agent && (
-                <p className="text-sm text-gray-600 font-medium">
+                <p className="text-sm font-medium text-gray-600">
                   Your Agent:{" "}
                   <span className="font-medium">
                     {latestApplicationWithAgentCode.agent.name}
@@ -210,174 +208,209 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="space-y-4">
-              <ManageSubscriptionOpener
+          {/* <ManageSubscriptionOpener
                 plan={subData?.subscription?.plan ?? null}
                 status={subData?.subscription?.status ?? "TRIAL"}
                 billingInterval={subData?.subscription?.billingInterval ?? null}
                 currentPeriodEnd={subData?.subscription?.currentPeriodEnd ?? null}
                 trialEndsAt={subData?.freeTier?.endsAt ?? null}
                 freeTierDaysLeft={subData?.freeTier?.daysLeft ?? null}
-              />
-
-              {subData?.subscription && <ManageSubscriptionButton />}
-            </CardContent>
-          </Card>
+              /> */}
+          {isLoanee && subData && (
+            <ManageSubscriptionOpener role="LOANEE" data={subData} />
+          )}
         </>
       )}
 
-      {isLender && lenderAccess && (
+      {/* {isLender && lenderAccess && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-violet-600" />
-              Subscription Details
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+           <CardTitle className="flex items-center gap-2">
+             <Image
+               src="/subscripstatus.svg"
+               alt="Subscription status"
+               width={20}
+               height={20}
+             />
+             Subscription Status
+           </CardTitle>
+<Badge className="bg-green-100 text-green-800 flex items-center gap-1 px-3 py-1 hover:bg-green-100 cursor-default">
+      <CircleCheckBig height={13} width={13} /> Active
+</Badge>
+
           </CardHeader>
+
 
           <CardContent className="space-y-4">
             {lenderAccess.freeTierActive && !lenderAccess.subscription && (
-              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-green-100 text-green-800">
-                        Free Tier
-                      </Badge>
-                      <span className="text-sm font-medium text-gray-900">
-                        Trial Active
-                      </span>
-                    </div>
+  <>
+    <div className="w-full rounded-lg bg-[#FFF6CC] border border-[#FFE59A] px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F59E0B] text-white">
+            <Sparkles height={16} width={16} />          
+          </div>
+          <h3 className="text-lg font-semibold text-[#92400E]">
+            Free Trial
+          </h3>
+        </div>
 
-                    <p className="mt-2 text-sm text-gray-700">
-                      You are currently on a <strong>60-day free trial</strong>.
-                    </p>
+        <span className="rounded-md bg-[#F59E0B] px-3 py-1 text-sm font-semibold text-white">
+          {lenderAccess.freeTierDaysLeft ?? 0} days left
+        </span>
+      </div>
+    </div>
 
-                    <div className="mt-3 text-sm text-gray-700 space-y-1">
-                      <div>
-                        <span className="font-medium">Trial ends on:</span>{" "}
-                        {lenderAccess.freeTierEndsAt
-                          ? new Date(
-                            lenderAccess.freeTierEndsAt
-                          ).toLocaleDateString()
-                          : "—"}
-                      </div>
-                      <div>
-                        <span className="font-medium">Days left:</span>{" "}
-                        {lenderAccess.freeTierDaysLeft ?? 0}
-                      </div>
-                    </div>
-                  </div>
+    <div className="mt-8 grid max-w-4xl gap-6">
+      <div className="flex gap-12">
+        <span className="w-40 text-md text-[#64748B]">Trial Plan:</span>
+        <span className="font-semibold">Free Trial</span>
+      </div>
 
-                  <Link
-                    href="/lender/plans"
-                    className="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium text-green-700 border hover:bg-green-100"
-                  >
-                    View Plans
-                  </Link>
-                </div>
-              </div>
-            )}
+      <div className="flex gap-12">
+        <span className="w-40 text-md text-[#64748B]">Access Info:</span>
+        <span className="font-medium text-gray-800">
+          You currently have full access to lender tools during your trial.
+        </span>
+      </div>
 
-            {lenderAccess.subscription && (
-              <div className="rounded-lg border bg-white p-5 shadow-sm space-y-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        {(() => {
-                          const planMap: Record<string, string> = {
-                            LENDER_SIMPLE: "Lender — Simple",
-                            LENDER_STANDARD: "Lender — Standard",
-                          };
-                          return (
-                            planMap[lenderAccess.subscription.plan] ??
-                            lenderAccess.subscription.plan
-                          );
-                        })()}
-                      </h3>
+      <div className="flex gap-12 items-center">
+        <span className="w-40 text- text-[#64748B]">Trial End Date:</span>
+        <span className="flex items-center gap-2 font-medium">
+          <span className="text-[#64748B]"> <Calendar height={16} width={16} /></span>
+          {lenderAccess.freeTierEndsAt
+            ? new Date(lenderAccess.freeTierEndsAt).toLocaleDateString("en-US", {
+  month: "short",
+  day: "2-digit",
+  year: "numeric",
+})
+            : "—"}
+        </span>
+      </div>
+    </div>
 
-                      <Badge
-                        className={
-                          lenderAccess.subscription.status === "ACTIVE"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }
-                      >
-                        {lenderAccess.subscription.status}
-                      </Badge>
-                    </div>
+    <Link
+      href="/lender/plans"
+      className="inline-flex mt-8 items-center gap-2 rounded-md bg-[#7C3AED] px-2.5 py-6.5 text-sm font-semibold text-white hover:bg-violet-700"
+    >
+      <div className="flex h-10 w-10 items-center justify-center rounded-full  text-white">
+            <Sparkles height={16} width={16} />          
+          </div>
+     Upgrade Plan
+    </Link>
+  </>
+)}
 
-                    <p className="mt-1 text-sm text-gray-600">
-                      Billing:{" "}
-                      {lenderAccess.subscription.billingInterval === "YEARLY"
-                        ? "Yearly"
-                        : "Monthly"}
-                    </p>
-                  </div>
 
-                  <Link
-                    href="/lender/plans"
-                    className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium text-violet-600 hover:bg-violet-50"
-                  >
-                    Manage Billing
-                  </Link>
-                </div>
+{lenderAccess.subscription && (() => {
+  const sub = lenderAccess.subscription;
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-md bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Subscription Started</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {new Date(
-                        lenderAccess.subscription.createdAt
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
+  const planLabelMap: Record<string, string> = {
+    LENDER_SIMPLE: "Simple",
+    LENDER_STANDARD: "Standard",
+  };
 
-                  <div className="rounded-md bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Current Period Ends</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {lenderAccess.subscription.currentPeriodEnd
-                        ? new Date(
-                          lenderAccess.subscription.currentPeriodEnd
-                        ).toLocaleDateString()
-                        : "—"}
-                    </p>
-                  </div>
+  const planBaseName =
+    planLabelMap[sub.plan] ?? sub.plan;
 
-                  <div className="rounded-md bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Auto-Renew</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {lenderAccess.subscription.cancelAtPeriodEnd
-                        ? "Disabled"
-                        : "Enabled"}
-                    </p>
-                  </div>
-                </div>
+  const now = Date.now();
+  const end = sub.currentPeriodEnd
+    ? new Date(sub.currentPeriodEnd).getTime()
+    : null;
 
-                {lenderAccess.subscription.currentPeriodEnd && (
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">Days remaining:</span>{" "}
-                    {Math.max(
-                      0,
-                      Math.ceil(
-                        (new Date(
-                          lenderAccess.subscription.currentPeriodEnd
-                        ).getTime() -
-                          Date.now()) /
-                        (1000 * 60 * 60 * 24)
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+  const daysLeft =
+    end !== null
+      ? Math.round((end - now) / (1000 * 60 * 60 * 24))
+      : null;
+
+  let billingCycle = "Monthly";
+  let planName = "Monthly";
+  let price = "—";
+
+  if (sub.billingInterval === "YEARLY") {
+    if (daysLeft && daysLeft > 500) {
+      billingCycle = "2 Years";
+      planName = "2-Year Subscription";
+      price =
+        sub.plan === "LENDER_SIMPLE"
+          ? "$360 / 2 years"
+          : "$588 / 2 years";
+    } else {
+      billingCycle = "Yearly";
+      planName = "1-Year Subscription";
+      price =
+        sub.plan === "LENDER_SIMPLE"
+          ? "$210 / year"
+          : "$411 / year";
+    }
+  } else {
+    billingCycle = "Monthly";
+    planName = "Monthly";
+    price =
+      sub.plan === "LENDER_SIMPLE"
+        ? "$25 / month"
+        : "$49 / month";
+  }
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      <div className="grid gap-6">
+        <div className="flex gap-12">
+          <span className="w-48 text-md text-[#64748B]">Plan Name:</span>
+          <span className="font-semibold text-md text-[#0F172A]">
+            {planBaseName} : {planName}
+          </span>
+        </div>
+
+        <div className="flex gap-12">
+          <span className="w-48 text-md text-[#64748B]">Price:</span>
+          <span className="font-semibold text-md text-[#0F172A]">
+            {price}
+          </span>
+        </div>
+
+        <div className="flex gap-12">
+          <span className="w-48 text-md text-[#64748B]">Billing Cycle:</span>
+          <span className="font-medium text-md text-[#0F172A]">
+            {billingCycle}
+          </span>
+        </div>
+
+        <div className="flex gap-12 items-center">
+          <span className="w-48 text-md text-[#64748B]">
+            Next Billing Date:
+          </span>
+          <span className="flex items-center gap-2 font-medium text-md">
+            <Calendar height={18} width={18} className="text-[#64748B]" />
+            Renews on{" "}
+            {sub.currentPeriodEnd
+              ? new Date(sub.currentPeriodEnd).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })
+              : "—"}
+          </span>
+        </div>
+      </div>
+
+      <ManageSubscriptionButton />
+    </div>
+  );
+})()}
+
+
+
+
+
+
           </CardContent>
         </Card>
 
+      )} */}
+      {isLender && lenderAccess && (
+        <ManageSubscriptionOpener role="LENDER" data={lenderAccess} />
       )}
-
       {isAgent && <AgentReviewsPanel reviews={agentReviews} />}
     </Section>
   );

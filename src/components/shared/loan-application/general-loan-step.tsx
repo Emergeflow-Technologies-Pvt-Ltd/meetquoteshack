@@ -36,8 +36,6 @@ export function GeneralLoanStep({
       freeTierActive || subscriptionPlan === "LOANEE_STAY_SMART",
   });
 
-
-
   const canAccessPrequalification =
     freeTierActive || subscriptionPlan === "LOANEE_STAY_SMART";
   const loanAmount =
@@ -113,9 +111,7 @@ export function GeneralLoanStep({
                   value={field.value ?? ""}
                   onChange={(e) =>
                     field.onChange(
-                      e.target.value === ""
-                        ? undefined
-                        : e.target.valueAsNumber
+                      e.target.value === "" ? undefined : e.target.valueAsNumber
                     )
                   }
                 />
@@ -241,30 +237,29 @@ export function GeneralLoanStep({
       )}
 
       {canAccessPrequalification && (
-        <div className="mt-8 border rounded-lg p-4 bg-muted space-y-3">
+        <div className="mt-8 space-y-3 rounded-lg border bg-muted p-4">
           <div className="flex justify-between">
             <div>
-              <p className="text-sm font-semibold">
-                Pre-qualification Summary
-              </p>
+              <p className="text-sm font-semibold">Pre-qualification Summary</p>
               <p className="text-xs text-muted-foreground">
                 Based on your financial inputs
               </p>
             </div>
 
             <span
-              className={`px-3 py-1 text-xs rounded-full font-semibold ${prequalStatus === "APPROVED"
-                ? "bg-emerald-100 text-emerald-800"
-                : prequalStatus === "CONDITIONAL"
-                  ? "bg-amber-100 text-amber-800"
-                  : "bg-red-100 text-red-800"
-                }`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                prequalStatus === "APPROVED"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : prequalStatus === "CONDITIONAL"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-red-100 text-red-800"
+              }`}
             >
               {prequalLabel}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
             <div>
               <p className="text-xs text-muted-foreground">Credit Score</p>
               <p className="font-medium">
@@ -302,11 +297,11 @@ export function GeneralLoanStep({
       )}
 
       {!canAccessPrequalification && (
-        <div className="mt-8 rounded-lg border border-dashed p-4 bg-gray-50">
+        <div className="mt-8 rounded-lg border border-dashed bg-gray-50 p-4">
           <p className="font-semibold text-gray-800">
             Pre-qualification available on Smart plan
           </p>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="mt-1 text-xs text-gray-600">
             Upgrade to view eligibility, risk score, and loan ranges.
           </p>
 

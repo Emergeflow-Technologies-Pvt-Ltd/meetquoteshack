@@ -10,17 +10,17 @@ import Icon from "../../../../components/assets/google-icon.svg";
 export default function LenderLogin() {
   return (
     <Section className="mt-20">
-      <div className="max-w-md mx-auto">
+      <div className="mx-auto max-w-md">
         <Card className="p-6">
           <CardHeader className="mb-8">
-            <CardTitle className="text-center text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-center text-3xl font-bold text-transparent">
               Loanee Login
             </CardTitle>
           </CardHeader>
           <Button
             type="button"
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 border-gray-300 h-12"
+            className="flex h-12 w-full items-center justify-center gap-2 border-gray-300"
             onClick={() => signIn("google", { callbackUrl: "/" })}
           >
             <Image src={Icon} alt="googleIcon" width={20} height={20} />

@@ -9,18 +9,12 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Ensure user is an AGENT
     if (session.user.role !== UserRole.AGENT) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const agent = await prisma.agent.findUnique({
@@ -48,9 +42,6 @@ export async function GET() {
     return NextResponse.json(agent);
   } catch (err) {
     console.error("GET /api/agent/profile error:", err);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

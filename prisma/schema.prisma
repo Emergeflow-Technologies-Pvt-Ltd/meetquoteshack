@@ -28,7 +28,7 @@ model User {
   freeTierEndsAt           DateTime?
   subscriptions            Subscription[]
   agentReviews AgentReview[]   @relation("UserAgentReviews")
-
+  hasSeenFreeTrialModal Boolean  @default(false)
 }
 
 model Subscription {

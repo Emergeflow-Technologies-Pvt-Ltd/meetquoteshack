@@ -26,11 +26,22 @@ export async function GET() {
 
     const role = user.role as UserRole;
 
-    const access = await getAccessStatus(user.id, role, user.createdAt, user.freeTierEndsAt ?? null);
+    const access = await getAccessStatus(
+      user.id,
+      role,
+      user.createdAt,
+      user.freeTierEndsAt ?? null
+    );
 
-    return NextResponse.json({ hasAccess: !!access.hasAccess, access }, { status: 200 });
+    return NextResponse.json(
+      { hasAccess: !!access.hasAccess, access },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("[SUBSCRIPTION_CHECK_ERROR]", err);
-    return NextResponse.json({ error: "Failed to check subscription" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to check subscription" },
+      { status: 500 }
+    );
   }
 }

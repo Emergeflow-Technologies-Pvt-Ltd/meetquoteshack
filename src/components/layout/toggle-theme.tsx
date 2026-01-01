@@ -17,7 +17,7 @@ export const ToggleTheme = () => {
         <span className="block lg:hidden">Dark</span>
       </div>
 
-      <div className="dark:flex items-center gap-2 hidden">
+      <div className="hidden items-center gap-2 dark:flex">
         <Sun className="size-5" />
         <span className="block lg:hidden">Light</span>
       </div>

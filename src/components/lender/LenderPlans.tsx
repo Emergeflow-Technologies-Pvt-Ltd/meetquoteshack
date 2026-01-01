@@ -1,18 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Check, Crown, Zap, X } from "lucide-react";
 import { LENDER_PRICES } from "@/lib/lender-prices";
 
 type PlanType = "simple" | "standard";
 type IntervalType = "monthly" | "yearly" | "twoYear";
 
-
 export default function LenderPlans() {
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null);
   const [interval, setInterval] = useState<IntervalType>("monthly");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const openModal = (plan: PlanType) => {
     setSelectedPlan(plan);
@@ -37,30 +43,42 @@ export default function LenderPlans() {
   };
 
   const proceedToPayment = async () => {
-    if (!selectedPlan) return;
+    if (!selectedPlan || isProcessing) return;
 
-    const res = await fetch("/api/checkout/subscription", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        plan: selectedPlan,
-        interval,
-      }),
-    });
+    try {
+      setIsProcessing(true);
 
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+      const res = await fetch("/api/checkout/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: selectedPlan,
+          interval,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url; // redirect to Stripe
+      } else {
+        setIsProcessing(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setIsProcessing(false);
+    }
   };
 
   return (
     <>
       {/* ================= EXISTING UI (UNCHANGED) ================= */}
-      <div className="max-w-3xl mx-auto flex justify-center">
+      <div className="mx-auto flex max-w-3xl justify-center">
         <div className="grid w-full justify-center gap-8 md:grid-cols-2">
           {/* BASIC PLAN */}
-          <Card className="relative w-[368px] min-h-[539px] rounded-[8.44px] border border-[#E5E7EB] bg-white flex flex-col justify-between">
-            <CardHeader className="px-5 pt-5 pb-4">
-              <div className="flex items-center gap-3 mb-2">
+          <Card className="relative flex min-h-[539px] w-[368px] flex-col justify-between rounded-[8.44px] border border-[#E5E7EB] bg-white">
+            <CardHeader className="px-5 pb-4 pt-5">
+              <div className="mb-2 flex items-center gap-3">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#D1FAE5] text-[#10B981]">
                   <Zap className="h-5 w-5" />
                 </div>
@@ -70,22 +88,33 @@ export default function LenderPlans() {
                 <CardTitle className="text-[18px] font-semibold text-[#111827]">
                   Basic
                 </CardTitle>
-                <CardDescription className="text-[14px] text-[#6B7280] mt-1 mb-5">
+                <CardDescription className="mb-5 mt-1 text-[14px] text-[#6B7280]">
                   Perfect for getting started
                 </CardDescription>
               </div>
 
               <div className="mb-6">
-                <span className="text-[38px] font-bold text-[#22C55E]">$25</span>
-                <span className="text-gray-500 ml-1">/month</span>
+                <span className="text-[38px] font-bold text-[#22C55E]">
+                  $25
+                </span>
+                <span className="ml-1 text-gray-500">/month</span>
               </div>
             </CardHeader>
 
-            <CardContent className="px-4 pb-10 pt-4 flex flex-col justify-between flex-1">
+            <CardContent className="flex flex-1 flex-col justify-between px-4 pb-10 pt-4">
               <ul className="space-y-2 text-sm text-[#111827]">
-                <li className="flex gap-3"><Check className="h-4 w-4 text-[#10B981]" /> Access to lending pool</li>
-                <li className="flex gap-3"><Check className="h-4 w-4 text-[#10B981]" /> Collect borrower documents</li>
-                <li className="flex gap-3"><Check className="h-4 w-4 text-[#10B981]" /> Chat with borrowers</li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-[#10B981]" /> Access to lending
+                  pool
+                </li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-[#10B981]" /> Collect borrower
+                  documents
+                </li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-[#10B981]" /> Chat with
+                  borrowers
+                </li>
               </ul>
 
               <button
@@ -98,15 +127,15 @@ export default function LenderPlans() {
           </Card>
 
           {/* STANDARD PLAN */}
-          <Card className="relative w-[368px] min-h-[539px] border-2 border-violet-400 bg-white flex flex-col justify-between">
+          <Card className="relative flex min-h-[539px] w-[368px] flex-col justify-between border-2 border-violet-400 bg-white">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="rounded-full bg-violet-600 px-4 py-1 text-xs font-medium text-white">
                 Most Popular
               </span>
             </div>
 
-            <CardHeader className="px-5 pt-5 pb-4">
-              <div className="flex items-center gap-3 mb-2">
+            <CardHeader className="px-5 pb-4 pt-5">
+              <div className="mb-2 flex items-center gap-3">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-violet-100 text-violet-600">
                   <Crown className="h-5 w-5" />
                 </div>
@@ -115,23 +144,40 @@ export default function LenderPlans() {
               <CardTitle className="text-[18px] font-semibold text-gray-900">
                 Standard
               </CardTitle>
-              <CardDescription className="text-sm text-gray-500 mb-5">
+              <CardDescription className="mb-5 text-sm text-gray-500">
                 Most popular for growing lenders
               </CardDescription>
 
               <div className="mt-4">
-                <span className="text-[38px] font-bold text-violet-600">$49</span>
-                <span className="text-gray-500 ml-1">/month</span>
+                <span className="text-[38px] font-bold text-violet-600">
+                  $49
+                </span>
+                <span className="ml-1 text-gray-500">/month</span>
               </div>
             </CardHeader>
 
-            <CardContent className="px-4 pb-10 pt-4 flex flex-col justify-between flex-1">
+            <CardContent className="flex flex-1 flex-col justify-between px-4 pb-10 pt-4">
               <ul className="space-y-2 text-sm text-[#111827]">
-                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Access to lending pool</li>
-                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Collect borrower documents</li>
-                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Chat with borrowers</li>
-                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Risk assessment reports</li>
-                <li className="flex gap-3"><Check className="h-4 w-4 text-violet-500" /> Analytics reports</li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-violet-500" /> Access to
+                  lending pool
+                </li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-violet-500" /> Collect borrower
+                  documents
+                </li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-violet-500" /> Chat with
+                  borrowers
+                </li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-violet-500" /> Risk assessment
+                  reports
+                </li>
+                <li className="flex gap-3">
+                  <Check className="h-4 w-4 text-violet-500" /> Analytics
+                  reports
+                </li>
               </ul>
 
               <button
@@ -148,7 +194,7 @@ export default function LenderPlans() {
       {/* ================= MODAL (NEW, UI SEPARATE) ================= */}
       {showModal && selectedPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-[425px] h-[484px] max-w-lg rounded-md bg-white p-5 shadow-xl">
+          <div className="h-[484px] w-[425px] max-w-lg rounded-md bg-white p-5 shadow-xl">
             <div className="mb-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -169,8 +215,6 @@ export default function LenderPlans() {
               </p>
             </div>
 
-
-
             <div className="space-y-4">
               {Object.entries(LENDER_PRICES[selectedPlan]).map(([key, opt]) => {
                 const k = key as IntervalType;
@@ -180,10 +224,11 @@ export default function LenderPlans() {
                   <button
                     key={key}
                     onClick={() => setInterval(k)}
-                    className={`w-full rounded-lg border px-4 py-3 text-left transition ${selected
-                      ? "border-violet-600 ring-2 ring-violet-200"
-                      : "border-gray-200 hover:border-gray-300"
-                      }`}
+                    className={`w-full rounded-lg border px-4 py-3 text-left transition ${
+                      selected
+                        ? "border-violet-600 ring-2 ring-violet-200"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
                   >
                     <div className="flex items-start justify-between">
                       {/* LEFT CONTENT */}
@@ -195,10 +240,11 @@ export default function LenderPlans() {
 
                           {SAVINGS_BADGE[k] && (
                             <span
-                              className={`rounded-md px-3 py-1 text-xs font-semibold ${k === "yearly"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-violet-100 text-violet-700"
-                                }`}
+                              className={`rounded-md px-3 py-1 text-xs font-semibold ${
+                                k === "yearly"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-violet-100 text-violet-700"
+                              }`}
                             >
                               {SAVINGS_BADGE[k]}
                             </span>
@@ -206,7 +252,7 @@ export default function LenderPlans() {
                         </div>
 
                         <div className="mt-1 flex items-center gap-2">
-                          <span className="text-violet-600 font-bold text-sm">
+                          <span className="text-sm font-bold text-violet-600">
                             {opt.label}
                           </span>
 
@@ -221,10 +267,9 @@ export default function LenderPlans() {
                       {/* RADIO BUTTON */}
                       <div className="pt-1">
                         <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${selected
-                            ? "border-violet-600"
-                            : "border-gray-300"
-                            }`}
+                          className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                            selected ? "border-violet-600" : "border-gray-300"
+                          }`}
                         >
                           {selected && (
                             <span className="h-2.5 w-2.5 rounded-full bg-violet-600" />
@@ -237,15 +282,42 @@ export default function LenderPlans() {
               })}
             </div>
 
-
-
             <button
               onClick={proceedToPayment}
-              className="mt-6 w-full rounded-sm bg-violet-600 px-4 py-2 font-medium text-white hover:bg-violet-700"
+              disabled={isProcessing}
+              className={`mt-6 w-full rounded-sm px-4 py-2 font-medium text-white transition ${
+                isProcessing
+                  ? "cursor-not-allowed bg-violet-400"
+                  : "bg-violet-600 hover:bg-violet-700"
+              }`}
             >
-              <div className="text-sm ">
-                Proceed to Payment
-              </div>
+              {isProcessing ? (
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <svg
+                    className="h-4 w-4 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Redirecting…
+                </div>
+              ) : (
+                <span className="text-sm">Proceed to Payment</span>
+              )}
             </button>
 
             <button

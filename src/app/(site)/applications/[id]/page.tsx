@@ -60,20 +60,19 @@ export default function ApplicationPage({
 
   const [application, setApplication] = useState<
     | (Application & {
-      documents: Document[];
-      lender?: {
-        user?: { id: string };
-      } | null;
-      agent?: {
-        id: string;
-        name: string;
-        email: string;
-        phone: string;
-      } | null;
-    })
+        documents: Document[];
+        lender?: {
+          user?: { id: string };
+        } | null;
+        agent?: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+        } | null;
+      })
     | null
   >(null);
-
 
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -81,8 +80,8 @@ export default function ApplicationPage({
   const [loadingApp, setLoadingApp] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
-  const [canAccessPrequalification, setCanAccessPrequalification] = useState(false);
-
+  const [canAccessPrequalification, setCanAccessPrequalification] =
+    useState(false);
 
   // Chat States
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,19 +96,14 @@ export default function ApplicationPage({
 
         const res = await axios.get(`/api/applications/${id}`);
 
-
-
         const applicationData = res.data?.application ?? res.data;
 
         setApplication(applicationData ?? null);
 
-
         // ✅ Safe status check
         if (applicationData?.status === "IN_CHAT") {
           setLoadingMessages(true);
-          const msgRes = await axios.get(
-            `/api/messages?applicationId=${id}`
-          );
+          const msgRes = await axios.get(`/api/messages?applicationId=${id}`);
           setMessages(msgRes.data);
           setLoadingMessages(false);
         }
@@ -124,7 +118,6 @@ export default function ApplicationPage({
 
     fetchApplication();
   }, [session, id]);
-
 
   useEffect(() => {
     if (!session?.user) return;
@@ -145,15 +138,9 @@ export default function ApplicationPage({
     fetchAccess();
   }, [session]);
 
-
-
-  useEffect(() => {
-  }, [application]);
-
+  useEffect(() => {}, [application]);
 
   const lenderUserId = application?.lender?.user?.id;
-
-
 
   type AssignedAgent = {
     id: string;
@@ -164,15 +151,15 @@ export default function ApplicationPage({
     calendlyUrl?: string | null;
   };
 
-  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(null);
+  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(
+    null
+  );
   const [agentLoading, setAgentLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAssignedAgent() {
       try {
-        const res = await fetch(
-          `/api/applications/${id}/agent`
-        );
+        const res = await fetch(`/api/applications/${id}/agent`);
 
         if (!res.ok) {
           setAssignedAgent(null);
@@ -244,13 +231,13 @@ export default function ApplicationPage({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case "APPROVED":
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "REJECTED":
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
       case "UPLOADED":
-        return <CheckCircle className="w-4 h-4 text-blue-500" />;
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
       default:
         return null;
     }
@@ -282,22 +269,23 @@ export default function ApplicationPage({
   return (
     <Section className="py-12 md:py-24">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${application?.status === LoanStatus.IN_CHAT ? "h-auto lg:h-[88vh]" : ""
-          }`}
+        className={`flex flex-col md:mb-6 lg:flex-row lg:gap-6 ${
+          application?.status === LoanStatus.IN_CHAT ? "h-auto lg:h-[88vh]" : ""
+        }`}
       >
         <div
-          className={`flex-1 space-y-8 ${application?.status === LoanStatus.IN_CHAT
-            ? "overflow-y-auto lg:pr-4 mb-6"
-            : ""
-            }`}
+          className={`flex-1 space-y-8 ${
+            application?.status === LoanStatus.IN_CHAT
+              ? "mb-6 overflow-y-auto lg:pr-4"
+              : ""
+          }`}
         >
           {!agentLoading && assignedAgent && (
             <Card className="border-violet-500 bg-violet-50/60">
-              <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 p-6">
-
+              <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
                 {/* Left */}
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-white text-xl font-semibold">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-xl font-semibold text-white">
                     {assignedAgent.name
                       .split(" ")
                       .map((n) => n[0])
@@ -325,17 +313,12 @@ export default function ApplicationPage({
                   >
                     View Agent Details
                   </Button>
-
-                  
-
                 </div>
-
               </CardContent>
             </Card>
           )}
 
-
-          <div className="flex justify-between gap-4 sticky top-0 bg-white z-10 pb-4">
+          <div className="sticky top-0 z-10 flex justify-between gap-4 bg-white pb-4">
             <div className="flex items-center gap-4">
               <button className="rounded-full" onClick={() => router.back()}>
                 <ChevronLeft className="h-4 w-4" />
@@ -369,17 +352,17 @@ export default function ApplicationPage({
 
           {/* Cards Section */}
           <div className="grid grid-cols-1 gap-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {/* Personal Info */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-600" />
+                    <User className="h-5 w-5 text-blue-600" />
                     Personal Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <span className="text-gray-500">Name</span>
                       <p className="font-medium">
@@ -393,8 +376,8 @@ export default function ApplicationPage({
                       <p className="font-medium">
                         {application?.dateOfBirth
                           ? new Date(
-                            application.dateOfBirth
-                          ).toLocaleDateString()
+                              application.dateOfBirth
+                            ).toLocaleDateString()
                           : "N/A"}
                       </p>
                     </div>
@@ -437,8 +420,8 @@ export default function ApplicationPage({
                       <p className="font-medium">
                         {application?.residencyStatus
                           ? residencyStatusTypeLabels[
-                          application.residencyStatus
-                          ]
+                              application.residencyStatus
+                            ]
                           : null}
                       </p>
                     </div>
@@ -470,12 +453,12 @@ export default function ApplicationPage({
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
+                    <DollarSign className="h-5 w-5 text-blue-600" />
                     Financial Overview
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <span className="text-gray-500">Gross Income</span>
                       <p className="font-medium">
@@ -538,12 +521,12 @@ export default function ApplicationPage({
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Home className="w-5 h-5 text-blue-600" />
+                    <Home className="h-5 w-5 text-blue-600" />
                     Property & Mortgage Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <span className="text-gray-500">Property Type</span>
                       <p className="font-medium">
@@ -559,8 +542,8 @@ export default function ApplicationPage({
                       <p className="font-medium">
                         {application?.estimatedPropertyValue
                           ? `$${Number(
-                            application.estimatedPropertyValue
-                          ).toLocaleString()}`
+                              application.estimatedPropertyValue
+                            ).toLocaleString()}`
                           : "N/A"}
                       </p>
                     </div>
@@ -597,12 +580,12 @@ export default function ApplicationPage({
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-blue-600" />
+                      <User className="h-5 w-5 text-blue-600" />
                       Co-applicant Details
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm text-gray-700">
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       <div>
                         <span className="text-gray-500">Name</span>
                         <p className="font-medium">
@@ -616,8 +599,8 @@ export default function ApplicationPage({
                         <p className="font-medium">
                           {application.coApplicantDateOfBirth
                             ? new Date(
-                              application.coApplicantDateOfBirth
-                            ).toLocaleDateString()
+                                application.coApplicantDateOfBirth
+                              ).toLocaleDateString()
                             : "N/A"}
                         </p>
                       </div>
@@ -649,7 +632,7 @@ export default function ApplicationPage({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
+                  <FileText className="h-5 w-5 text-blue-600" />
                   Required Documents
                 </CardTitle>
               </CardHeader>
@@ -658,21 +641,23 @@ export default function ApplicationPage({
                   {application?.documents?.map((doc) => (
                     <div
                       key={doc.id}
-                      className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${doc.status === "APPROVED"
-                        ? "bg-green-50 border-green-200"
-                        : doc.status === "UPLOADED"
-                          ? "bg-blue-50 border-blue-200"
-                          : "hover:border-primary/50"
-                        }`}
+                      className={`flex flex-col justify-between rounded-lg border p-4 transition-all md:flex-row md:items-center ${
+                        doc.status === "APPROVED"
+                          ? "border-green-200 bg-green-50"
+                          : doc.status === "UPLOADED"
+                            ? "border-blue-200 bg-blue-50"
+                            : "hover:border-primary/50"
+                      }`}
                     >
-                      <div className="flex items-center gap-3 mb-3 md:mb-0">
+                      <div className="mb-3 flex items-center gap-3 md:mb-0">
                         <FileText
-                          className={`w-5 h-5 ${doc.status === "APPROVED"
-                            ? "text-green-500"
-                            : doc.status === "UPLOADED"
-                              ? "text-blue-500"
-                              : "text-muted-foreground"
-                            }`}
+                          className={`h-5 w-5 ${
+                            doc.status === "APPROVED"
+                              ? "text-green-500"
+                              : doc.status === "UPLOADED"
+                                ? "text-blue-500"
+                                : "text-muted-foreground"
+                          }`}
                         />
                         <div>
                           <p className="font-medium">
@@ -747,7 +732,7 @@ export default function ApplicationPage({
                                 </>
                               ) : (
                                 <>
-                                  <Upload className="w-4 h-4 mr-2" />
+                                  <Upload className="mr-2 h-4 w-4" />
                                   Upload
                                 </>
                               )}
@@ -770,8 +755,6 @@ export default function ApplicationPage({
                 onUpgrade={() => router.push("/loanee/subscription")}
               />
             )}
-
-
           </div>
         </div>
         {application?.status === "IN_CHAT" && (
@@ -793,9 +776,9 @@ function LockedPrequalificationSection({
   onUpgrade: () => void;
 }) {
   return (
-    <Card className="relative overflow-hidden border border-dashed bg-gray-300/40 min-h-[220px]">
+    <Card className="relative min-h-[220px] overflow-hidden border border-dashed bg-gray-300/40">
       {/* Blur overlay */}
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-sm" />
 
       <CardHeader className="relative z-10 pb-2">
         <CardTitle className="text-sm font-semibold">
@@ -803,20 +786,14 @@ function LockedPrequalificationSection({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="relative z-10 flex flex-col items-center justify-center text-center py-10">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-100 mb-3">
-          <Image
-            src="/lock.svg"
-            alt="Locked"
-            width={52}
-            height={52}
-            priority
-          />
+      <CardContent className="relative z-10 flex flex-col items-center justify-center py-10 text-center">
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-purple-100">
+          <Image src="/lock.svg" alt="Locked" width={52} height={52} priority />
         </div>
 
-        <p className="text-xs text-gray-600 max-w-sm mb-4">
-          View eligibility, affordability, and risk insights with Smart plan
-          or during your free trial.
+        <p className="mb-4 max-w-sm text-xs text-gray-600">
+          View eligibility, affordability, and risk insights with Smart plan or
+          during your free trial.
         </p>
 
         <Button size="sm" onClick={onUpgrade}>

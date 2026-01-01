@@ -111,12 +111,6 @@
 //   );
 // }
 
-
-
-
-
-
-
 import Section from "@/components/shared/section";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -143,11 +137,10 @@ export default async function LoaneePlansPage() {
 
   return (
     <Section className="py-20">
-      <h1 className="text-3xl font-bold text-center mb-10">
+      <h1 className="mb-10 text-center text-3xl font-bold">
         Choose a subscription plan
       </h1>
       <LoaneePlans />
     </Section>
   );
 }
-

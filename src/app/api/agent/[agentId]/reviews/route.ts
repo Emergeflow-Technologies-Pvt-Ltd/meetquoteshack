@@ -21,10 +21,7 @@ export async function GET(
     return NextResponse.json({ reviews });
   } catch (error) {
     console.error("GET agent reviews error:", error);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -111,9 +108,6 @@ export async function POST(
     return NextResponse.json({ review });
   } catch (error) {
     console.error("POST agent review error:", error);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

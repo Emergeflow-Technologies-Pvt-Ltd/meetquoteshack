@@ -1,4 +1,3 @@
-
 // for monthly/yearly
 
 // src/app/api/checkout/subscription/route.ts
@@ -84,8 +83,7 @@ export async function POST(req: Request) {
     const freeTierEndsAt =
       user.freeTierEndsAt ??
       new Date(
-        user.createdAt.getTime() +
-          FREE_DAYS[user.role] * 24 * 60 * 60 * 1000
+        user.createdAt.getTime() + FREE_DAYS[user.role] * 24 * 60 * 60 * 1000
       );
 
     if (freeTierEndsAt && freeTierEndsAt > now) {
@@ -129,7 +127,7 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
-    
+
     if (!priceId) {
       return NextResponse.json(
         { error: "Invalid plan or billing interval" },
@@ -140,13 +138,10 @@ export async function POST(req: Request) {
     /* =======================
        STRIPE SESSION
        ======================= */
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
     const successPath =
-      user.role === UserRole.LENDER
-        ? "/lender/dashboard"
-        : "/applications";
+      user.role === UserRole.LENDER ? "/lender/dashboard" : "/applications";
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -181,4 +176,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

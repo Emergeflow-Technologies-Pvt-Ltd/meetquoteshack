@@ -15,7 +15,6 @@ type Review = {
   };
 };
 
-
 type Props = {
   agent: {
     id: string;
@@ -29,10 +28,11 @@ type Props = {
   applicationId?: string | null;
 };
 
-
-
-
-export default function AgentDetailsPage({ agent, reviews, applicationId }: Props) {
+export default function AgentDetailsPage({
+  agent,
+  reviews,
+  applicationId,
+}: Props) {
   const initials = agent.name
     .split(" ")
     .map((n) => n[0])
@@ -49,24 +49,21 @@ export default function AgentDetailsPage({ agent, reviews, applicationId }: Prop
     totalReviews === 0
       ? 0
       : Number(
-        (
-          reviews.reduce((sum, r) => sum + r.rating, 0) /
-          totalReviews
-        ).toFixed(1)
-      );
-
+          (
+            reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+          ).toFixed(1)
+        );
 
   return (
-    <div className="max-w-[1350px] mx-auto py-12 space-y-10">
-      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent">
+    <div className="mx-auto max-w-[1350px] space-y-10 py-12">
+      <h1 className="mb-6 bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
         Agent Details
       </h1>
       <Card className="border-gray-200">
-        <CardContent className="p-6 space-y-6">
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <CardContent className="space-y-6 p-6">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-violet-600 text-white flex items-center justify-center text-2xl font-semibold">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-violet-600 text-2xl font-semibold text-white">
                 {initials}
               </div>
               <div>
@@ -74,12 +71,8 @@ export default function AgentDetailsPage({ agent, reviews, applicationId }: Prop
                   <h2 className="text-xl font-semibold">{agent.name}</h2>
                   <Badge variant="secondary">Assigned Agent</Badge>
                 </div>
-                <p className="text-sm text-gray-600">
-                  Email: {agent.email}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Phone: {agent.phone}
-                </p>
+                <p className="text-sm text-gray-600">Email: {agent.email}</p>
+                <p className="text-sm text-gray-600">Phone: {agent.phone}</p>
               </div>
             </div>
             {agent.calendlyUrl && (
@@ -87,15 +80,11 @@ export default function AgentDetailsPage({ agent, reviews, applicationId }: Prop
                 <BookCallButton calendlyUrl={agent.calendlyUrl} />
               </div>
             )}
-
           </div>
 
-
-          <div className="border border-violet-400 rounded-lg bg-violet-50 p-5 ml-20 w-[1220px] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="ml-20 flex w-[1220px] flex-col gap-4 rounded-lg border border-violet-400 bg-violet-50 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="font-semibold text-lg">
-                Share Your Experience
-              </h3>
+              <h3 className="text-lg font-semibold">Share Your Experience</h3>
               <p className="text-sm text-gray-600">
                 How was your experience working with {agent.name}?
               </p>
@@ -111,29 +100,20 @@ export default function AgentDetailsPage({ agent, reviews, applicationId }: Prop
                 hasReviewed={hasReviewed}
               />
             )}
-
           </div>
 
           <section className="space-y-4">
             <h3 className="text-lg font-semibold">Agent Performance</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatCard
-                label="Average Rating"
-                value={averageRating}
-                stars
-              />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <StatCard label="Average Rating" value={averageRating} stars />
 
-              <StatCard
-                label="Total Reviews"
-                value={totalReviews}
-              />
+              <StatCard label="Total Reviews" value={totalReviews} />
 
               <StatCard
                 label="Clients Served"
                 value={agent.applicationsCount}
               />
-
             </div>
           </section>
 
@@ -147,7 +127,7 @@ export default function AgentDetailsPage({ agent, reviews, applicationId }: Prop
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="rounded-lg border p-4 space-y-2 bg-gray-100"
+                className="space-y-2 rounded-lg border bg-gray-100 p-4"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">
@@ -168,13 +148,11 @@ export default function AgentDetailsPage({ agent, reviews, applicationId }: Prop
               </div>
             ))}
           </section>
-
         </CardContent>
       </Card>
     </div>
   );
 }
-
 
 function StatCard({
   label,
@@ -187,18 +165,17 @@ function StatCard({
 }) {
   return (
     <Card>
-      <CardContent className="p-5 space-y-2 bg-gray-100">
+      <CardContent className="space-y-2 bg-gray-100 p-5">
         <p className="text-sm text-gray-500">{label}</p>
         <div className="flex items-center gap-2">
           <p className="text-3xl font-semibold">{value}</p>
           {stars && (
             <div className="flex text-yellow-400">
               {Array.from({ length: Math.round(value) }).map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-yellow-400" />
+                <Star key={i} className="h-4 w-4 fill-yellow-400" />
               ))}
             </div>
           )}
-
         </div>
       </CardContent>
     </Card>

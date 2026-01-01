@@ -12,31 +12,40 @@ import { stripe } from "@/lib/stripe";
 
 const PRICE_TO_PLAN_MAP: Record<string, SubscriptionPlan> = {};
 if (process.env.STRIPE_PRICE_LENDER_SIMPLE_MONTHLY) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_SIMPLE_MONTHLY] = SubscriptionPlan.LENDER_SIMPLE;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_SIMPLE_MONTHLY] =
+    SubscriptionPlan.LENDER_SIMPLE;
 }
 if (process.env.STRIPE_PRICE_LENDER_SIMPLE_1YEAR) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_SIMPLE_1YEAR] = SubscriptionPlan.LENDER_SIMPLE;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_SIMPLE_1YEAR] =
+    SubscriptionPlan.LENDER_SIMPLE;
 }
 if (process.env.STRIPE_PRICE_LENDER_SIMPLE_2YEAR) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_SIMPLE_2YEAR] = SubscriptionPlan.LENDER_SIMPLE;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_SIMPLE_2YEAR] =
+    SubscriptionPlan.LENDER_SIMPLE;
 }
 if (process.env.STRIPE_PRICE_LENDER_STANDARD_MONTHLY) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_STANDARD_MONTHLY] = SubscriptionPlan.LENDER_STANDARD;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_STANDARD_MONTHLY] =
+    SubscriptionPlan.LENDER_STANDARD;
 }
 if (process.env.STRIPE_PRICE_LENDER_STANDARD_1YEAR) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_STANDARD_1YEAR] = SubscriptionPlan.LENDER_STANDARD;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_STANDARD_1YEAR] =
+    SubscriptionPlan.LENDER_STANDARD;
 }
 if (process.env.STRIPE_PRICE_LENDER_STANDARD_2YEAR) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_STANDARD_2YEAR] = SubscriptionPlan.LENDER_STANDARD;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LENDER_STANDARD_2YEAR] =
+    SubscriptionPlan.LENDER_STANDARD;
 }
 if (process.env.STRIPE_PRICE_LOANEE_STAY_SMART_MONTHLY) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LOANEE_STAY_SMART_MONTHLY] = SubscriptionPlan.LOANEE_STAY_SMART;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LOANEE_STAY_SMART_MONTHLY] =
+    SubscriptionPlan.LOANEE_STAY_SMART;
 }
 if (process.env.STRIPE_PRICE_LOANEE_STAY_SMART_1YEAR) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LOANEE_STAY_SMART_1YEAR] = SubscriptionPlan.LOANEE_STAY_SMART;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LOANEE_STAY_SMART_1YEAR] =
+    SubscriptionPlan.LOANEE_STAY_SMART;
 }
 if (process.env.STRIPE_PRICE_LOANEE_STAY_SMART_2YEAR) {
-  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LOANEE_STAY_SMART_2YEAR] = SubscriptionPlan.LOANEE_STAY_SMART;
+  PRICE_TO_PLAN_MAP[process.env.STRIPE_PRICE_LOANEE_STAY_SMART_2YEAR] =
+    SubscriptionPlan.LOANEE_STAY_SMART;
 }
 
 function normalizeRole(role?: string): UserRole | undefined {
@@ -62,8 +71,13 @@ export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!sig || !webhookSecret) {
-    console.error("Missing stripe-signature header or STRIPE_WEBHOOK_SECRET env");
-    return NextResponse.json({ error: "Missing signature or webhook secret" }, { status: 400 });
+    console.error(
+      "Missing stripe-signature header or STRIPE_WEBHOOK_SECRET env"
+    );
+    return NextResponse.json(
+      { error: "Missing signature or webhook secret" },
+      { status: 400 }
+    );
   }
 
   let bodyText: string;
@@ -78,9 +92,13 @@ export async function POST(req: Request) {
   try {
     event = stripe.webhooks.constructEvent(bodyText, sig, webhookSecret);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown webhook verification error";
+    const message =
+      err instanceof Error ? err.message : "Unknown webhook verification error";
     console.error("Webhook signature verification failed:", message);
-    return NextResponse.json({ error: "Webhook signature verification failed" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Webhook signature verification failed" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -123,7 +141,10 @@ export async function POST(req: Request) {
           });
 
           if (existingSchedules.data.length > 0) {
-            console.log("Subscription schedule already exists for customer:", customerId);
+            console.log(
+              "Subscription schedule already exists for customer:",
+              customerId
+            );
             break;
           }
 
@@ -149,20 +170,33 @@ export async function POST(req: Request) {
           };
 
           await stripe.subscriptionSchedules.create(scheduleParams);
-          console.log("Subscription schedule created for customer:", customerId);
+          console.log(
+            "Subscription schedule created for customer:",
+            customerId
+          );
         }
 
         if (session.mode === "subscription" && session.subscription) {
           const subscriptionId =
-            typeof session.subscription === "string" ? session.subscription : (session.subscription as any)?.id;
+            typeof session.subscription === "string"
+              ? session.subscription
+              : (session.subscription as any)?.id;
           if (subscriptionId) {
-            console.log("💡 Fetching subscription from checkout.session.completed:", subscriptionId);
+            console.log(
+              "💡 Fetching subscription from checkout.session.completed:",
+              subscriptionId
+            );
             try {
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              await new Promise((resolve) => setTimeout(resolve, 2000));
               await handleSubscriptionUpsertById(subscriptionId, session);
-              console.log("✅ Successfully processed subscription from checkout.session.completed");
+              console.log(
+                "✅ Successfully processed subscription from checkout.session.completed"
+              );
             } catch (e) {
-              console.error("Failed to upsert subscription from checkout.session.completed:", (e as Error).message);
+              console.error(
+                "Failed to upsert subscription from checkout.session.completed:",
+                (e as Error).message
+              );
             }
           }
         }
@@ -174,22 +208,31 @@ export async function POST(req: Request) {
             await unlockApplicationForLender(metaAppId, metaLenderId);
           } else {
             const paymentIntentId =
-              typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent as any)?.id;
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : (session.payment_intent as any)?.id;
             if (paymentIntentId) {
               try {
-                const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+                const pi =
+                  await stripe.paymentIntents.retrieve(paymentIntentId);
                 const piAppId = metadataString(pi, "applicationId");
                 const piLenderId = metadataString(pi, "lenderId");
                 if (piAppId && piLenderId) {
                   await unlockApplicationForLender(piAppId, piLenderId);
                 }
               } catch (err) {
-                console.warn("Failed to retrieve PaymentIntent:", (err as Error).message);
+                console.warn(
+                  "Failed to retrieve PaymentIntent:",
+                  (err as Error).message
+                );
               }
             }
           }
         } catch (err) {
-          console.warn("checkout.session.completed: pay-per-match handling failed:", (err as Error).message);
+          console.warn(
+            "checkout.session.completed: pay-per-match handling failed:",
+            (err as Error).message
+          );
         }
 
         try {
@@ -228,7 +271,10 @@ export async function POST(req: Request) {
           try {
             await unlockApplicationForLender(applicationId, lenderId);
           } catch (err) {
-            console.warn("payment_intent.succeeded: unlock failed:", (err as Error).message);
+            console.warn(
+              "payment_intent.succeeded: unlock failed:",
+              (err as Error).message
+            );
           }
         }
         break;
@@ -267,25 +313,35 @@ export async function POST(req: Request) {
         console.log("🔗 Subscription ID from invoice:", subId ?? "NOT FOUND");
 
         if (!subId) {
-          const customerId = typeof invoiceAny.customer === "string" 
-            ? invoiceAny.customer 
-            : invoiceAny.customer?.id;
-            
-          if (customerId && invoiceAny.billing_reason === "subscription_create") {
-            console.log("🔍 Attempting to find subscription from customer:", customerId);
+          const customerId =
+            typeof invoiceAny.customer === "string"
+              ? invoiceAny.customer
+              : invoiceAny.customer?.id;
+
+          if (
+            customerId &&
+            invoiceAny.billing_reason === "subscription_create"
+          ) {
+            console.log(
+              "🔍 Attempting to find subscription from customer:",
+              customerId
+            );
             try {
               const subscriptions = await stripe.subscriptions.list({
                 customer: customerId,
                 status: "active",
                 limit: 1,
               });
-              
+
               if (subscriptions.data.length > 0) {
                 subId = subscriptions.data[0].id;
                 console.log("✅ Found subscription from customer:", subId);
               }
             } catch (err) {
-              console.warn("Failed to lookup subscription from customer:", (err as Error).message);
+              console.warn(
+                "Failed to lookup subscription from customer:",
+                (err as Error).message
+              );
             }
           }
         }
@@ -293,7 +349,7 @@ export async function POST(req: Request) {
         if (!subId) {
           console.error(
             "❌ invoice.payment_succeeded: subscription ID not found after all attempts",
-            { 
+            {
               invoiceId: invoice.id,
               billing_reason: invoiceAny.billing_reason,
               customer: invoiceAny.customer,
@@ -306,7 +362,10 @@ export async function POST(req: Request) {
           expand: ["items.data.price"],
         });
 
-        console.log("📅 Retrieved subscription - current_period_end:", (stripeSubscription as any).current_period_end);
+        console.log(
+          "📅 Retrieved subscription - current_period_end:",
+          (stripeSubscription as any).current_period_end
+        );
 
         await handleSubscriptionEvent(
           stripeSubscription,
@@ -320,15 +379,22 @@ export async function POST(req: Request) {
         const invoice = event.data.object as Stripe.Invoice;
 
         const subscription = (invoice as any).subscription;
-        const subId = typeof subscription === "string" ? subscription : subscription?.id;
+        const subId =
+          typeof subscription === "string" ? subscription : subscription?.id;
 
         console.log("invoice.payment_failed → subscription:", subId);
 
         if (subId) {
-          const stripeSubscription = await stripe.subscriptions.retrieve(subId, {
-            expand: ["items.data.price"],
-          });
-          await handleSubscriptionEvent(stripeSubscription, "invoice.payment_failed");
+          const stripeSubscription = await stripe.subscriptions.retrieve(
+            subId,
+            {
+              expand: ["items.data.price"],
+            }
+          );
+          await handleSubscriptionEvent(
+            stripeSubscription,
+            "invoice.payment_failed"
+          );
         }
         break;
       }
@@ -339,19 +405,30 @@ export async function POST(req: Request) {
         const sub = event.data.object as Stripe.Subscription;
         const subAny = sub as any;
         console.log(`${event.type} subscription id:`, sub.id);
-        
-        console.log("📅 Subscription object from webhook current_period_end:", subAny.current_period_end);
-        
+
+        console.log(
+          "📅 Subscription object from webhook current_period_end:",
+          subAny.current_period_end
+        );
+
         if (!subAny.current_period_end && sub.id) {
-          console.log("⚠️ current_period_end missing in webhook - fetching from Stripe API");
+          console.log(
+            "⚠️ current_period_end missing in webhook - fetching from Stripe API"
+          );
           try {
             const fullSub = await stripe.subscriptions.retrieve(sub.id, {
               expand: ["items.data.price"],
             });
-            console.log("✅ Fetched full subscription - current_period_end:", (fullSub as any).current_period_end);
+            console.log(
+              "✅ Fetched full subscription - current_period_end:",
+              (fullSub as any).current_period_end
+            );
             await handleSubscriptionEvent(fullSub, event.type);
           } catch (err) {
-            console.error(`Failed to fetch full subscription from API:`, (err as Error).message);
+            console.error(
+              `Failed to fetch full subscription from API:`,
+              (err as Error).message
+            );
             await handleSubscriptionEvent(sub, event.type);
           }
         } else {
@@ -366,24 +443,41 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown handler error";
+    const message =
+      err instanceof Error ? err.message : "Unknown handler error";
     console.error("Webhook processing failed:", message);
-    return NextResponse.json({ error: "Webhook handler error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook handler error" },
+      { status: 500 }
+    );
   }
 }
 
-async function unlockApplicationForLender(applicationId: string, lenderId: string) {
+async function unlockApplicationForLender(
+  applicationId: string,
+  lenderId: string
+) {
   try {
-    console.log(`Attempting to unlock application ${applicationId} for lender ${lenderId}`);
+    console.log(
+      `Attempting to unlock application ${applicationId} for lender ${lenderId}`
+    );
 
-    const app = await prisma.application.findUnique({ where: { id: applicationId } });
+    const app = await prisma.application.findUnique({
+      where: { id: applicationId },
+    });
     if (!app) {
-      console.warn("unlockApplicationForLender: application not found", applicationId);
+      console.warn(
+        "unlockApplicationForLender: application not found",
+        applicationId
+      );
       return;
     }
 
     if (app.lenderId === lenderId && app.status === "IN_PROGRESS") {
-      console.log("Application already unlocked for this lender — skipping update", applicationId);
+      console.log(
+        "Application already unlocked for this lender — skipping update",
+        applicationId
+      );
       return;
     }
 
@@ -392,22 +486,43 @@ async function unlockApplicationForLender(applicationId: string, lenderId: strin
       data: { status: "IN_PROGRESS", lenderId },
     });
 
-    console.log("Application unlocked/updated:", updated.id, updated.status, updated.lenderId);
+    console.log(
+      "Application unlocked/updated:",
+      updated.id,
+      updated.status,
+      updated.lenderId
+    );
   } catch (err) {
     console.error("unlockApplicationForLender error:", (err as Error).message);
     return;
   }
 }
 
-async function handleSubscriptionUpsertById(subscriptionId: string, session?: Stripe.Checkout.Session) {
+async function handleSubscriptionUpsertById(
+  subscriptionId: string,
+  session?: Stripe.Checkout.Session
+) {
   try {
-    const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId, { 
-      expand: ["items.data.price"] 
-    });
-    console.log("📅 Retrieved subscription in upsert - current_period_end:", (stripeSubscription as any).current_period_end);
-    await handleSubscriptionEvent(stripeSubscription as any, "customer.subscription.created", session);
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      subscriptionId,
+      {
+        expand: ["items.data.price"],
+      }
+    );
+    console.log(
+      "📅 Retrieved subscription in upsert - current_period_end:",
+      (stripeSubscription as any).current_period_end
+    );
+    await handleSubscriptionEvent(
+      stripeSubscription as any,
+      "customer.subscription.created",
+      session
+    );
   } catch (err) {
-    console.error("handleSubscriptionUpsertById error:", (err as Error).message);
+    console.error(
+      "handleSubscriptionUpsertById error:",
+      (err as Error).message
+    );
     throw err;
   }
 }
@@ -421,27 +536,36 @@ async function handleSubscriptionEvent(
     const subAny = sub as any;
 
     const userId =
-      (subAny.metadata?.userId as string | undefined) ?? (session?.metadata?.userId as string | undefined);
+      (subAny.metadata?.userId as string | undefined) ??
+      (session?.metadata?.userId as string | undefined);
     const roleStr =
-      (subAny.metadata?.role as string | undefined) ?? (session?.metadata?.role as string | undefined);
+      (subAny.metadata?.role as string | undefined) ??
+      (session?.metadata?.role as string | undefined);
     const subscriptionPlan =
-      (subAny.metadata?.subscriptionPlan as string | undefined) ?? (session?.metadata?.subscriptionPlan as string | undefined);
+      (subAny.metadata?.subscriptionPlan as string | undefined) ??
+      (session?.metadata?.subscriptionPlan as string | undefined);
     const intervalMeta =
-      (subAny.metadata?.billingInterval as string | undefined) ?? (session?.metadata?.billingInterval as string | undefined);
+      (subAny.metadata?.billingInterval as string | undefined) ??
+      (session?.metadata?.billingInterval as string | undefined);
 
     const role = normalizeRole(roleStr);
 
     if (!userId || !role) {
-      console.error("Missing subscription metadata; skipping subscription upsert", {
-        subscriptionId: subAny.id,
-        subMetadata: subAny.metadata,
-        sessionMetadata: session?.metadata,
-      });
+      console.error(
+        "Missing subscription metadata; skipping subscription upsert",
+        {
+          subscriptionId: subAny.id,
+          subMetadata: subAny.metadata,
+          sessionMetadata: session?.metadata,
+        }
+      );
       return;
     }
 
     const billingInterval =
-      intervalMeta === "yearly" || intervalMeta === "YEARLY" || intervalMeta === "twoYear"
+      intervalMeta === "yearly" ||
+      intervalMeta === "YEARLY" ||
+      intervalMeta === "twoYear"
         ? BillingInterval.YEARLY
         : BillingInterval.MONTHLY;
 
@@ -465,40 +589,61 @@ async function handleSubscriptionEvent(
         : null;
 
     if (!periodEnd && subAny.status === "active") {
-      console.warn("⚠️ ACTIVE subscription missing period end - calculating from billing cycle");
-      
+      console.warn(
+        "⚠️ ACTIVE subscription missing period end - calculating from billing cycle"
+      );
+
       const baseTimestamp = billingCycleAnchor ?? created;
-      
+
       if (baseTimestamp) {
         const baseDate = new Date(Number(baseTimestamp) * 1000);
-        
-        const priceInterval = subAny.items?.data?.[0]?.price?.recurring?.interval;
-        const priceIntervalCount = subAny.items?.data?.[0]?.price?.recurring?.interval_count ?? 1;
-        
-        const metadataInterval = intervalMeta === "yearly" || intervalMeta === "YEARLY" || intervalMeta === "twoYear"
-          ? "year"
-          : "month";
-        
+
+        const priceInterval =
+          subAny.items?.data?.[0]?.price?.recurring?.interval;
+        const priceIntervalCount =
+          subAny.items?.data?.[0]?.price?.recurring?.interval_count ?? 1;
+
+        const metadataInterval =
+          intervalMeta === "yearly" ||
+          intervalMeta === "YEARLY" ||
+          intervalMeta === "twoYear"
+            ? "year"
+            : "month";
+
         const interval = priceInterval ?? metadataInterval;
-        
-        console.log("📊 Interval info:", { priceInterval, priceIntervalCount, metadataInterval, interval });
-        
+
+        console.log("📊 Interval info:", {
+          priceInterval,
+          priceIntervalCount,
+          metadataInterval,
+          interval,
+        });
+
         periodEnd = new Date(baseDate);
         if (interval === "year") {
-          periodEnd.setFullYear(periodEnd.getFullYear() + (priceIntervalCount ?? 1));
+          periodEnd.setFullYear(
+            periodEnd.getFullYear() + (priceIntervalCount ?? 1)
+          );
         } else if (interval === "month") {
           periodEnd.setMonth(periodEnd.getMonth() + (priceIntervalCount ?? 1));
         } else {
           periodEnd.setMonth(periodEnd.getMonth() + 1);
         }
-        
-        console.log("📅 Calculated period end:", periodEnd.toISOString(), "from base:", baseDate.toISOString());
+
+        console.log(
+          "📅 Calculated period end:",
+          periodEnd.toISOString(),
+          "from base:",
+          baseDate.toISOString()
+        );
       }
     }
 
     const cancelAtPeriodEnd: boolean = !!(subAny.cancel_at_period_end ?? false);
 
-    const stripePriceId = subAny.items?.data?.[0]?.price?.id as string | undefined;
+    const stripePriceId = subAny.items?.data?.[0]?.price?.id as
+      | string
+      | undefined;
     const mappedPlan =
       stripePriceId && PRICE_TO_PLAN_MAP[stripePriceId]
         ? PRICE_TO_PLAN_MAP[stripePriceId]
@@ -537,14 +682,16 @@ async function handleSubscriptionEvent(
     if (mappedStatus === SubscriptionStatus.ACTIVE && !periodEnd) {
       console.error(
         "❌ ACTIVE subscription without currentPeriodEnd — invalid state (this should not happen with workaround)",
-        { 
+        {
           subId: subAny.id,
           current_period_end_raw: subAny.current_period_end,
           trial_end_raw: subAny.trial_end,
           billing_cycle_anchor: subAny.billing_cycle_anchor,
         }
       );
-      console.error("⛔ Refusing to save ACTIVE subscription without period end");
+      console.error(
+        "⛔ Refusing to save ACTIVE subscription without period end"
+      );
       return;
     }
 

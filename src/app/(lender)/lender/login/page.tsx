@@ -67,10 +67,10 @@ export default function LenderLogin() {
 
   return (
     <Section className="mt-24">
-      <div className="max-w-md mx-auto">
-        <Card className="p-8 shadow-xl rounded-2xl border border-gray-100 bg-white">
+      <div className="mx-auto max-w-md">
+        <Card className="rounded-2xl border border-gray-100 bg-white p-8 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
               Lender Login
             </CardTitle>
             <p className="mt-4 text-sm text-gray-500">
@@ -124,7 +124,7 @@ export default function LenderLogin() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                  className="w-full rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 py-3 font-semibold text-white transition-all duration-300 hover:from-violet-600 hover:to-purple-700"
                 >
                   Login
                 </Button>

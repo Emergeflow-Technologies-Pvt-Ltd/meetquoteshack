@@ -11,7 +11,6 @@ type PageProps = {
 export default async function Page({ params }: PageProps) {
   const { agentId } = await params;
 
-
   const agent = await prisma.agent.findUnique({
     where: { id: agentId },
     include: {

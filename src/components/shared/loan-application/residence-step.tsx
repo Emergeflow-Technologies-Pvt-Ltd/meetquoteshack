@@ -52,22 +52,29 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
               </FormLabel>
               <FormControl>
                 <div className="grid grid-cols-2 gap-4">
-                  {(Object.values(ResidencyStatus) as ResidencyStatus[]).map((value) => (
-                    <label
-                      key={value}
-                      className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${String(f.value) === String(value) ? "border-gray-400 bg-gray-100" : "border-gray-300 hover:border-gray-400"
+                  {(Object.values(ResidencyStatus) as ResidencyStatus[]).map(
+                    (value) => (
+                      <label
+                        key={value}
+                        className={`flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 transition-all ${
+                          String(f.value) === String(value)
+                            ? "border-gray-400 bg-gray-100"
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
-                    >
-                      <input
-                        type="radio"
-                        value={value}
-                        checked={String(f.value) === String(value)}
-                        onChange={() => f.onChange(value)}
-                        className="accent-violet-600"
-                      />
-                      <span className="text-sm">{convertEnumValueToLabel(value)}</span>
-                    </label>
-                  ))}
+                      >
+                        <input
+                          type="radio"
+                          value={value}
+                          checked={String(f.value) === String(value)}
+                          onChange={() => f.onChange(value)}
+                          className="accent-violet-600"
+                        />
+                        <span className="text-sm">
+                          {convertEnumValueToLabel(value)}
+                        </span>
+                      </label>
+                    )
+                  )}
                 </div>
               </FormControl>
               <FormMessage />
@@ -98,11 +105,15 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
           control={form.control}
           name="yearsAtCurrentAddress"
           render={({ field }) => {
-            const f = field as { value?: number; onChange: (v: number) => void };
+            const f = field as {
+              value?: number;
+              onChange: (v: number) => void;
+            };
             return (
               <FormItem>
                 <FormLabel>
-                  Years at Current Address <span className="text-red-500">*</span>
+                  Years at Current Address{" "}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -155,22 +166,29 @@ export function ResidenceStep({ form }: ResidenceStepProps) {
                 </FormLabel>
                 <FormControl>
                   <div className="grid grid-cols-2 gap-4">
-                    {(Object.values(HousingStatus) as HousingStatus[]).map((value) => (
-                      <label
-                        key={value}
-                        className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${String(f.value) === String(value) ? "border-gray-400 bg-gray-100" : "border-gray-300 hover:border-gray-400"
+                    {(Object.values(HousingStatus) as HousingStatus[]).map(
+                      (value) => (
+                        <label
+                          key={value}
+                          className={`flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 transition-all ${
+                            String(f.value) === String(value)
+                              ? "border-gray-400 bg-gray-100"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
-                      >
-                        <input
-                          type="radio"
-                          value={value}
-                          checked={String(f.value) === String(value)}
-                          onChange={() => f.onChange(value)}
-                          className="accent-violet-600"
-                        />
-                        <span className="text-sm">{convertEnumValueToLabel(value)}</span>
-                      </label>
-                    ))}
+                        >
+                          <input
+                            type="radio"
+                            value={value}
+                            checked={String(f.value) === String(value)}
+                            onChange={() => f.onChange(value)}
+                            className="accent-violet-600"
+                          />
+                          <span className="text-sm">
+                            {convertEnumValueToLabel(value)}
+                          </span>
+                        </label>
+                      )
+                    )}
                   </div>
                 </FormControl>
                 <FormMessage />

@@ -49,7 +49,7 @@ export async function GET() {
           status: subscription.status,
           billingInterval: subscription.billingInterval,
           currentPeriodEnd: subscription.currentPeriodEnd,
-        //   trialEndsAt: subscription.trialEndsAt,
+          //   trialEndsAt: subscription.trialEndsAt,
           cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
         }
       : null,

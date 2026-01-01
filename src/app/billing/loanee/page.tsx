@@ -8,9 +8,7 @@ export default function LoaneeBillingPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
-  const plan = (searchParams.get("plan") ?? "basic") as
-    | "basic"
-    | "smart";
+  const plan = (searchParams.get("plan") ?? "basic") as "basic" | "smart";
 
   const interval = (searchParams.get("interval") ?? "monthly") as
     | "monthly"
@@ -34,7 +32,6 @@ export default function LoaneeBillingPage() {
           return;
         }
 
-
         const data = (await res.json()) as { url?: string };
 
         if (data.url) {
@@ -53,9 +50,9 @@ export default function LoaneeBillingPage() {
 
   if (error) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <p className="text-red-600 font-medium">{error}</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="space-y-3 text-center">
+          <p className="font-medium text-red-600">{error}</p>
           <button
             onClick={() => router.back()}
             className="inline-flex items-center rounded-md bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
@@ -68,11 +65,9 @@ export default function LoaneeBillingPage() {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="text-center space-y-3">
-        <p className="text-sm text-gray-500">
-          Redirecting to secure checkout…
-        </p>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="space-y-3 text-center">
+        <p className="text-sm text-gray-500">Redirecting to secure checkout…</p>
         <p className="text-xs text-gray-400">
           Plan: <span className="font-medium">{plan}</span> • Interval:{" "}
           <span className="font-medium">{interval}</span>

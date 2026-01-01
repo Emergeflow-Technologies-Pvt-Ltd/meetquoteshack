@@ -58,13 +58,13 @@ export default function EmailUpdate() {
   const { register, handleSubmit } = useEmailForm();
 
   return (
-    <div className="bg-violet-200 px-4 w-full dark:bg-violet-800">
-      <Section className="bg-violet-200 py-12 px-4 mx-auto lg:flex lg:items-center lg:justify-between w-full dark:bg-violet-800">
-        <div className="flex flex-col text-center lg:text-start lg:items-start lg:max-w-xl w-full">
-          <h2 className="text-3xl font-bold mb-4 dark:text-white">
+    <div className="w-full bg-violet-200 px-4 dark:bg-violet-800">
+      <Section className="mx-auto w-full bg-violet-200 px-4 py-12 dark:bg-violet-800 lg:flex lg:items-center lg:justify-between">
+        <div className="flex w-full flex-col text-center lg:max-w-xl lg:items-start lg:text-start">
+          <h2 className="mb-4 text-3xl font-bold dark:text-white">
             Stay Updated with Our Newsletter
           </h2>
-          <p className="text-lg mb-8 dark:text-gray-300">
+          <p className="mb-8 text-lg dark:text-gray-300">
             Receive the latest news, insights, and updates directly in your
             inbox.
           </p>
@@ -73,20 +73,20 @@ export default function EmailUpdate() {
         <div className="mt-8 lg:mt-0">
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:-mx-2 px-4"
+            className="flex flex-col space-y-4 px-4 sm:-mx-2 sm:flex-row sm:space-y-0"
           >
             <Input
               {...register("email")}
               type="email"
               required
               placeholder="Your Email"
-              className="border-2 border-gray-300 bg-white h-10 px-5 pr-16 rounded-lg text-sm focus:outline-none dark:bg-gray-700 dark:text-white"
+              className="h-10 rounded-lg border-2 border-gray-300 bg-white px-5 pr-16 text-sm focus:outline-none dark:bg-gray-700 dark:text-white"
             />
             <Button
               color="primary"
               variant="default"
               size="lg"
-              className="ml-0 md:ml-3 px-10 bg-white text-primary-800 font-bold hover:bg-secondary-50 transition duration-300 ease-in-out dark:bg-gray-600 dark:text-white"
+              className="text-primary-800 hover:bg-secondary-50 ml-0 bg-white px-10 font-bold transition duration-300 ease-in-out dark:bg-gray-600 dark:text-white md:ml-3"
               type="submit"
             >
               Subscribe Now

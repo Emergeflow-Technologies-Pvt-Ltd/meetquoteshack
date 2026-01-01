@@ -22,8 +22,8 @@ export function EligibilityStep({ form }: EligibilityStepProps) {
         control={form.control}
         name="isAdult"
         render={({ field }) => (
-          <FormItem className="flex flex-col md:flex-row items-center justify-between rounded-lg border p-4 md:p-6 lg:p-8">
-            <div className="space-y-0.5 md:space-y-1 lg:space-y-2 w-full md:w-2/3 lg:w-3/4">
+          <FormItem className="flex flex-col items-center justify-between rounded-lg border p-4 md:flex-row md:p-6 lg:p-8">
+            <div className="w-full space-y-0.5 md:w-2/3 md:space-y-1 lg:w-3/4 lg:space-y-2">
               <FormLabel className="text-base md:text-lg lg:text-xl">
                 Terms, Age and Privacy Agreement
               </FormLabel>
@@ -36,7 +36,7 @@ export function EligibilityStep({ form }: EligibilityStepProps) {
               </FormDescription>
               <FormMessage />
             </div>
-            <FormControl className="mt-4 md:mt-0 ml-auto">
+            <FormControl className="ml-auto mt-4 md:mt-0">
               <Switch checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
           </FormItem>
@@ -47,8 +47,8 @@ export function EligibilityStep({ form }: EligibilityStepProps) {
         control={form.control}
         name="hasBankruptcy"
         render={({ field }) => (
-          <FormItem className="flex flex-col md:flex-row items-center justify-between rounded-lg border p-4 md:p-6 lg:p-8">
-            <div className="space-y-0.5 md:space-y-1 lg:space-y-2 w-full md:w-2/3 lg:w-3/4">
+          <FormItem className="flex flex-col items-center justify-between rounded-lg border p-4 md:flex-row md:p-6 lg:p-8">
+            <div className="w-full space-y-0.5 md:w-2/3 md:space-y-1 lg:w-3/4 lg:space-y-2">
               <FormLabel className="text-base md:text-lg lg:text-xl">
                 Bankruptcy Status
               </FormLabel>
@@ -57,7 +57,7 @@ export function EligibilityStep({ form }: EligibilityStepProps) {
               </FormDescription>
               <FormMessage />
             </div>
-            <FormControl className="mt-4 md:mt-0 ml-auto">
+            <FormControl className="ml-auto mt-4 md:mt-0">
               <Switch checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
           </FormItem>

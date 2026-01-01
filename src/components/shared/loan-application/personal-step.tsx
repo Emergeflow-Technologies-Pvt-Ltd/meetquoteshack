@@ -185,53 +185,50 @@ export function PersonalStep({ form }: PersonalStepProps) {
         )}
       />
 
-        {/* Education Level */}
-        <FormField
-          control={form.control}
-          name="generalEducationLevel"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Education Level</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value as string}
-                  className="flex flex-row items-center gap-8"
-                >
-                  {Object.entries(EducationLevel).map(([value]) => (
-                    <FormItem
-                      key={value}
-                      className="flex items-center space-x-2"
-                    >
-                      <FormControl>
-                        <RadioGroupItem value={value} />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        {convertEnumValueToLabel(value)}
-                      </FormLabel>
-                    </FormItem>
-                  ))}
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {/* Education Level */}
+      <FormField
+        control={form.control}
+        name="generalEducationLevel"
+        render={({ field }) => (
+          <FormItem className="w-full">
+            <FormLabel>Education Level</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value as string}
+                className="flex flex-row items-center gap-8"
+              >
+                {Object.entries(EducationLevel).map(([value]) => (
+                  <FormItem key={value} className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value={value} />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      {convertEnumValueToLabel(value)}
+                    </FormLabel>
+                  </FormItem>
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-        {/* Field of Study */}
-        <FormField
-          control={form.control}
-          name="generalFieldOfStudy"
-          render={({ field }) => (
-            <FormItem className="w-1/2">
-              <FormLabel>Field of Study</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Computer Science" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {/* Field of Study */}
+      <FormField
+        control={form.control}
+        name="generalFieldOfStudy"
+        render={({ field }) => (
+          <FormItem className="w-1/2">
+            <FormLabel>Field of Study</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g. Computer Science" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       {/* </div> */}
     </div>
   );

@@ -69,8 +69,7 @@ export async function POST(req: Request) {
     if (application.status !== LoanStatus.ASSIGNED_TO_POTENTIAL_LENDER) {
       return NextResponse.json(
         {
-          error:
-            "Pay Per Match is only available for potential applications.",
+          error: "Pay Per Match is only available for potential applications.",
         },
         { status: 400 }
       );
@@ -84,8 +83,7 @@ export async function POST(req: Request) {
     if (!isPotentialForThisLender) {
       return NextResponse.json(
         {
-          error:
-            "You are not a potential lender for this application.",
+          error: "You are not a potential lender for this application.",
         },
         { status: 403 }
       );
@@ -102,37 +100,36 @@ export async function POST(req: Request) {
     }
 
     // 5️⃣ Create Stripe Checkout Session
-const checkoutSession = await stripe.checkout.sessions.create({
-  mode: "payment",
-  line_items: [
-    {
-      price: priceId,
-      quantity: 1,
-    },
-  ],
-  customer_email: session.user.email ?? undefined,
-  success_url: `${baseUrl}/lender/dashboard/${application.id}?match=success`,
-  cancel_url: `${baseUrl}/lender/dashboard/${application.id}?match=cancelled`,
-  metadata: {
-    applicationId: application.id,
-    lenderUserId: session.user.id,
-    lenderId: lender.id,
-  },
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      customer_email: session.user.email ?? undefined,
+      success_url: `${baseUrl}/lender/dashboard/${application.id}?match=success`,
+      cancel_url: `${baseUrl}/lender/dashboard/${application.id}?match=cancelled`,
+      metadata: {
+        applicationId: application.id,
+        lenderUserId: session.user.id,
+        lenderId: lender.id,
+      },
 
-  // ---------- Branding / appearance for Stripe Checkout ----------
-  branding_settings: {
-    button_color: "#7C3AED",          // primary CTA color (purple)
-    background_color: "#F9F5FF",      // checkout background
-    border_style: "rounded",
-    font_family: "inter",
-    display_name: "QuoteShack",
-    logo: { type: "url", url: "https://example.com/your-logo.png" },
-    icon: { type: "url", url: "https://example.com/your-icon.png" },
-  },
+      // ---------- Branding / appearance for Stripe Checkout ----------
+      branding_settings: {
+        button_color: "#7C3AED", // primary CTA color (purple)
+        background_color: "#F9F5FF", // checkout background
+        border_style: "rounded",
+        font_family: "inter",
+        display_name: "QuoteShack",
+        logo: { type: "url", url: "https://example.com/your-logo.png" },
+        icon: { type: "url", url: "https://example.com/your-icon.png" },
+      },
 
-  locale: "en",
-});
-
+      locale: "en",
+    });
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (err) {

@@ -75,7 +75,7 @@ export default async function AdminPage() {
   return (
     <Section className="mt-12">
       <Tabs defaultValue="applications" className="w-full">
-        <TabsList className="mb-6 mt-8 flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-start">
+        <TabsList className="mb-6 mt-8 flex flex-col gap-2 sm:flex-row sm:justify-start sm:gap-4">
           <TabsTrigger value="applications" className="w-full sm:w-auto">
             Open Applications
             <Badge variant="secondary" className="ml-2">
@@ -103,12 +103,12 @@ export default async function AdminPage() {
         </TabsList>
 
         <TabsContent value="applications">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-24 sm:mt-0 gap-4">
+          <div className="mt-24 grid grid-cols-1 gap-4 sm:mt-0 md:grid-cols-2 lg:grid-cols-3">
             {applications.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col items-center justify-center text-center p-4">
-                    <AlertCircle className="h-10 w-10 text-muted-foreground mb-2" />
+                  <div className="flex flex-col items-center justify-center p-4 text-center">
+                    <AlertCircle className="mb-2 h-10 w-10 text-muted-foreground" />
                     <p className="text-lg font-medium">
                       No applications to review
                     </p>
@@ -121,9 +121,9 @@ export default async function AdminPage() {
             ) : (
               applications.map((app) => (
                 <Link key={app.id} href={`/admin/${app.id}`} className="block">
-                  <Card className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200">
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                  <Card className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -134,7 +134,7 @@ export default async function AdminPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -148,7 +148,7 @@ export default async function AdminPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">
@@ -210,12 +210,12 @@ export default async function AdminPage() {
         </TabsContent>
 
         <TabsContent value="assigned">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-24 sm:mt-0 gap-4">
+          <div className="mt-24 grid grid-cols-1 gap-4 sm:mt-0 md:grid-cols-2 lg:grid-cols-3">
             {assignedApplications.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col items-center justify-center text-center p-4">
-                    <AlertCircle className="h-10 w-10 text-muted-foreground mb-2" />
+                  <div className="flex flex-col items-center justify-center p-4 text-center">
+                    <AlertCircle className="mb-2 h-10 w-10 text-muted-foreground" />
                     <p className="text-lg font-medium">
                       No applications to review
                     </p>
@@ -228,9 +228,9 @@ export default async function AdminPage() {
             ) : (
               assignedApplications.map((app) => (
                 <Link key={app.id} href={`/admin/${app.id}`} className="block">
-                  <Card className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200">
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                  <Card className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -241,7 +241,7 @@ export default async function AdminPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -255,7 +255,7 @@ export default async function AdminPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">
@@ -309,12 +309,12 @@ export default async function AdminPage() {
           </div>
         </TabsContent>
         <TabsContent value="approved-rejected">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-24 sm:mt-0 gap-4">
+          <div className="mt-24 grid grid-cols-1 gap-4 sm:mt-0 md:grid-cols-2 lg:grid-cols-3">
             {approvedOrRejectedApplications.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col items-center justify-center text-center p-4">
-                    <AlertCircle className="h-10 w-10 text-muted-foreground mb-2" />
+                  <div className="flex flex-col items-center justify-center p-4 text-center">
+                    <AlertCircle className="mb-2 h-10 w-10 text-muted-foreground" />
                     <p className="text-lg font-medium">
                       No applications to review
                     </p>
@@ -327,9 +327,9 @@ export default async function AdminPage() {
             ) : (
               approvedOrRejectedApplications.map((app) => (
                 <Link key={app.id} href={`/admin/${app.id}`} className="block">
-                  <Card className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200">
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                  <Card className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -340,7 +340,7 @@ export default async function AdminPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -354,7 +354,7 @@ export default async function AdminPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">
@@ -407,13 +407,13 @@ export default async function AdminPage() {
             )}
           </div>
         </TabsContent>
-         <TabsContent value="potential">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-24 sm:mt-0 gap-4">
+        <TabsContent value="potential">
+          <div className="mt-24 grid grid-cols-1 gap-4 sm:mt-0 md:grid-cols-2 lg:grid-cols-3">
             {potentialApplications.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col items-center justify-center text-center p-4">
-                    <AlertCircle className="h-10 w-10 text-muted-foreground mb-2" />
+                  <div className="flex flex-col items-center justify-center p-4 text-center">
+                    <AlertCircle className="mb-2 h-10 w-10 text-muted-foreground" />
                     <p className="text-lg font-medium">
                       No applications to review
                     </p>
@@ -426,9 +426,9 @@ export default async function AdminPage() {
             ) : (
               potentialApplications.map((app) => (
                 <Link key={app.id} href={`/admin/${app.id}`} className="block">
-                  <Card className="transition-shadow hover:shadow-lg rounded-xl border border-gray-200">
-                    <CardHeader className="pb-4 space-y-1">
-                      <div className="flex justify-between items-start">
+                  <Card className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-800">
                             {app.firstName} {app.lastName}
@@ -439,7 +439,7 @@ export default async function AdminPage() {
                           </CardDescription>
                         </div>
                         <Badge
-                          className="text-xs px-2 py-1 rounded-md"
+                          className="rounded-md px-2 py-1 text-xs"
                           style={{
                             color: getTextColorLoanStatus(app.status),
                             backgroundColor: getBackgroundColorLoanStatus(
@@ -453,7 +453,7 @@ export default async function AdminPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div>
                           <span className="text-gray-500">Loan Amount</span>
                           <p className="font-medium">

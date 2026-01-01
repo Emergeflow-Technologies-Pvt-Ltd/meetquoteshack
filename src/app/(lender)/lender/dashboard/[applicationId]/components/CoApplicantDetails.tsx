@@ -21,12 +21,12 @@ const CoApplicantDetails: React.FC<CoApplicantDetailsProps> = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <User className="w-5 h-5 text-blue-600" />
+          <User className="h-5 w-5 text-blue-600" />
           Co-applicant Details
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-gray-700">
-        <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
           <InfoRow
             label="Name"
             value={application.coApplicantFullName || "N/A"}
@@ -68,7 +68,7 @@ const InfoRow = ({
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>
-    <p className="font-medium break-words">{value}</p>
+    <p className="break-words font-medium">{value}</p>
   </div>
 );
 

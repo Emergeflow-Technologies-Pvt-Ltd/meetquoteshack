@@ -13,7 +13,10 @@ export async function POST(req: Request) {
   const { applicationId } = await req.json();
 
   if (!applicationId) {
-    return NextResponse.json({ error: "Missing applicationId" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing applicationId" },
+      { status: 400 }
+    );
   }
 
   const agent = await prisma.agent.findUnique({
@@ -36,37 +39,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Already unlocked" }, { status: 400 });
   }
 
-console.log("🟣 Agent Pay-Per-Match request", {
-  userId: session.user.id,
-  agentId: agent.id,
-  applicationId,
-  price: process.env.STRIPE_PRICE_AGENT_PAY_PER_MATCH,
-});
-
-const checkoutSession = await stripe.checkout.sessions.create({
-  mode: "payment",
-  payment_method_types: ["card"],
-  line_items: [
-    {
-      price: process.env.STRIPE_PRICE_AGENT_PAY_PER_MATCH!,
-      quantity: 1,
-    },
-  ],
-  success_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}?match=success`,
-  cancel_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}`,
-  metadata: {
-    role: "AGENT",
-    applicationId,
+  console.log("🟣 Agent Pay-Per-Match request", {
+    userId: session.user.id,
     agentId: agent.id,
-  },
-});
+    applicationId,
+    price: process.env.STRIPE_PRICE_AGENT_PAY_PER_MATCH,
+  });
 
-console.log("🟢 Stripe checkout session created", {
-  checkoutSessionId: checkoutSession.id,
-  metadata: checkoutSession.metadata,
-});
+  const checkoutSession = await stripe.checkout.sessions.create({
+    mode: "payment",
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price: process.env.STRIPE_PRICE_AGENT_PAY_PER_MATCH!,
+        quantity: 1,
+      },
+    ],
+    success_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}?match=success`,
+    cancel_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}`,
+    metadata: {
+      role: "AGENT",
+      applicationId,
+      agentId: agent.id,
+    },
+  });
 
-
+  console.log("🟢 Stripe checkout session created", {
+    checkoutSessionId: checkoutSession.id,
+    metadata: checkoutSession.metadata,
+  });
 
   return NextResponse.json({ url: checkoutSession.url });
 }

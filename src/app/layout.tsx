@@ -8,8 +8,8 @@ import { Toaster } from "@/components/ui/toaster";
 import Providers from "./providers";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -22,8 +22,10 @@ interface LayoutProps {
 }
 
 export const metadata: Metadata = {
-  title: "Intelligent Quick Loan Matching for Borrowers and Lenders | QuoteShack",
-  description: "QuoteShack uses the power of AI to connect borrowers to top-rated lenders and streamline the loan application and approval process.",
+  title:
+    "Intelligent Quick Loan Matching for Borrowers and Lenders | QuoteShack",
+  description:
+    "QuoteShack uses the power of AI to connect borrowers to top-rated lenders and streamline the loan application and approval process.",
 };
 
 const Layout: React.FC<LayoutProps> = async ({ children }) => {
@@ -32,7 +34,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background light",
+          "light min-h-screen bg-background",
           inter.className,
           bricolageGrotesque.variable
         )}
@@ -44,8 +46,8 @@ const Layout: React.FC<LayoutProps> = async ({ children }) => {
             enableSystem
             disableTransitionOnChange
           > */}
-            <Navbar session={session} />
-            {children}
+          <Navbar session={session} />
+          {children}
           {/* </ThemeProvider> */}
           <Toaster />
           <Analytics />

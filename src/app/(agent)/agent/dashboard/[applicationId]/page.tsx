@@ -19,7 +19,7 @@ import WorkplaceDetails from "../../../../(lender)/lender/dashboard/[application
 import { useSession } from "next-auth/react";
 import { PayPerMatchModal } from "@/components/PayPerMatchModal";
 import Image from "next/image";
-
+import { PrequalificationSummary } from "@/components/shared/prequalification-summary";
 
 export default function AgentApplicationDetailsPage({
   params,
@@ -27,23 +27,19 @@ export default function AgentApplicationDetailsPage({
   params: Promise<{ applicationId: string }>;
 }) {
   const router = useRouter();
-  const [application, setApplication] =
-    useState<
-      Prisma.ApplicationGetPayload<{
-        include: {
-          documents: true;
-          messages: true;
-        };
-      }> | null
-    >(null);
+  const [application, setApplication] = useState<Prisma.ApplicationGetPayload<{
+    include: {
+      documents: true;
+      messages: true;
+    };
+  }> | null>(null);
   const { applicationId } = use(params);
-  const [messages, setMessages] = useState<
-    Prisma.MessageGetPayload<object>[]
-  >([]);
+  const [messages, setMessages] = useState<Prisma.MessageGetPayload<object>[]>(
+    []
+  );
   const { data: session } = useSession();
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [showPayPerMatchModal, setShowPayPerMatchModal] = useState(false);
-
 
   useEffect(() => {
     const fetchApplication = async () => {
@@ -102,11 +98,16 @@ export default function AgentApplicationDetailsPage({
       </Section>
     );
   }
-  const isAgentLocked =
-    session?.user?.role === "AGENT" && !isUnlocked;
 
+  const isAgentSourced =
+    session?.user?.role === "AGENT" && application.agentCode !== null;
 
+  const isAdminAssignedToAgent =
+    session?.user?.role === "AGENT" &&
+    application.agentId !== null &&
+    application.agentCode === null;
 
+  const isAgentLocked = isAdminAssignedToAgent && !isUnlocked;
 
   const submittedTypes = new Set(
     application.documents.map((doc) => doc.documentType)
@@ -118,15 +119,15 @@ export default function AgentApplicationDetailsPage({
   return (
     <Section className="py-12">
       <div className="flex flex-col lg:flex-row lg:gap-6">
-
         <div
-          className={`flex-1 space-y-6 ${application.status === LoanStatus.IN_PROGRESS ||
-              application.status === LoanStatus.IN_CHAT
+          className={`flex-1 space-y-6 ${
+            application.status === LoanStatus.IN_PROGRESS ||
+            application.status === LoanStatus.IN_CHAT
               ? "lg:h-[88vh] lg:overflow-y-auto lg:pr-4"
               : ""
-            }`}
+          }`}
         >
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sticky top-0 bg-white z-20 pb-4">
+          <div className="sticky top-0 z-20 flex flex-col gap-4 bg-white pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
@@ -140,9 +141,7 @@ export default function AgentApplicationDetailsPage({
                 <h1 className="text-2xl font-semibold text-gray-900">
                   Application Details
                 </h1>
-                <p className="text-sm text-gray-500">
-                  ID: {application.id}
-                </p>
+                <p className="text-sm text-gray-500">ID: {application.id}</p>
               </div>
             </div>
 
@@ -157,7 +156,7 @@ export default function AgentApplicationDetailsPage({
               {isAgentLocked && (
                 <Button
                   size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-purple-600 text-white hover:bg-purple-700"
                   onClick={() => setShowPayPerMatchModal(true)}
                 >
                   Pay Per Match
@@ -166,7 +165,7 @@ export default function AgentApplicationDetailsPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {isAgentLocked ? (
               <LockedSection
                 title="Personal Information"
@@ -192,15 +191,15 @@ export default function AgentApplicationDetailsPage({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
+                  <FileText className="h-5 w-5 text-blue-600" />
                   Submitted Documents
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {application.documents.length > 0 ? (
                     application.documents.map((doc) => (
-                      <div key={doc.id} className="p-4 border rounded-lg">
+                      <div key={doc.id} className="rounded-lg border p-4">
                         <p className="font-medium">
                           {documentTypeLabels[doc.documentType]}
                         </p>
@@ -226,6 +225,15 @@ export default function AgentApplicationDetailsPage({
               </CardContent>
             </Card>
           )}
+
+          {isAgentLocked ? (
+            <LockedSection
+              title="Pre-Qualification"
+              description="Unlock pre-qualification details with Pay Per Match."
+            />
+          ) : (
+            <PrequalificationSummary application={application} />
+          )}
         </div>
 
         <LenderChat
@@ -248,16 +256,15 @@ export default function AgentApplicationDetailsPage({
       />
     </Section>
   );
-
 }
 
 function LockedDocsSection() {
   return (
-    <Card className="relative overflow-hidden border border-dashed bg-gray-200/50 min-h-[220px]">
+    <Card className="relative min-h-[220px] overflow-hidden border border-dashed bg-gray-200/50">
       <div className="absolute inset-0 bg-white/50 backdrop-blur-sm" />
       <CardContent className="relative z-10 flex flex-col items-center justify-center py-16 text-center">
         <Image src="/lock.svg" alt="Locked" width={48} height={48} />
-        <p className="mt-3 text-xs text-gray-600 max-w-sm">
+        <p className="mt-3 max-w-sm text-xs text-gray-600">
           Documents and prequalification are locked. Unlock with Pay Per Match.
         </p>
       </CardContent>
@@ -278,11 +285,9 @@ function LockedSection({
       <CardHeader className="relative z-10">
         <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="relative z-10 flex flex-col items-center text-center py-12">
+      <CardContent className="relative z-10 flex flex-col items-center py-12 text-center">
         <Image src="/lock.svg" alt="Locked" width={48} height={48} />
-        <p className="mt-3 text-xs text-gray-600 max-w-sm">
-          {description}
-        </p>
+        <p className="mt-3 max-w-sm text-xs text-gray-600">{description}</p>
       </CardContent>
     </Card>
   );

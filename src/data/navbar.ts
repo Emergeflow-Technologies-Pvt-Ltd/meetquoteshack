@@ -16,4 +16,8 @@ export const routeList: RouteProps[] = [
     href: "/agent",
     label: "For Agents",
   },
+  {
+    href: "/blog",
+    label: "Blogs",
+  },
 ];

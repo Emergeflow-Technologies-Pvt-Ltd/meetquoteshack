@@ -64,7 +64,7 @@ const socialLinks = [
   {
     href: "https://x.com/dhanrhak",
     label: "X",
-    target: "_blank", 
+    target: "_blank",
   },
   {
     href: "https://www.linkedin.com/company/35930667/admin/dashboard/",
@@ -78,15 +78,21 @@ const socialLinks = [
   },
 ];
 
-const Section = ({ title, items }: { title: string; items: { href: string; label: string, target?: string }[] }) => (
+const Section = ({
+  title,
+  items,
+}: {
+  title: string;
+  items: { href: string; label: string; target?: string }[];
+}) => (
   <div className="mb-4 md:mb-0">
-    <p className="font-bold mb-2 text-xl">{title}</p>
+    <p className="mb-2 text-xl font-bold">{title}</p>
     {items.map((item, i) => (
       <Link
         key={i}
         href={item.href}
         target={item.target}
-        className="flex text-sm font-normal my-2 md:my-3 hover:underline underline-offset-4 transition duration-300 ease-in-out"
+        className="my-2 flex text-sm font-normal underline-offset-4 transition duration-300 ease-in-out hover:underline md:my-3"
       >
         {item.label}
       </Link>
@@ -96,15 +102,15 @@ const Section = ({ title, items }: { title: string; items: { href: string; label
 
 function Footer() {
   return (
-    <div className="bg-violet-950 dark:bg-black text-white m-0 p-0">
-        <Container>
-        <div className="flex flex-col md:flex-row justify-between">
+    <div className="m-0 bg-violet-950 p-0 text-white dark:bg-black">
+      <Container>
+        <div className="flex flex-col justify-between md:flex-row">
           <Section title="About us" items={aboutUsLinks} />
           {/* <Section title="Loans" items={loanLinks} /> */}
           <Section title="Provinces" items={provinceLinks} />
           <Section title="Social" items={socialLinks} />
         </div>
-        </Container>
+      </Container>
       <div className="bg-dark py-4">
         <p className="text-center text-sm font-normal text-gray-300">
           All rights reserved © {new Date().getFullYear()} <b>Quoteshack</b>

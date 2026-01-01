@@ -15,8 +15,7 @@ export interface PrequalInput {
 }
 
 export function computePrequalification(input: PrequalInput) {
-  const safe = (n: unknown) =>
-    typeof n === "number" && isFinite(n) ? n : 0;
+  const safe = (n: unknown) => (typeof n === "number" && isFinite(n) ? n : 0);
 
   const P = safe(input.loanAmount);
   const grossYear = safe(input.grossIncome);
@@ -35,8 +34,7 @@ export function computePrequalification(input: PrequalInput) {
     LoanType.HOME_REPAIR,
   ];
 
-  const isMortgageLike =
-    !!loanType && mortgageLikeLoanTypes.includes(loanType);
+  const isMortgageLike = !!loanType && mortgageLikeLoanTypes.includes(loanType);
 
   // 1. Payment estimate
   const assumedTermYears = isMortgageLike ? 25 : 5;
@@ -52,14 +50,11 @@ export function computePrequalification(input: PrequalInput) {
 
   // 2. Ratios
   const totalDebtWithNew = existingDebts + proposedLoanPayment;
-  const dti =
-    grossMonth > 0 ? (totalDebtWithNew / grossMonth) * 100 : 0;
+  const dti = grossMonth > 0 ? (totalDebtWithNew / grossMonth) * 100 : 0;
 
-  const tdsr =
-    grossYear > 0 ? ((existingDebts * 12) / grossYear) * 100 : 0;
+  const tdsr = grossYear > 0 ? ((existingDebts * 12) / grossYear) * 100 : 0;
 
-  const lti =
-    grossYear > 0 ? (P / grossYear) * 100 : 0;
+  const lti = grossYear > 0 ? (P / grossYear) * 100 : 0;
 
   let ltv = 0;
   if (isMortgageLike && propValue > 0 && P > 0) {
@@ -90,8 +85,7 @@ export function computePrequalification(input: PrequalInput) {
 
   const tdsrOk = tdsr < maxTDSRForPass;
   const dtiOk = dti < maxDTIForPass;
-  const dtiConditionalOk =
-    dti >= maxDTIForPass && dti <= maxDTIForConditional;
+  const dtiConditionalOk = dti >= maxDTIForPass && dti <= maxDTIForConditional;
   const ltiOk = lti < maxLTIForPass;
 
   const creditOk = creditScore >= minCredit;
@@ -152,9 +146,7 @@ export function computePrequalification(input: PrequalInput) {
     reasons.push("Annual income must be greater than $50,000.");
   }
   if (!creditOk) {
-    reasons.push(
-      `Credit score below minimum threshold (${minCredit}).`
-    );
+    reasons.push(`Credit score below minimum threshold (${minCredit}).`);
   }
   if (!employmentOk && !isMortgageLike) {
     reasons.push("Employment history should be greater than 3 years.");
@@ -195,8 +187,8 @@ export function computePrequalification(input: PrequalInput) {
     prequalStatus === "APPROVED"
       ? "Pre-Qualified"
       : prequalStatus === "CONDITIONAL"
-      ? "Likely Qualified with Conditions"
-      : "Not Pre-Qualified";
+        ? "Likely Qualified with Conditions"
+        : "Not Pre-Qualified";
 
   let statusDetail = "";
   if (prequalStatus === "APPROVED") {

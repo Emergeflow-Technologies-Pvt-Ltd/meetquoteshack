@@ -5,7 +5,9 @@ import SubscribeModalLoanee from "./SubscribeModalLoanee";
 
 export default function PlanSelectorClientLoanee() {
   const [open, setOpen] = useState(false);
-  const [initialPlanId, setInitialPlanId] = useState<string | undefined>(undefined);
+  const [initialPlanId, setInitialPlanId] = useState<string | undefined>(
+    undefined
+  );
 
   // Stable close handler to avoid unnecessary re-renders
   const closeModal = useCallback(() => {
@@ -20,10 +22,16 @@ export default function PlanSelectorClientLoanee() {
       setOpen(true);
     }
 
-    window.addEventListener("open-loanee-modal", handleOpenModal as EventListener);
+    window.addEventListener(
+      "open-loanee-modal",
+      handleOpenModal as EventListener
+    );
 
     return () => {
-      window.removeEventListener("open-loanee-modal", handleOpenModal as EventListener);
+      window.removeEventListener(
+        "open-loanee-modal",
+        handleOpenModal as EventListener
+      );
     };
   }, []);
 

@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/db";
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string; }>; }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const id = (await params).id;
 
@@ -21,11 +21,12 @@ export async function POST(
     const { documentTypes } = (await request.json()) || {};
     if (
       !Array.isArray(documentTypes) ||
-      !documentTypes.every((type) =>
-        Object.values(DocumentType).includes(type)
-      )
+      !documentTypes.every((type) => Object.values(DocumentType).includes(type))
     ) {
-      return NextResponse.json({ error: "Invalid document types" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid document types" },
+        { status: 400 }
+      );
     }
 
     // Find application to know whose it is
@@ -35,7 +36,10 @@ export async function POST(
     });
 
     if (!application) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Application not found" },
+        { status: 404 }
+      );
     }
 
     // Create documents
@@ -51,9 +55,9 @@ export async function POST(
       // Create notification entry
       prisma.notification.create({
         data: {
-          userId: application.userId,     // owner of the application
+          userId: application.userId, // owner of the application
           applicationId: application.id,
-          type: "DOCUMENT_REQUEST"  // which application
+          type: "DOCUMENT_REQUEST", // which application
         },
       }),
     ]);
@@ -71,10 +75,9 @@ export async function POST(
   }
 }
 
-
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string; }>; }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const applicationId = (await params).id;
   const { documentId } = await request.json();
@@ -83,8 +86,8 @@ export async function DELETE(
     const document = await prisma.document.findFirst({
       where: {
         id: documentId,
-        applicationId: applicationId
-      }
+        applicationId: applicationId,
+      },
     });
 
     if (!document) {

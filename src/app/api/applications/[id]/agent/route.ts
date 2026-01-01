@@ -5,10 +5,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  _request: Request,
-  { params }: RouteContext
-) {
+export async function GET(_request: Request, { params }: RouteContext) {
   try {
     const { id: applicationId } = await params;
 
@@ -40,18 +37,11 @@ export async function GET(
     });
   } catch (err) {
     console.error("GET /api/applications/[id]/agent error:", err);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-
-export async function POST(
-  request: Request,
-  { params }: RouteContext
-) {
+export async function POST(request: Request, { params }: RouteContext) {
   try {
     const { id: applicationId } = await params;
 
@@ -81,10 +71,7 @@ export async function POST(
     });
 
     if (!agent) {
-      return NextResponse.json(
-        { error: "Agent not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
     await prisma.application.update({
@@ -92,9 +79,7 @@ export async function POST(
       data: { agentId },
     });
 
-    console.log(
-      `Assigned agent ${agentId} -> application ${applicationId}`
-    );
+    console.log(`Assigned agent ${agentId} -> application ${applicationId}`);
 
     const updatedApp = await prisma.application.findUnique({
       where: { id: applicationId },
@@ -111,9 +96,6 @@ export async function POST(
     });
   } catch (err) {
     console.error("POST /api/applications/[id]/agent error:", err);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

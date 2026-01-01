@@ -131,7 +131,9 @@ export async function POST(request: Request) {
   }
 }
 
-async function validateRequestData(request: Request): Promise<GeneralLoanFormValues> {
+async function validateRequestData(
+  request: Request
+): Promise<GeneralLoanFormValues> {
   if (!request.body) {
     throw createErrorResponse(
       "Invalid request",
@@ -259,7 +261,8 @@ async function createGeneralApplication(
       "Database error",
       {
         message: "Failed to create general application",
-        error: dbError instanceof Error ? dbError.message : "Unknown database error",
+        error:
+          dbError instanceof Error ? dbError.message : "Unknown database error",
       },
       500
     );

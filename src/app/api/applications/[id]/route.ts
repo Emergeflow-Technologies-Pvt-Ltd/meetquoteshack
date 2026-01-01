@@ -6,7 +6,7 @@ import { LoanStatus } from "@prisma/client";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,7 +24,15 @@ export async function GET(
       where: {
         id,
         status: {
-          in: ["OPEN", "ASSIGNED_TO_LENDER","ASSIGNED_TO_POTENTIAL_LENDER", "IN_PROGRESS", "IN_CHAT", "REJECTED", "APPROVED"],
+          in: [
+            "OPEN",
+            "ASSIGNED_TO_LENDER",
+            "ASSIGNED_TO_POTENTIAL_LENDER",
+            "IN_PROGRESS",
+            "IN_CHAT",
+            "REJECTED",
+            "APPROVED",
+          ],
         },
       },
       include: {
@@ -59,7 +67,9 @@ export async function GET(
 
     const potentialLenderIds = potentials.map((p) => p.lenderId);
 
-    const lenderList = await prisma.lender.findMany({ select: { name: true, id: true } });
+    const lenderList = await prisma.lender.findMany({
+      select: { name: true, id: true },
+    });
 
     const { ApplicationStatusHistory, ...rest } = application;
 
@@ -76,7 +86,6 @@ export async function GET(
     return new NextResponse("Internal error", { status: 500 });
   }
 }
-
 
 export async function PATCH(
   request: Request,
@@ -144,7 +153,10 @@ export async function PATCH(
 
     if (!status) {
       if (!docId) {
-        return NextResponse.json({ error: "docId required for document update" }, { status: 400 });
+        return NextResponse.json(
+          { error: "docId required for document update" },
+          { status: 400 }
+        );
       }
 
       const updatedDoc = await prisma.document.update({
@@ -163,29 +175,46 @@ export async function PATCH(
       });
     }
 
-    const isAssignAction = status === "ASSIGNED_TO_LENDER" || mode === "multi" || Array.isArray(potentialLenderIds);
+    const isAssignAction =
+      status === "ASSIGNED_TO_LENDER" ||
+      mode === "multi" ||
+      Array.isArray(potentialLenderIds);
 
     if (status === undefined) {
-      return NextResponse.json({ error: "status is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "status is required" },
+        { status: 400 }
+      );
     }
-    
+
     if (!Object.values(LoanStatus).includes(status as LoanStatus)) {
-      return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid status value" },
+        { status: 400 }
+      );
     }
 
     const validatedStatus = status as LoanStatus;
 
-
     if (isAssignAction && caller.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden - admin access required" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Forbidden - admin access required" },
+        { status: 403 }
+      );
     }
 
     if (status === "ASSIGNED_TO_LENDER" && mode !== "multi" && !lenderId) {
-      return NextResponse.json({ error: "lenderId is required when setting ASSIGNED_TO_LENDER" }, { status: 400 });
+      return NextResponse.json(
+        { error: "lenderId is required when setting ASSIGNED_TO_LENDER" },
+        { status: 400 }
+      );
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      if (mode === "multi" || (Array.isArray(potentialLenderIds) && potentialLenderIds.length > 0)) {
+      if (
+        mode === "multi" ||
+        (Array.isArray(potentialLenderIds) && potentialLenderIds.length > 0)
+      ) {
         const ids = Array.isArray(potentialLenderIds) ? potentialLenderIds : [];
 
         if (ids.length < 1) {
@@ -196,7 +225,10 @@ export async function PATCH(
           where: { applicationId: id },
         });
 
-        const createManyData = ids.map((lid) => ({ applicationId: id, lenderId: lid }));
+        const createManyData = ids.map((lid) => ({
+          applicationId: id,
+          lenderId: lid,
+        }));
         if (createManyData.length > 0) {
           await tx.potentialLender.createMany({
             data: createManyData,
@@ -222,8 +254,13 @@ export async function PATCH(
         });
 
         const updatedApp = await tx.application.findUnique({ where: { id } });
-        const potentials = await tx.potentialLender.findMany({ where: { applicationId: id } });
-        return { application: updatedApp, potentialLenderIds: potentials.map(p => p.lenderId) };
+        const potentials = await tx.potentialLender.findMany({
+          where: { applicationId: id },
+        });
+        return {
+          application: updatedApp,
+          potentialLenderIds: potentials.map((p) => p.lenderId),
+        };
       }
 
       if (lenderId !== undefined) {
@@ -247,8 +284,13 @@ export async function PATCH(
 
           await tx.potentialLender.deleteMany({ where: { applicationId: id } });
 
-          const potentialsAfter = await tx.potentialLender.findMany({ where: { applicationId: id } });
-          return { application: updated, potentialLenderIds: potentialsAfter.map(p => p.lenderId) };
+          const potentialsAfter = await tx.potentialLender.findMany({
+            where: { applicationId: id },
+          });
+          return {
+            application: updated,
+            potentialLenderIds: potentialsAfter.map((p) => p.lenderId),
+          };
         }
 
         const updated = await tx.application.update({
@@ -275,7 +317,7 @@ export async function PATCH(
 
       const updatedApplication = await tx.application.update({
         where: { id },
-        data: { ...(validatedStatus ? { status: validatedStatus } : {}), },
+        data: { ...(validatedStatus ? { status: validatedStatus } : {}) },
       });
 
       await tx.applicationStatusHistory.create({
@@ -287,8 +329,13 @@ export async function PATCH(
         },
       });
 
-      const existingPotentials = await tx.potentialLender.findMany({ where: { applicationId: id } });
-      return { application: updatedApplication, potentialLenderIds: existingPotentials.map(p => p.lenderId) };
+      const existingPotentials = await tx.potentialLender.findMany({
+        where: { applicationId: id },
+      });
+      return {
+        application: updatedApplication,
+        potentialLenderIds: existingPotentials.map((p) => p.lenderId),
+      };
     });
 
     return NextResponse.json(result);
