@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { LoanType } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 import {
   FormField,
   FormItem,

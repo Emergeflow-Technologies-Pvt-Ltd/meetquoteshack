@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { UseFormReturn } from "react-hook-form";
 import { useWatch } from "react-hook-form";
-import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 import { HousingStatus } from "@prisma/client";
 
 interface FinancialStepProps {

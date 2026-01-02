@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Controller, useWatch, UseFormReturn } from "react-hook-form";
-import { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 import {
   DownPayment,
   LoanType,

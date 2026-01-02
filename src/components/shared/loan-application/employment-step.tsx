@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { UseFormReturn } from "react-hook-form";
-import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 
 import { EmploymentStatus } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";

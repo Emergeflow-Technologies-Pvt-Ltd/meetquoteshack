@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 import prisma from "@/lib/db";
 import {
   ResidencyStatus,
