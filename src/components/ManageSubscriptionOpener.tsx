@@ -6,12 +6,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import ManageSubscriptionButton from "@/components/shared/ManageSubscriptionButton";
 import { LOANEE_PRICES } from "@/lib/loanee-prices";
 
-type Role = "LOANEE" | "LENDER";
+// type Role = "LOANEE" | "LENDER";
 
-interface Props {
-  role: Role;
-  data: any;
-}
+type BillingInterval = "MONTHLY" | "YEARLY";
+
+type Subscription = {
+  plan: string | null;
+  status: "ACTIVE" | "TRIAL" | "INACTIVE";
+  billingInterval: BillingInterval | null;
+  currentPeriodEnd: string | Date | null;
+};
+
+type FreeTier = {
+  daysLeft: number | null;
+  endsAt: string | Date | null;
+};
+
+/* -------- LOANEE -------- */
+type LoaneeSubscriptionData = {
+  subscription: Subscription | null;
+  freeTier: FreeTier | null;
+};
+
+/* -------- LENDER -------- */
+type LenderSubscriptionData = {
+  subscription: Subscription | null;
+  freeTierActive: boolean;
+  freeTierDaysLeft: number | null;
+  freeTierEndsAt: string | Date | null;
+};
+
+type Props =
+  | { role: "LOANEE"; data: LoaneeSubscriptionData }
+  | { role: "LENDER"; data: LenderSubscriptionData };
 
 function formatDate(date?: string | Date | null) {
   if (!date) return "—";
