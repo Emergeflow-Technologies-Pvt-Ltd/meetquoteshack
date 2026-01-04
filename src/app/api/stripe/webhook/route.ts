@@ -56,13 +56,15 @@ function normalizeRole(role?: string): UserRole | undefined {
   return undefined;
 }
 
-function metadataString(obj: any, key: string): string | undefined {
-  try {
-    const v = obj?.metadata?.[key];
-    return typeof v === "string" ? v : undefined;
-  } catch {
-    return undefined;
-  }
+type WithMetadata = {
+  metadata: Stripe.Metadata | null;
+};
+function metadataString(
+  obj: WithMetadata | null | undefined,
+  key: string
+): string | undefined {
+  const v = obj?.metadata?.[key];
+  return typeof v === "string" ? v : undefined;
 }
 
 export async function POST(req: Request) {
@@ -119,9 +121,13 @@ export async function POST(req: Request) {
             console.error("Missing customer on setup session");
             break;
           }
+const setupIntent =
+  typeof session.setup_intent === "object"
+    ? session.setup_intent
+    : null;
 
-          const setupMetadata =
-            (session.setup_intent as any)?.metadata ?? session.metadata ?? {};
+const setupMetadata =
+  setupIntent?.metadata ?? session.metadata ?? {};
 
           const freeTierEndsAt = setupMetadata.freeTierEndsAt;
           const priceId = setupMetadata.priceId;
@@ -177,10 +183,10 @@ export async function POST(req: Request) {
         }
 
         if (session.mode === "subscription" && session.subscription) {
-          const subscriptionId =
-            typeof session.subscription === "string"
-              ? session.subscription
-              : (session.subscription as any)?.id;
+const subscriptionId =
+  typeof session.subscription === "string"
+    ? session.subscription
+    : session.subscription?.id;
           if (subscriptionId) {
             console.log(
               "💡 Fetching subscription from checkout.session.completed:",
@@ -207,10 +213,10 @@ export async function POST(req: Request) {
           if (metaAppId && metaLenderId) {
             await unlockApplicationForLender(metaAppId, metaLenderId);
           } else {
-            const paymentIntentId =
-              typeof session.payment_intent === "string"
-                ? session.payment_intent
-                : (session.payment_intent as any)?.id;
+const paymentIntentId =
+  typeof session.payment_intent === "string"
+    ? session.payment_intent
+    : session.payment_intent?.id;
             if (paymentIntentId) {
               try {
                 const pi =
@@ -236,17 +242,22 @@ export async function POST(req: Request) {
         }
 
         try {
-          const role =
-            metadataString(session, "role") ??
-            metadataString(session.payment_intent, "role");
+const paymentIntent =
+  typeof session.payment_intent === "object"
+    ? session.payment_intent
+    : null;
+
+const role =
+  metadataString(session, "role") ??
+  metadataString(paymentIntent, "role");
 
           const applicationId =
             metadataString(session, "applicationId") ??
-            metadataString(session.payment_intent, "applicationId");
+            metadataString(paymentIntent, "applicationId");
 
           const agentId =
             metadataString(session, "agentId") ??
-            metadataString(session.payment_intent, "agentId");
+            metadataString(paymentIntent, "agentId");
 
           if (role === "AGENT" && applicationId && agentId) {
             await prisma.agentApplicationUnlock.create({
@@ -283,8 +294,10 @@ export async function POST(req: Request) {
       case "invoice.paid":
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        const invoiceAny = invoice as any;
-
+const invoiceAny = invoice as Stripe.Invoice & {
+  subscription?: string | Stripe.Subscription;
+  lines?: Stripe.ApiList<Stripe.InvoiceLineItem>;
+};
         console.log("✅ invoice.payment_succeeded fired");
         console.log("🧾 Invoice ID:", invoice.id);
         console.log("🔍 Invoice details:", {
@@ -301,10 +314,10 @@ export async function POST(req: Request) {
 
         if (!subId && invoiceAny.lines?.data?.length > 0) {
           const lineItem = invoiceAny.lines.data[0];
-          console.log("🔍 First line item:", {
-            type: lineItem.type,
-            subscription: lineItem.subscription,
-          });
+          // console.log("🔍 First line item:", {
+          //   type: lineItem.type,
+          //   subscription: lineItem.subscription,
+          // });
           if (typeof lineItem.subscription === "string") {
             subId = lineItem.subscription;
           }
@@ -362,10 +375,10 @@ export async function POST(req: Request) {
           expand: ["items.data.price"],
         });
 
-        console.log(
-          "📅 Retrieved subscription - current_period_end:",
-          (stripeSubscription as any).current_period_end
-        );
+//         console.log(
+//           "📅 Retrieved subscription - current_period_end:",
+// stripeSubscription.current_period_end
+//         );
 
         await handleSubscriptionEvent(
           stripeSubscription,
@@ -376,9 +389,13 @@ export async function POST(req: Request) {
       }
 
       case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
+const invoice = event.data.object as Stripe.Invoice;
 
-        const subscription = (invoice as any).subscription;
+const invoiceAny: Stripe.Invoice & {
+  subscription?: string | Stripe.Subscription;
+} = invoice;
+
+const subscription = invoiceAny.subscription;
         const subId =
           typeof subscription === "string" ? subscription : subscription?.id;
 
@@ -403,8 +420,13 @@ export async function POST(req: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const subAny = sub as any;
-        console.log(`${event.type} subscription id:`, sub.id);
+type StripeSubscriptionExpanded = Stripe.Subscription & {
+  current_period_end?: number;
+  trial_end?: number;
+  billing_cycle_anchor?: number;
+};
+
+const subAny = sub as StripeSubscriptionExpanded;        console.log(`${event.type} subscription id:`, sub.id);
 
         console.log(
           "📅 Subscription object from webhook current_period_end:",
@@ -419,10 +441,10 @@ export async function POST(req: Request) {
             const fullSub = await stripe.subscriptions.retrieve(sub.id, {
               expand: ["items.data.price"],
             });
-            console.log(
-              "✅ Fetched full subscription - current_period_end:",
-              (fullSub as any).current_period_end
-            );
+//             console.log(
+//               "✅ Fetched full subscription - current_period_end:",
+// fullSub.current_period_end
+//             );
             await handleSubscriptionEvent(fullSub, event.type);
           } catch (err) {
             console.error(
@@ -509,15 +531,15 @@ async function handleSubscriptionUpsertById(
         expand: ["items.data.price"],
       }
     );
-    console.log(
-      "📅 Retrieved subscription in upsert - current_period_end:",
-      (stripeSubscription as any).current_period_end
-    );
-    await handleSubscriptionEvent(
-      stripeSubscription as any,
-      "customer.subscription.created",
-      session
-    );
+//     console.log(
+//       "📅 Retrieved subscription in upsert - current_period_end:",
+// stripeSubscription.current_period_end
+//     );
+await handleSubscriptionEvent(
+  stripeSubscription,
+  "customer.subscription.created",
+  session
+);
   } catch (err) {
     console.error(
       "handleSubscriptionUpsertById error:",
@@ -527,13 +549,23 @@ async function handleSubscriptionUpsertById(
   }
 }
 
+function unwrapStripe<T extends object>(
+  res: Stripe.Response<T> | T
+): T {
+  return "lastResponse" in res ? res : res;
+}
+
+type StripeSubscriptionExpanded = Stripe.Subscription & {
+  current_period_end: number | null;
+  trial_end: number | null;
+  billing_cycle_anchor: number | null;
+};
 async function handleSubscriptionEvent(
-  sub: Stripe.Subscription | any,
+  sub: Stripe.Response<Stripe.Subscription> | Stripe.Subscription,
   eventType: string,
-  session?: Stripe.Checkout.Session | undefined
+  session?: Stripe.Checkout.Session
 ) {
-  try {
-    const subAny = sub as any;
+  const subAny = unwrapStripe(sub) as StripeSubscriptionExpanded;
 
     const userId =
       (subAny.metadata?.userId as string | undefined) ??
@@ -569,9 +601,10 @@ async function handleSubscriptionEvent(
         ? BillingInterval.YEARLY
         : BillingInterval.MONTHLY;
 
-    const currentPeriodEndUnix: number | undefined = subAny.current_period_end;
-    const trialEndUnix: number | undefined = subAny.trial_end;
-    const billingCycleAnchor: number | undefined = subAny.billing_cycle_anchor;
+const currentPeriodEndUnix: number | null = subAny.current_period_end;
+const trialEndUnix: number | null = subAny.trial_end;
+const billingCycleAnchor: number | null = subAny.billing_cycle_anchor;
+
     const created: number | undefined = subAny.created;
 
     console.log("🔍 Extracting period end:", {
@@ -755,8 +788,4 @@ async function handleSubscriptionEvent(
       "periodEnd:",
       periodEnd?.toISOString() ?? "null"
     );
-  } catch (err) {
-    console.error("handleSubscriptionEvent error:", (err as Error).message);
-    throw err;
   }
-}

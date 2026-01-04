@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { LoanStatus, UserRole } from "@prisma/client";
@@ -27,7 +26,7 @@ import {
   loanTypeLabels,
 } from "@/components/shared/general.const";
 import { getAccessStatus } from "@/lib/subscription-access";
-import SubscriptionStartBanner from "@/components/shared/SubscriptionStartBanner";
+// import SubscriptionStartBanner from "@/components/shared/SubscriptionStartBanner";
 
 export default async function LenderPoolPage({
   searchParams,
@@ -111,12 +110,12 @@ export default async function LenderPoolPage({
     redirect("/lender/plans");
   }
 
-  const freeTierDaysLeft = access.freeTierDaysLeft ?? 0;
+  // const freeTierDaysLeft = access.freeTierDaysLeft ?? 0;
 
-  const freeTierActive = access.freeTierActive === true;
-  const freeTierEndsAtIso = access.freeTierEndsAt
-    ? access.freeTierEndsAt.toISOString()
-    : null;
+  // const freeTierActive = access.freeTierActive === true;
+  // const freeTierEndsAtIso = access.freeTierEndsAt
+  //   ? access.freeTierEndsAt.toISOString()
+  //   : null;
 
   // 🚫 Access blocked → send to plans
 
@@ -199,12 +198,12 @@ export default async function LenderPoolPage({
             Lender Dashboard
           </h1>
 
-          <SubscriptionStartBanner
+          {/* <SubscriptionStartBanner
             freeTierActive={access.freeTierActive}
             freeTierEndsAt={access.freeTierEndsAt?.toISOString()}
-          />
+          /> */}
 
-          {freeTierActive && (
+          {/* {freeTierActive && (
             <div className="mx-auto my-6 max-w-4xl">
               <div className="flex items-center justify-between rounded-md border border-green-200 bg-green-50 px-4 py-3">
                 <div>
@@ -237,8 +236,8 @@ export default async function LenderPoolPage({
                 </div>
               </div>
             </div>
-          )}
-          {access.subscription && (
+          )} */}
+          {/* {access.subscription && (
             <div className="mx-auto my-4 max-w-4xl">
               <div className="rounded-md border border-slate-200 bg-white px-4 py-4 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
@@ -363,7 +362,7 @@ export default async function LenderPoolPage({
                 </div>
               </div>
             </div>
-          )}
+          )} */}
         </div>
 
         <Tabs defaultValue="assigned" className="w-full">

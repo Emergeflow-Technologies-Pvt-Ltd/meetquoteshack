@@ -23,8 +23,8 @@ export default function PaywallClient({ fullscreen = false }: Props) {
   const PLANS_ROUTE =
     role === "LENDER" ? "/lender/plans" : "/loanee/subscription";
 
-  const [trialEndedAt, setTrialEndedAt] = useState<string | null>(null);
-  const [subscriptionEndedAt, setSubscriptionEndedAt] = useState<string | null>(
+  const [, setTrialEndedAt] = useState<string | null>(null);
+  const [, setSubscriptionEndedAt] = useState<string | null>(
     null
   );
 

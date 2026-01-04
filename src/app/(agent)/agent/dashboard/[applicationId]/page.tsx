@@ -99,8 +99,8 @@ export default function AgentApplicationDetailsPage({
     );
   }
 
-  const isAgentSourced =
-    session?.user?.role === "AGENT" && application.agentCode !== null;
+  // const isAgentSourced =
+  //   session?.user?.role === "AGENT" && application.agentCode !== null;
 
   const isAdminAssignedToAgent =
     session?.user?.role === "AGENT" &&

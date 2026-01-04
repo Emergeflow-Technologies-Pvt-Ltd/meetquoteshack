@@ -3,13 +3,16 @@ import prisma from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+// ✅ GET reviews
 export async function GET(
   _req: Request,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
+    const { agentId } = await params;
+
     const reviews = await prisma.agentReview.findMany({
-      where: { agentId: params.agentId },
+      where: { agentId },
       include: {
         loanee: {
           select: { name: true },
@@ -25,11 +28,14 @@ export async function GET(
   }
 }
 
+// ✅ POST review
 export async function POST(
   req: Request,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
+    const { agentId } = await params;
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id || session.user.role !== "LOANEE") {
@@ -76,7 +82,7 @@ export async function POST(
     }
 
     // ✅ Ensure agent is assigned
-    if (application.agentId !== params.agentId) {
+    if (application.agentId !== agentId) {
       return NextResponse.json(
         { error: "Agent not assigned to this application" },
         { status: 403 }
@@ -97,7 +103,7 @@ export async function POST(
 
     const review = await prisma.agentReview.create({
       data: {
-        agentId: params.agentId,
+        agentId,
         applicationId,
         loaneeId: session.user.id,
         rating,

@@ -2,28 +2,47 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { headers } from "next/headers";
-import Image from "next/image";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Section from "@/components/shared/section";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
-  Calendar1,
-  CircleCheckBig,
   Mail,
   Shield,
-  Sparkles,
-  Zap,
 } from "lucide-react";
-import { SubscriptionPlan, UserRole } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
-import ManageSubscriptionButton from "@/components/shared/ManageSubscriptionButton";
+// import ManageSubscriptionButton from "@/components/shared/ManageSubscriptionButton";
 import ManageSubscriptionOpener from "@/components/ManageSubscriptionOpener";
 import PlanSelectorClientLoanee from "@/components/PlanSelectorClientLoanee";
 import AgentReviewsPanel from "@/components/agent/AgentReviewsPanel";
 import { getAccessStatus } from "@/lib/subscription-access";
-import Link from "next/link";
+
+type SubscriptionInfo = {
+  subscription: {
+    plan: string | null;
+    status: string;
+    billingInterval: "MONTHLY" | "YEARLY" | null;
+    currentPeriodEnd: string | null;
+  } | null;
+  freeTier: {
+    endsAt: string | null;
+    daysLeft: number | null;
+  } | null;
+};
+
+type AgentReviewWithRelations = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+  loanee: {
+    name: string | null;
+  };
+  application: {
+    loanType: string | null;
+  };
+};
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
@@ -54,7 +73,9 @@ export default async function ProfilePage() {
   const isLender = user.role === UserRole.LENDER;
   const isAgent = user.role === UserRole.AGENT;
 
-  let subData: any = null;
+  // let subData: any = null;
+  let subData: SubscriptionInfo | null = null;
+
 
   if (isLoanee) {
     try {
@@ -90,8 +111,8 @@ export default async function ProfilePage() {
     );
   }
 
-  let agentReviews: any[] = [];
-
+  // let agentReviews: any[] = [];
+  let agentReviews: AgentReviewWithRelations[] = [];
   if (isAgent) {
     const agent = await prisma.agent.findUnique({
       where: { userId: user.id },
@@ -111,6 +132,61 @@ export default async function ProfilePage() {
 
   const latestApplicationWithAgentCode =
     user.applications.find((app) => app.agentCode) ?? null;
+
+function normalizeStatus(
+  status: string | null | undefined
+): "ACTIVE" | "TRIAL" | "INACTIVE" {
+  if (status === "ACTIVE" || status === "TRIAL") return status;
+  return "INACTIVE";
+}
+
+function normalizeBillingInterval(
+  interval: string | null | undefined
+): "MONTHLY" | "YEARLY" | null {
+  if (interval === "MONTHLY" || interval === "YEARLY") return interval;
+  return null;
+}
+
+
+const loaneeData =
+  subData
+    ? {
+        subscription: subData.subscription
+          ? {
+              plan: subData.subscription.plan,
+              billingInterval: subData.subscription.billingInterval,
+              currentPeriodEnd: subData.subscription.currentPeriodEnd,
+              status: normalizeStatus(subData.subscription.status),
+            }
+          : null,
+        freeTier: subData.freeTier,
+      }
+    : null;
+
+  const lenderData =
+  lenderAccess
+    ? {
+        freeTierActive: lenderAccess.freeTierActive,
+        freeTierDaysLeft: lenderAccess.freeTierDaysLeft,
+        freeTierEndsAt: lenderAccess.freeTierEndsAt,
+
+        subscription: lenderAccess.subscription
+          ? {
+              plan: lenderAccess.subscription.plan ?? null, // enum → string
+              billingInterval: normalizeBillingInterval(
+                lenderAccess.subscription.billingInterval
+              ),
+              currentPeriodEnd: lenderAccess.subscription.currentPeriodEnd
+                ? lenderAccess.subscription.currentPeriodEnd.toISOString()
+                : null,
+              status: normalizeStatus(lenderAccess.subscription.status),
+            }
+          : null,
+      }
+    : null;
+
+
+
 
   return (
     <Section className="mx-auto max-w-7xl space-y-8 px-4 py-12">
@@ -216,9 +292,10 @@ export default async function ProfilePage() {
                 trialEndsAt={subData?.freeTier?.endsAt ?? null}
                 freeTierDaysLeft={subData?.freeTier?.daysLeft ?? null}
               /> */}
-          {isLoanee && subData && (
-            <ManageSubscriptionOpener role="LOANEE" data={subData} />
-          )}
+{isLoanee && loaneeData && (
+  <ManageSubscriptionOpener role="LOANEE" data={loaneeData} />
+)}
+
         </>
       )}
 
@@ -408,9 +485,10 @@ export default async function ProfilePage() {
         </Card>
 
       )} */}
-      {isLender && lenderAccess && (
-        <ManageSubscriptionOpener role="LENDER" data={lenderAccess} />
-      )}
+{isLender && lenderData && (
+  <ManageSubscriptionOpener role="LENDER" data={lenderData} />
+)}
+
       {isAgent && <AgentReviewsPanel reviews={agentReviews} />}
     </Section>
   );

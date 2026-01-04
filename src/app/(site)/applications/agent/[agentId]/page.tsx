@@ -2,31 +2,23 @@ import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import AgentDetailsPage from "../../components/AgentDetailsPage";
 
-type PageProps = {
-  params: {
-    agentId: string;
-  };
-};
-
-export default async function Page({ params }: PageProps) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ agentId: string }>;
+}) {
   const { agentId } = await params;
 
   const agent = await prisma.agent.findUnique({
     where: { id: agentId },
-    include: {
-      applications: true,
-    },
+    include: { applications: true },
   });
 
   if (!agent) return notFound();
 
   const reviews = await prisma.agentReview.findMany({
     where: { agentId: agent.id },
-    include: {
-      loanee: {
-        select: { name: true },
-      },
-    },
+    include: { loanee: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
