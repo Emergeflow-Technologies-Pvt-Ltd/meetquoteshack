@@ -1,9 +1,10 @@
-"use client";
+"use client"
 
-import { Calculator, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Calculator, ChevronRight } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function BorrowCalculator() {
   return (
@@ -71,10 +72,14 @@ export default function BorrowCalculator() {
                   </CardContent>
                 </Card>
               </div>
-              <Button disabled className="w-full md:w-auto">
-                Calculate Your Rate (Coming Soon)
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
+              <div className="flex justify-end">
+                <Link href="/loan-calculator">
+                  <Button className="w-full md:w-auto">
+                    Calculate your Loan
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </Card>
         </div>
@@ -105,5 +110,5 @@ export default function BorrowCalculator() {
         }
       `}</style>
     </section>
-  );
+  )
 }

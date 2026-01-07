@@ -1,3 +1,19 @@
+const PROVINCIAL_TAX_RATES = {
+  AB: { GST: 5, PST: 0, HST: 0 },
+  BC: { GST: 5, PST: 7, HST: 0 },
+  MB: { GST: 5, PST: 7, HST: 0 },
+  NB: { GST: 0, PST: 0, HST: 15 },
+  NL: { GST: 0, PST: 0, HST: 15 },
+  NS: { GST: 0, PST: 0, HST: 15 },
+  ON: { GST: 0, PST: 0, HST: 13 },
+  PE: { GST: 0, PST: 0, HST: 15 },
+  QC: { GST: 5, PST: 9.975, HST: 0 },
+  SK: { GST: 5, PST: 6, HST: 0 },
+  NT: { GST: 5, PST: 0, HST: 0 },
+  NU: { GST: 5, PST: 0, HST: 0 },
+  YT: { GST: 5, PST: 0, HST: 0 },
+} as const
+
 export function calculateInstallmentLoan({
   principal,
   annualRatePercent,
@@ -38,11 +54,12 @@ export function calculateInstallmentLoan({
     totalCost: Number(totalPaid.toFixed(2)),
   }
 }
-export function calculateAutoLoanCanada({
+
+export function calculateCarLoanCanada({
   vehiclePrice,
   downPayment,
   tradeIn,
-  provinceTaxRate,
+  province,
   annualRatePercent,
   termMonths,
   paymentFrequency,
@@ -50,50 +67,100 @@ export function calculateAutoLoanCanada({
   vehiclePrice: number
   downPayment: number
   tradeIn: number
-  provinceTaxRate: number
+  province: keyof typeof PROVINCIAL_TAX_RATES
   annualRatePercent: number
   termMonths: number
   paymentFrequency: "monthly" | "biweekly" | "weekly"
 }) {
+  // 1. Taxable amount (Canada rule)
   const taxableAmount = vehiclePrice - tradeIn
-  const taxAmount = taxableAmount * provinceTaxRate
 
-  const principal = vehiclePrice + taxAmount - downPayment - tradeIn
+  // 2. Get province tax rates
+  const { GST, PST, HST } = PROVINCIAL_TAX_RATES[province]
 
-  return calculateInstallmentLoan({
+  // 3. Calculate tax
+  let totalTax = 0
+  if (HST > 0) {
+    totalTax = taxableAmount * (HST / 100)
+  } else {
+    totalTax = taxableAmount * (GST / 100) + taxableAmount * (PST / 100)
+  }
+
+  // 4. Total financed amount (tax rolled in)
+  const principal = vehiclePrice + totalTax - downPayment - tradeIn
+
+  // 5. Run standard installment loan calculation
+  const loanResult = calculateInstallmentLoan({
     principal,
     annualRatePercent,
     termMonths,
     paymentFrequency,
   })
+
+  return {
+    ...loanResult,
+    vehiclePrice,
+    taxableAmount: Number(taxableAmount.toFixed(2)),
+    taxAmount: Number(totalTax.toFixed(2)),
+    financedAmount: Number(principal.toFixed(2)),
+  }
 }
 
-export function calculateLineOfCredit({
+export function calculateLineOfCreditCanada({
   balance,
   annualRatePercent,
-  daysInPeriod,
+  daysInPeriod = 30,
   paymentType,
-  principalPercent = 0,
+  principalPercent = 0.02,
+  fixedMonthlyPayment,
 }: {
   balance: number
   annualRatePercent: number
-  daysInPeriod: number
-  paymentType: "interest_only" | "interest_plus_percent"
+  daysInPeriod?: number
+  paymentType: "interest_only" | "minimum_percent"
   principalPercent?: number
+  fixedMonthlyPayment?: number
 }) {
+  // 1. Daily → Monthly interest
   const dailyRate = annualRatePercent / 100 / 365
-  const interest = balance * dailyRate * daysInPeriod
+  const monthlyInterest = balance * dailyRate * daysInPeriod
 
-  let minimumPayment = interest
+  // 2. Minimum payment
+  let minimumPayment: number
 
-  if (paymentType === "interest_plus_percent") {
-    minimumPayment += balance * principalPercent
+  if (paymentType === "interest_only") {
+    minimumPayment = monthlyInterest
+  } else {
+    const percentPayment = balance * principalPercent
+    minimumPayment = Math.max(monthlyInterest, percentPayment)
+  }
+
+  // 3. Optional payoff time (fixed payment)
+  let payoffMonths: number | null = null
+
+  if (fixedMonthlyPayment !== undefined) {
+    let remainingBalance = balance
+    let months = 0
+
+    // Safety check: payment must exceed interest
+    if (fixedMonthlyPayment <= monthlyInterest) {
+      payoffMonths = Infinity
+    } else {
+      while (remainingBalance > 0 && months < 1000) {
+        const interest = remainingBalance * dailyRate * daysInPeriod
+
+        remainingBalance = remainingBalance + interest - fixedMonthlyPayment
+
+        months++
+      }
+      payoffMonths = months
+    }
   }
 
   return {
-    monthlyInterest: Number(interest.toFixed(2)),
+    monthlyInterest: Number(monthlyInterest.toFixed(2)),
     minimumPayment: Number(minimumPayment.toFixed(2)),
-    endingBalance: Number((balance - minimumPayment).toFixed(2)),
+    payoffMonths,
   }
 }
 
@@ -124,12 +191,22 @@ export function calculateCanadianMortgage({
     | "accelerated_weekly"
 }) {
   const downPaymentPercent = (downPayment / purchasePrice) * 100
+
+  // Minimum down payment rule (Canada)
+  if (downPaymentPercent < 5) {
+    throw new Error("Minimum down payment in Canada is 5%")
+  }
+
   const cmhcRate = getCMHCPremiumRate(downPaymentPercent)
 
-  let principal = purchasePrice - downPayment
-  principal += principal * cmhcRate
+  // Base mortgage (before insurance)
+  const basePrincipal = purchasePrice - downPayment
 
-  // Semi-annual compounding
+  // CMHC premium (capitalized)
+  const cmhcPremiumAmount = basePrincipal * cmhcRate
+  const principal = basePrincipal + cmhcPremiumAmount
+
+  // 🇨Semi-annual compounding (Canadian rule)
   const semiAnnualRate = annualRatePercent / 100 / 2
   const effectiveAnnualRate = Math.pow(1 + semiAnnualRate, 2) - 1
 
@@ -139,10 +216,13 @@ export function calculateCanadianMortgage({
     weekly: 52,
   }
 
-  const paymentsPerYear =
-    frequencyMap[
-      paymentFrequency.replace("accelerated_", "") as keyof typeof frequencyMap
-    ]
+  const normalizedFrequency = paymentFrequency.replace(
+    "accelerated_",
+    ""
+  ) as keyof typeof frequencyMap
+
+  const paymentsPerYear = frequencyMap[normalizedFrequency]
+
   const periodicRate =
     Math.pow(1 + effectiveAnnualRate, 1 / paymentsPerYear) - 1
 
@@ -150,20 +230,21 @@ export function calculateCanadianMortgage({
 
   // Monthly payment (used for accelerated logic)
   const monthlyRate = Math.pow(1 + effectiveAnnualRate, 1 / 12) - 1
-
   const monthlyPayment =
     (principal *
       (monthlyRate * Math.pow(1 + monthlyRate, amortizationYears * 12))) /
     (Math.pow(1 + monthlyRate, amortizationYears * 12) - 1)
 
+  // Standard payment
   let payment =
     (principal * (periodicRate * Math.pow(1 + periodicRate, totalPayments))) /
     (Math.pow(1 + periodicRate, totalPayments) - 1)
 
-  // Accelerated payments
+  // Accelerated payment adjustments
   if (paymentFrequency === "accelerated_biweekly") {
     payment = monthlyPayment / 2
   }
+
   if (paymentFrequency === "accelerated_weekly") {
     payment = monthlyPayment / 4
   }
@@ -171,6 +252,9 @@ export function calculateCanadianMortgage({
   return {
     payment: Number(payment.toFixed(2)),
     mortgageAmount: Number(principal.toFixed(2)),
+    baseMortgageAmount: Number(basePrincipal.toFixed(2)),
+    cmhcPremiumRate: cmhcRate,
+    cmhcPremiumAmount: Number(cmhcPremiumAmount.toFixed(2)),
     cmhcApplied: cmhcRate > 0,
   }
 }
