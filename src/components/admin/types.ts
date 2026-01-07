@@ -16,6 +16,7 @@ export type ApplicationWithUser = Application & {
   applicationStatusHistory?: ApplicationStatusHistory[]
   potentialLenderIds?: string[]
   matchLenderIds?: string[]
+  loaneeSelectedMatchLenderIds?: string[]
   assignmentMode?: "single" | "multi"
 }
 

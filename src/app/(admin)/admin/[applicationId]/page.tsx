@@ -45,7 +45,7 @@ import {
 } from "@/components/shared/general.const"
 
 import AgentAssignment from "@/components/admin/AgentAssignment"
-import LenderAssignment from "@/components/admin/LenderAssignment"
+import LenderAssignment from "@/components/shared/LenderAssignment"
 
 interface Props {
   params: Promise<{
@@ -62,11 +62,12 @@ type ApplicationWithUser = Application & {
   intendedPropertyAddress?: string
   applicationStatusHistory?: ApplicationStatusHistory[]
   potentialLenderIds?: string[]
+  matchLenderIds?: string[]
+  loaneeSelectedMatchLenderIds?: string[]
   assignmentMode?: "single" | "multi"
 }
 
 type AgentWithUser = Agent & { user: User | null }
-
 
 export default function ApplicationPage({ params }: Props) {
   const { applicationId } = use(params)
@@ -83,25 +84,28 @@ export default function ApplicationPage({ params }: Props) {
 
   const router = useRouter()
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true)
+  const fetchData = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) setIsLoading(true)
 
-    try {
-      const { data } = await axios.get(`/api/applications/${applicationId}`)
-      const app: ApplicationWithUser = data.application
-      setApplication(app)
-      setLenders(data.lenderList || [])
-    } catch (error) {
-      console.error("Error fetching application:", error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch application data",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [applicationId])
+      try {
+        const { data } = await axios.get(`/api/applications/${applicationId}`)
+        const app: ApplicationWithUser = data.application
+        setApplication(app)
+        setLenders(data.lenderList || [])
+      } catch (error) {
+        console.error("Error fetching application:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch application data",
+          variant: "destructive",
+        })
+      } finally {
+        if (showLoading) setIsLoading(false)
+      }
+    },
+    [applicationId]
+  )
 
   useEffect(() => {
     fetchData()
@@ -290,6 +294,7 @@ export default function ApplicationPage({ params }: Props) {
                     application={application}
                     lenders={lenders}
                     onUpdate={onUpdateApplication}
+                    onRefetch={() => fetchData(false)}
                   />
 
                   <AgentAssignment

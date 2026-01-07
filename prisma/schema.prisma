@@ -285,7 +285,8 @@ model MatchLendertoLoanee {
   id            String   @id @default(cuid())
   applicationId String
   lenderId      String
-  createdAt     DateTime @default(now())
+  createdAt         DateTime @default(now())
+  loaneeShortlisted Boolean  @default(false)
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 

@@ -68,17 +68,46 @@ export async function GET(
 
     const matches = await prisma.matchLendertoLoanee.findMany({
       where: { applicationId: id },
-      select: { lenderId: true },
+      select: { lenderId: true, loaneeShortlisted: true },
     })
 
     const potentialLenderIds = potentials.map((p) => p.lenderId)
-    const matchLenderIds = matches.map((m) => m.lenderId)
 
-    const lenderList = await prisma.lender.findMany({
-      select: { name: true, id: true },
+    const caller = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
     })
 
+    let lenderList: { id: string; name: string }[] = []
+    let matchLenderIds: string[] = []
+
+    if (caller?.role === "ADMIN") {
+      // Admin sees all lenders in the pool
+      lenderList = await prisma.lender.findMany({
+        select: { name: true, id: true },
+      })
+      // Admin sees all matches they made (Shortlist)
+      matchLenderIds = matches.map((m) => m.lenderId)
+    } else {
+      // Loanee/Agent sees only lenders matched by Admin (Shortlist)
+      const matchedLenderIds = matches.map((m) => m.lenderId)
+      lenderList = await prisma.lender.findMany({
+        where: {
+          id: { in: matchedLenderIds },
+        },
+        select: { name: true, id: true },
+      })
+      // Loanee sees what they have sub-selected
+      matchLenderIds = matches
+        .filter((m) => m.loaneeShortlisted)
+        .map((m) => m.lenderId)
+    }
+
     const { ApplicationStatusHistory, ...rest } = application
+
+    const loaneeSelectedMatchLenderIds = matches
+      .filter((m) => m.loaneeShortlisted)
+      .map((m) => m.lenderId)
 
     return NextResponse.json({
       application: {
@@ -86,6 +115,7 @@ export async function GET(
         applicationStatusHistory: ApplicationStatusHistory,
         potentialLenderIds,
         matchLenderIds,
+        loaneeSelectedMatchLenderIds,
       },
       lenderList,
     })

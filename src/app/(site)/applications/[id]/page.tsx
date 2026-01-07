@@ -1,9 +1,19 @@
 //src\app\(site)\applications\[id]\page.tsx
-"use client";
+"use client"
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox"
+import { toast } from "@/hooks/use-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import Section from "@/components/shared/section";
 import Image from "next/image";
 import {
@@ -80,6 +90,65 @@ export default function ApplicationPage({
   const [loadingApp, setLoadingApp] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
+  const [matchLendersDialogOpen, setMatchLendersDialogOpen] = useState(false)
+  const [lenders, setLenders] = useState<{ id: string; name: string }[]>([])
+  const [selectedMatchLenderIds, setSelectedMatchLenderIds] = useState<
+    string[]
+  >([])
+  const [dialogMatchLenderIds, setDialogMatchLenderIds] = useState<string[]>([])
+  const [isSavingMatches, setIsSavingMatches] = useState(false)
+
+  const toggleMatchLender = (id: string) => {
+    setDialogMatchLenderIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
+  const openMatchLendersDialog = () => {
+    setDialogMatchLenderIds(selectedMatchLenderIds)
+    setMatchLendersDialogOpen(true)
+  }
+
+  const handleSaveMatches = async () => {
+    if (!application) return
+    setIsSavingMatches(true)
+    try {
+      const payload = {
+        matchLenderIds: dialogMatchLenderIds,
+      }
+      // Use dedicated endpoint for matching to allow loanees to save matches
+      const res = await axios.post(`/api/applications/${id}/matches`, payload)
+
+      const returnedMatchIds = res.data.matchLenderIds || []
+
+      // Update local state
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              matchLenderIds: returnedMatchIds,
+            }
+          : null
+      )
+      setSelectedMatchLenderIds(returnedMatchIds)
+
+      toast({
+        title: "Success",
+        description: "Matches updated.",
+      })
+      setMatchLendersDialogOpen(false)
+    } catch (err) {
+      console.error("Match save error:", err)
+      toast({
+        title: "Error",
+        description: "Failed to save matches",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingMatches(false)
+    }
+  }
+
   const [canAccessPrequalification, setCanAccessPrequalification] =
     useState(false);
 
@@ -97,8 +166,11 @@ export default function ApplicationPage({
         const res = await axios.get(`/api/applications/${id}`);
 
         const applicationData = res.data?.application ?? res.data;
+        const lendersList = res.data?.lenderList || [];
 
         setApplication(applicationData ?? null);
+        setLenders(lendersList);
+        setSelectedMatchLenderIds(applicationData?.matchLenderIds || []);
 
         // ✅ Safe status check
         if (applicationData?.status === "IN_CHAT") {
@@ -151,9 +223,7 @@ export default function ApplicationPage({
     calendlyUrl?: string | null;
   };
 
-  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(
-    null
-  );
+  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(null);
   const [agentLoading, setAgentLoading] = useState(true);
 
   useEffect(() => {
@@ -281,41 +351,137 @@ export default function ApplicationPage({
           }`}
         >
           {!agentLoading && assignedAgent && (
-            <Card className="border-violet-500 bg-violet-50/60">
-              <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
-                {/* Left */}
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-xl font-semibold text-white">
-                    {assignedAgent.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
+            <div className="space-y-4">
+              <Card className="border-violet-500 bg-violet-50/60">
+                <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  {/* Left */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-xl font-semibold text-white">
+                      {assignedAgent.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-500">Assigned Agent</p>
+                      <h2 className="text-lg font-semibold text-violet-700">
+                        {assignedAgent.name}
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        {assignedAgent.email} • {assignedAgent.phone}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* Right */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() =>
+                        router.push(`/applications/agent/${assignedAgent.id}`)
+                      }
+                    >
+                      View Agent Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-violet-500 bg-violet-50/60">
+                <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <h3 className="text-lg font-semibold text-violet-700">
+                      List of lenders to match
+                    </h3>
+                    {selectedMatchLenderIds.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMatchLenderIds.map((id) => {
+                          const lender = lenders.find((l) => l.id === id)
+                          return (
+                            <Badge
+                              key={id}
+                              variant="secondary"
+                              className="bg-violet-100 text-violet-700 hover:bg-violet-200"
+                            >
+                              {lender?.name || "Unknown"}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        No lenders selected
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Right */}
                   <div>
-                    <p className="text-sm text-gray-500">Assigned Agent</p>
-                    <h2 className="text-lg font-semibold text-violet-700">
-                      {assignedAgent.name}
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {assignedAgent.email} • {assignedAgent.phone}
-                    </p>
+                    <Button onClick={openMatchLendersDialog}>
+                      Match Lenders
+                    </Button>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                {/* Right */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() =>
-                      router.push(`/applications/agent/${assignedAgent.id}`)
-                    }
-                  >
-                    View Agent Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <Dialog
+                open={matchLendersDialogOpen}
+                onOpenChange={setMatchLendersDialogOpen}
+              >
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle>Select Lenders to match</DialogTitle>
+                    <DialogDescription>
+                      Choose multiple lenders to match with loanee.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="mt-4 max-h-60 space-y-2 overflow-y-auto rounded-md border p-2">
+                    {lenders.map((l) => {
+                      const checked = dialogMatchLenderIds.includes(l.id)
+                      return (
+                        <div
+                          key={l.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => toggleMatchLender(l.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault()
+                              toggleMatchLender(l.id)
+                            }
+                          }}
+                          className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
+                            checked
+                              ? "border-primary/40 bg-primary/5"
+                              : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <Checkbox checked={checked} />
+                          <span className="block text-sm">{l.name}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <DialogFooter className="mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setMatchLendersDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
+                      onClick={handleSaveMatches}
+                      disabled={isSavingMatches}
+                    >
+                      {isSavingMatches ? "Saving..." : "Save Matches"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           )}
 
           <div className="sticky top-0 z-10 flex justify-between gap-4 bg-white pb-4">
@@ -710,8 +876,7 @@ export default function ApplicationPage({
                               onClick={() => {
                                 const input = document.createElement("input");
                                 input.type = "file";
-                                input.accept =
-                                  ".pdf,.jpg,.jpeg,.png,.doc,.docx";
+                                input.accept = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
                                 input.onchange = (e) => {
                                   const file = (e.target as HTMLInputElement)
                                     .files?.[0];

@@ -26,12 +26,13 @@ import { Pencil } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import axios from "axios"
 import { LoanStatus, User } from "@prisma/client"
-import type { ApplicationWithUser } from "./types"
+import type { ApplicationWithUser } from "../admin/types"
 
 interface LenderAssignmentProps {
   application: ApplicationWithUser
   lenders: User[]
   onUpdate: (app: ApplicationWithUser) => void
+  onRefetch?: () => void
 }
 
 type ReturnedApplication = Partial<ApplicationWithUser> & {
@@ -44,6 +45,7 @@ export default function LenderAssignment({
   application,
   lenders,
   onUpdate,
+  onRefetch,
 }: LenderAssignmentProps) {
   const [assignmentMode, setAssignmentMode] = useState<"single" | "multi">(
     "single"
@@ -258,12 +260,6 @@ export default function LenderAssignment({
           setAssignmentMode("single")
           setSelectedPotentialLenderIds([])
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            setAssignmentMode("single")
-            setSelectedPotentialLenderIds([])
-          }
-        }}
         className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 text-left transition ${assignmentMode === "single" ? "border-primary/70 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
       >
         <RadioGroupItem value="single" className="mt-1" />
@@ -307,12 +303,6 @@ export default function LenderAssignment({
           setAssignmentMode("multi")
           setSelectedLenderId(null)
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            setAssignmentMode("multi")
-            setSelectedLenderId(null)
-          }
-        }}
         className={`flex w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 text-left transition ${
           assignmentMode === "multi"
             ? "border-primary/70 ring-2 ring-primary/20"
@@ -341,12 +331,6 @@ export default function LenderAssignment({
                       onClick={(e) => {
                         e.stopPropagation()
                         togglePotentialLender(l.id)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault()
-                          togglePotentialLender(l.id)
-                        }
                       }}
                       className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
                         checked
@@ -388,27 +372,37 @@ export default function LenderAssignment({
 
           <div className="mt-4 max-h-60 space-y-2 overflow-y-auto rounded-md border p-2">
             {lenders.map((l) => {
-              const checked = selectedMatchLenderIds.includes(l.id)
+              const isLoaneeSelectionMode =
+                (application.loaneeSelectedMatchLenderIds?.length ?? 0) > 0
+              const loaneeSelected =
+                application.loaneeSelectedMatchLenderIds?.includes(l.id)
+
+              const checked = isLoaneeSelectionMode
+                ? loaneeSelected
+                : selectedMatchLenderIds.includes(l.id)
+              const disabled = isLoaneeSelectionMode || isSavingMatches
+
               return (
                 <div
                   key={l.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => toggleMatchLender(l.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      toggleMatchLender(l.id)
-                    }
-                  }}
+                  onClick={() => !disabled && toggleMatchLender(l.id)}
                   className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
                     checked
                       ? "border-primary/40 bg-primary/5"
                       : "border-border hover:bg-muted/50"
-                  }`}
+                  } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
                 >
-                  <Checkbox checked={checked} />
-                  <span className="block text-sm">{l.name}</span>
+                  <Checkbox checked={checked} disabled={disabled} />
+                  <span className="block text-sm">
+                    {l.name}
+                    {isLoaneeSelectionMode && checked && (
+                      <span className="ml-2 text-xs font-semibold text-violet-600">
+                        (Loanee Preferred)
+                      </span>
+                    )}
+                  </span>
                 </div>
               )
             })}
@@ -421,7 +415,7 @@ export default function LenderAssignment({
             <Button
               onClick={handleSaveMatches}
               disabled={isSavingMatches}
-              className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
+              className="bg-violet-600 text-white hover:bg-violet-600"
             >
               {isSavingMatches ? "Saving..." : "Save Matches"}
             </Button>
@@ -431,9 +425,24 @@ export default function LenderAssignment({
       {hasAnyAssignment ? (
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            {selectedMatchLenderIds.length > 0 ? (
+            {(application.loaneeSelectedMatchLenderIds?.length ?? 0) > 0 ? (
               <Button
-                onClick={() => setMatchLendersDialogOpen(true)}
+                onClick={() => {
+                  if (onRefetch) onRefetch()
+                  setMatchLendersDialogOpen(true)
+                }}
+                className="rounded-md border border-violet-600 bg-violet-100 px-3 py-1 text-sm text-violet-600 hover:text-white"
+                title="View Loanee Matches"
+              >
+                {application.loaneeSelectedMatchLenderIds?.length} Lender(s)
+                Matched
+              </Button>
+            ) : selectedMatchLenderIds.length > 0 ? (
+              <Button
+                onClick={() => {
+                  if (onRefetch) onRefetch()
+                  setMatchLendersDialogOpen(true)
+                }}
                 className="rounded-md bg-[#FFCAED] px-3 py-1 text-sm text-[#FF2BB8] hover:bg-[#FFCAEG]"
                 title="Edit matched lenders"
               >
@@ -441,7 +450,10 @@ export default function LenderAssignment({
               </Button>
             ) : (
               <Button
-                onClick={() => setMatchLendersDialogOpen(true)}
+                onClick={() => {
+                  if (onRefetch) onRefetch()
+                  setMatchLendersDialogOpen(true)
+                }}
                 className="bg-violet-600 text-white hover:bg-violet-700"
               >
                 Lenders to match
@@ -469,7 +481,7 @@ export default function LenderAssignment({
                       setSelectedLenderId(null)
                       setDialogOpen(true)
                     }}
-                    className="rounded-md bg-[#FFCAED] px-3 py-1 text-sm text-[#FF2BB8] hover:bg-[#FFCAEG]"
+                    className="rounded-md border border-violet-600 bg-[#F9F5FF] px-3 py-1 text-sm text-violet-600 hover:text-white"
                     title="Edit potential lenders"
                   >
                     {count} Potential Lenders
@@ -618,7 +630,7 @@ export default function LenderAssignment({
                         (selectedPotentialLenderIds.length < 1 ||
                           selectedPotentialLenderIds.length > 5))
                     }
-                    className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
+                    className="bg-violet-600 text-white hover:bg-violet-600"
                   >
                     {isAssigning ? "Saving..." : "Assign"}
                   </Button>
@@ -629,25 +641,42 @@ export default function LenderAssignment({
         </div>
       ) : (
         <div className="flex justify-center gap-4">
-          {selectedMatchLenderIds.length > 0 ? (
+          {(application.loaneeSelectedMatchLenderIds?.length ?? 0) > 0 ? (
             <Button
-              onClick={() => setMatchLendersDialogOpen(true)}
-              className="rounded-md bg-[#FFCAED] px-3 py-1 text-sm text-[#FF2BB8] hover:bg-[#FFCAEG]"
+              onClick={() => {
+                if (onRefetch) onRefetch()
+                setMatchLendersDialogOpen(true)
+              }}
+              className="rounded-md border border-violet-600 bg-[#F9F5FF] px-3 py-1 text-sm text-violet-600"
+              title="View Loanee Matches"
+            >
+              {application.loaneeSelectedMatchLenderIds?.length} Lenders Matched
+            </Button>
+          ) : selectedMatchLenderIds.length > 0 ? (
+            <Button
+              onClick={() => {
+                if (onRefetch) onRefetch()
+                setMatchLendersDialogOpen(true)
+              }}
+              className="rounded-md bg-violet-600 px-3 py-1 text-sm text-white"
               title="Edit matched lenders"
             >
               {selectedMatchLenderIds.length} Lenders to Match
             </Button>
           ) : (
             <Button
-              onClick={() => setMatchLendersDialogOpen(true)}
-              className="bg-violet-600 text-white hover:bg-violet-700"
+              onClick={() => {
+                if (onRefetch) onRefetch()
+                setMatchLendersDialogOpen(true)
+              }}
+              className="bg-violet-600 text-white0"
             >
               Lenders to match
             </Button>
           )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-violet-600 text-white hover:bg-violet-700">
+              <Button className="bg-violet-600 text-white">
                 Assign Lender
               </Button>
             </DialogTrigger>
@@ -676,7 +705,7 @@ export default function LenderAssignment({
                       (selectedPotentialLenderIds.length < 1 ||
                         selectedPotentialLenderIds.length > 5))
                   }
-                  className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
+                  className="bg-violet-600 text-white"
                 >
                   {isAssigning ? "Saving..." : "Assign"}
                 </Button>
