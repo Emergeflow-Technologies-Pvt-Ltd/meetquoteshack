@@ -139,9 +139,12 @@ export function calculateCanadianMortgage({
     weekly: 52,
   }
 
-  let paymentsPerYear =
-    frequencyMap[paymentFrequency.replace("accelerated_", "") as keyof typeof frequencyMap]
-  let periodicRate = Math.pow(1 + effectiveAnnualRate, 1 / paymentsPerYear) - 1
+  const paymentsPerYear =
+    frequencyMap[
+      paymentFrequency.replace("accelerated_", "") as keyof typeof frequencyMap
+    ]
+  const periodicRate =
+    Math.pow(1 + effectiveAnnualRate, 1 / paymentsPerYear) - 1
 
   const totalPayments = amortizationYears * paymentsPerYear
 
@@ -171,7 +174,6 @@ export function calculateCanadianMortgage({
     cmhcApplied: cmhcRate > 0,
   }
 }
-
 
 export function calculateMortgageRestOfWorld({
   homePrice,
