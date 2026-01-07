@@ -42,3 +42,6 @@ next-env.d.ts
 
 # prod env
 env.prod
+
+# bun dependencies
+bun.lock

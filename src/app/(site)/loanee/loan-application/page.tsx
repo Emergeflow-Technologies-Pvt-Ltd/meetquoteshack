@@ -47,7 +47,7 @@ export default function GeneralLoanForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const [access, setAccess] = useState<{
     subscription?: { plan?: string | null };
@@ -57,9 +57,34 @@ export default function GeneralLoanForm() {
   const subscriptionPlan = normalizeLoaneePlan(access?.subscription?.plan);
   const freeTierActive = access?.freeTierActive ?? false;
 
+  // Redirect if not authenticated or not a LOANEE - wait for session to load
+  useEffect(() => {
+    // Wait for session status to be determined
+    if (status === "loading") {
+      console.log("Session loading...")
+      return
+    }
+
+    const role = session?.user?.role
+
+    // Check if user is authenticated AND has LOANEE role
+    if (status === "unauthenticated" || !session?.user) {
+      console.log("No session - redirecting to login")
+      router.push("/loanee/login")
+      return
+    }
+
+    // Check if user has LOANEE role
+    if (role !== "LOANEE") {
+      console.log(`Invalid role: ${role} - redirecting to login`)
+      router.push("/loanee/login")
+      return
+    }
+  }, [session, status, router])
+
   useEffect(() => {
     const fetchAccess = async () => {
-      if (!session?.user) return;
+      if (status !== "authenticated" || !session?.user) return;
 
       try {
         const res = await axios.get("/api/subscription/access");
@@ -71,15 +96,7 @@ export default function GeneralLoanForm() {
     };
 
     fetchAccess();
-  }, [session]);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!session?.user) {
-      console.log(" No session - redirecting to login");
-      router.push("/loanee/login");
-    }
-  }, [session, router]);
+  }, [session, status]);
 
   const loanTypesForPropertyDetails: LoanType[] = [
     "FIRST_TIME_HOME",
@@ -407,6 +424,31 @@ export default function GeneralLoanForm() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  // Show loading state while session is being determined
+  if (status === "loading") {
+    return (
+      <Section className="py-24">
+        <Card className="mx-auto w-full max-w-4xl">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl font-bold">
+              Loading...
+            </CardTitle>
+          </CardHeader>
+          <div className="flex items-center justify-center p-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-600 border-t-transparent"></div>
+          </div>
+        </Card>
+      </Section>
+    )
+  }
+
+  // Don't render form if not authenticated or not a LOANEE
+  if (
+    status === "unauthenticated" || !session?.user || session.user.role !== "LOANEE"
+  ) {
+    return null
   }
 
   return (

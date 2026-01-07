@@ -10,7 +10,7 @@ import Icon from "../../../../components/assets/google-icon.svg";
 
 export default function LoaneeLogin() {
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/loanee" });
+    signIn("google", { callbackUrl: "/loanee/loan-application" });
   };
 
   return (

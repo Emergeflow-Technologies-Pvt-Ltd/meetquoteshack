@@ -57,7 +57,7 @@ model Subscription {
 enum SubscriptionPlan {
   LOANEE_FREE
   LOANEE_STAY_SMART
-  LENDER_TRIAL      
+  LENDER_TRIAL
   LENDER_SIMPLE
   LENDER_STANDARD
 }
@@ -239,13 +239,14 @@ model Application {
 
   user                     User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
   potentialLender          PotentialLender[]
+  matchLender              MatchLendertoLoanee[]
   ApplicationStatusHistory ApplicationStatusHistory[]
   documents                Document[]
   messages                 Message[]
   Notification             Notification[]
 
   agentCode String?
-  
+
   prequalStatus         PrequalStatus?
   prequalLabel          String?
   prequalCreditTier     CreditTier?
@@ -269,6 +270,18 @@ model Application {
 }
 
 model PotentialLender {
+  id            String   @id @default(cuid())
+  applicationId String
+  lenderId      String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([lenderId])
+}
+
+model MatchLendertoLoanee {
   id            String   @id @default(cuid())
   applicationId String
   lenderId      String

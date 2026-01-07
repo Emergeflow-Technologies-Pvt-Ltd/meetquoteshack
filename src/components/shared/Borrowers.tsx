@@ -21,7 +21,7 @@ export default function Borrowers() {
 
     if (role === "LOANEE") {
       // Logged in loanee: go to loan application
-      router.push("/loan-application");
+      router.push("/loanee/loan-application");
       return;
     }
 
