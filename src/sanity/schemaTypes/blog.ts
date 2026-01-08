@@ -32,13 +32,11 @@ export const blog = defineType({
       options: {
         hotspot: true,
       },
-      fields: [
-        {
-          name: "alt",
-          type: "string",
-          title: "Alternative Text",
-        },
-      ],
+    }),
+    defineField({
+      name: "description",
+      title: "description",
+      type: "string",
     }),
     defineField({
       name: "categories",
@@ -55,12 +53,6 @@ export const blog = defineType({
       name: "body",
       title: "Body",
       type: "blockContent",
-    }),
-    defineField({
-      name: "excerpt",
-      title: "Excerpt",
-      type: "text",
-      rows: 3,
     }),
   ],
 
