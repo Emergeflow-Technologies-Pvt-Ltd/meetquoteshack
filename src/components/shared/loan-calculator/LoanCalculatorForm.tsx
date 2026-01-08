@@ -139,7 +139,7 @@ const mortgageCanadaSchema = baseSchema
   .extend({
     purchasePrice: z.number().min(0, "Purchase price must be positive"),
     downPaymentAmount: z.number().min(0).optional(),
-    downPaymentPercent: z.number().min(0).optional(),
+    downPaymentPercent: z.number().min(0).max(100).optional(),
     interestRate: z
       .number()
       .min(0, "Interest rate must be positive")
@@ -176,8 +176,11 @@ const mortgageCanadaSchema = baseSchema
 
 // Mortgage Other Schema
 const mortgageOtherSchema = baseSchema.extend({
-  homePrice: z.number().min(0, "Home price must be positive"),
-  downPaymentPercent: z.number().min(0, "Down payment must be positive"),
+  homePrice: z.number().min(1, "Home Price must be greater than 0"),
+  downPaymentPercent: z
+    .number()
+    .min(0, "Down payment cannot be negative")
+    .max(100, "Down payment cannot exceed 100%"),
   interestRate: z
     .number()
     .min(0, "Interest rate must be positive")
@@ -185,8 +188,8 @@ const mortgageOtherSchema = baseSchema.extend({
   loanTerm: z.enum(["15", "20", "30"]),
   annualPropertyTax: z.number().min(0, "Property tax must be positive"),
   annualInsurance: z.number().min(0, "Insurance must be positive"),
-  pmiRate: z.number().min(0).optional(),
-  monthlyHoaFees: z.number().min(0).optional(),
+  pmiRate: z.number().min(0, "PMI rate must be positive").optional(),
+  monthlyHoaFees: z.number().min(0, "HOA fees must be positive").optional(),
 })
 
 type LoanType = "PERSONAL_LOAN" | "CAR_LOAN" | "LINE_OF_CREDIT" | "MORTGAGE"
@@ -364,11 +367,9 @@ function PersonalLoanForm({ formId }: { formId?: string }) {
               </span>
             </div>
             <div className="my-4 border-t border-slate-200" />
-            <div className="flex justify-between text-xl">
-              <span className="font-bold text-violet-600">Total Cost:</span>
-              <span className="font-bold text-violet-600">
-                ${results.totalCost.toFixed(2)}
-              </span>
+            <div className="flex justify-between text-lg font-bold text-primary">
+              <span>Total Cost:</span>
+              <span> ${results.totalCost.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
@@ -614,7 +615,7 @@ function CarLoanForm({ formId }: { formId?: string }) {
         </div>
       </form>
       {results && (
-        <Card className="mt-8 bg-slate-50">
+        <Card className="mt-8 bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Calculation Results</CardTitle>
           </CardHeader>
@@ -639,9 +640,10 @@ function CarLoanForm({ formId }: { formId?: string }) {
                 ${results.totalInterest.toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className="my-4 border-t border-slate-200" />
+            <div className="flex justify-between text-lg font-bold text-primary">
               <span>Total Cost:</span>
-              <span className="font-bold">${results.totalCost.toFixed(2)}</span>
+              <span>${results.totalCost.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
@@ -843,7 +845,7 @@ function LineOfCreditForm({ formId }: { formId?: string }) {
         />
       </form>
       {results && (
-        <Card className="mt-8 bg-slate-50">
+        <Card className="mt-8 bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Calculation Results</CardTitle>
           </CardHeader>
@@ -1210,7 +1212,7 @@ function MortgageCanadaForm({ formId }: { formId?: string }) {
         />
       </form>
       {results && (
-        <Card className="mt-8 bg-slate-50">
+        <Card className="mt-8 bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Calculation Results</CardTitle>
           </CardHeader>
@@ -1229,11 +1231,10 @@ function MortgageCanadaForm({ formId }: { formId?: string }) {
                 </span>
               </div>
             )}
-            <div className="flex justify-between">
+            <div className="my-4 border-t border-slate-200" />
+            <div className="flex justify-between text-lg font-bold text-primary">
               <span>Total Mortgage Amount:</span>
-              <span className="font-bold">
-                ${results.mortgageAmount.toFixed(2)}
-              </span>
+              <span>${results.mortgageAmount.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
@@ -1259,17 +1260,31 @@ function MortgageOtherForm({ formId }: { formId?: string }) {
   })
 
   function onSubmit(data: z.infer<typeof mortgageOtherSchema>) {
-    const res = calculateMortgageRestOfWorld({
-      homePrice: data.homePrice,
-      downPaymentPercent: data.downPaymentPercent,
-      annualRatePercent: data.interestRate,
-      termYears: Number(data.loanTerm),
-      annualPropertyTax: data.annualPropertyTax,
-      annualInsurance: data.annualInsurance,
-      pmiRatePercent: data.pmiRate || 0,
-      monthlyHOA: data.monthlyHoaFees || 0,
-    })
-    setResults(res)
+    try {
+      const res = calculateMortgageRestOfWorld({
+        homePrice: data.homePrice,
+        downPaymentPercent: data.downPaymentPercent,
+        annualRatePercent: data.interestRate,
+        termYears: Number(data.loanTerm),
+        annualPropertyTax: data.annualPropertyTax,
+        annualInsurance: data.annualInsurance,
+        pmiRatePercent: data.pmiRate || 0,
+        monthlyHOA: data.monthlyHoaFees || 0,
+      })
+      setResults(res)
+    } catch (error) {
+      console.error("Calculation error:", error)
+      // In a real app, we might show a toast here.
+      // For now, we ensure the app doesn't crash and we could reset results or show an error state.
+      setResults(null)
+      form.setError("root", {
+        type: "manual",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      })
+    }
   }
 
   return (
@@ -1521,7 +1536,7 @@ function MortgageOtherForm({ formId }: { formId?: string }) {
         </div>
       </form>
       {results && (
-        <Card className="mt-8 bg-slate-50">
+        <Card className="mt-8 bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Calculation Results</CardTitle>
           </CardHeader>
@@ -1552,11 +1567,9 @@ function MortgageOtherForm({ formId }: { formId?: string }) {
                 </span>
               </div>
             )}
-            <div className="mt-2 flex justify-between border-t pt-2">
-              <span className="font-semibold">Total Monthly Payment:</span>
-              <span className="text-lg font-bold text-primary">
-                ${results.totalMonthlyPayment.toFixed(2)}
-              </span>
+            <div className="mt-2 flex justify-between border-t pt-2 text-lg font-bold text-primary">
+              <span>Total Monthly Payment:</span>
+              <span> ${results.totalMonthlyPayment.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>

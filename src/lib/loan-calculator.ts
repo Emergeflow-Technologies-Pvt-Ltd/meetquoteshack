@@ -278,6 +278,20 @@ export function calculateMortgageRestOfWorld({
   pmiRatePercent: number
   monthlyHOA: number
 }) {
+  if (
+    homePrice <= 0 ||
+    downPaymentPercent < 0 ||
+    downPaymentPercent > 100 ||
+    annualRatePercent < 0 ||
+    termYears <= 0 ||
+    annualPropertyTax < 0 ||
+    annualInsurance < 0 ||
+    pmiRatePercent < 0 ||
+    monthlyHOA < 0
+  ) {
+    throw new Error("Invalid mortgage inputs")
+  }
+
   const loanAmount = homePrice * (1 - downPaymentPercent / 100)
   const totalPayments = termYears * 12
   const monthlyRate = annualRatePercent / 100 / 12
