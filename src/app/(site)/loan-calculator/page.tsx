@@ -127,15 +127,16 @@ export default function LoanCalculatorPage() {
           )}
 
           <div className="mt-8 flex justify-between border-t pt-4">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-            >
-              Previous
-            </Button>
+            {currentStep > 0 && (
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+              >
+                Previous
+              </Button>
+            )}
             {currentStep < steps.length - 1 ? (
-              <Button onClick={handleNext} disabled={!selectedLoanType}>
+              <Button onClick={handleNext} disabled={!selectedLoanType} className={currentStep === 0 ? "ml-auto" : ""}>
                 Next
               </Button>
             ) : (
