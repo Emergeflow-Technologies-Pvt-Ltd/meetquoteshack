@@ -32,6 +32,7 @@ import {
   calculateMortgageRestOfWorld,
 } from "@/lib/loan-calculator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
 
 // Define strict types for provinces
 const PROVINCES = [
@@ -1252,6 +1253,8 @@ function MortgageOtherForm({ formId }: { formId?: string }) {
     totalMonthlyPayment: number
   } | null>(null)
 
+  const { toast } = useToast()
+
   const form = useForm<z.infer<typeof mortgageOtherSchema>>({
     resolver: zodResolver(mortgageOtherSchema),
     defaultValues: {
@@ -1274,8 +1277,14 @@ function MortgageOtherForm({ formId }: { formId?: string }) {
       setResults(res)
     } catch (error) {
       console.error("Calculation error:", error)
-      // In a real app, we might show a toast here.
-      // For now, we ensure the app doesn't crash and we could reset results or show an error state.
+      toast({
+        variant: "destructive",
+        title: "Calculation Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      })
       setResults(null)
       form.setError("root", {
         type: "manual",
