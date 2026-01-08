@@ -669,7 +669,7 @@ export default function LenderAssignment({
                 if (onRefetch) onRefetch()
                 setMatchLendersDialogOpen(true)
               }}
-              className="bg-violet-600 text-white0"
+              className="bg-violet-600 text-white"
             >
               Lenders to match
             </Button>

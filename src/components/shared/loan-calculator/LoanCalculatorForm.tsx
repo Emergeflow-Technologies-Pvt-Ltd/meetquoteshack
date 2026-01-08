@@ -348,7 +348,7 @@ function PersonalLoanForm({ formId }: { formId?: string }) {
         />
       </form>
       {results && (
-        <Card className="mt-8 bg-slate-50">
+        <Card className="mt-8 bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Calculation Results</CardTitle>
           </CardHeader>
@@ -363,9 +363,12 @@ function PersonalLoanForm({ formId }: { formId?: string }) {
                 ${results.totalInterest.toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>Total Cost:</span>
-              <span className="font-bold">${results.totalCost.toFixed(2)}</span>
+            <div className="my-4 border-t border-slate-200" />
+            <div className="flex justify-between text-xl">
+              <span className="font-bold text-violet-600">Total Cost:</span>
+              <span className="font-bold text-violet-600">
+                ${results.totalCost.toFixed(2)}
+              </span>
             </div>
           </CardContent>
         </Card>
