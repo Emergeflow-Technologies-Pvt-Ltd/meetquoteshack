@@ -1,8 +1,8 @@
 import { defineField, defineType } from "sanity";
 
-export const post = defineType({
-  name: "post",
-  title: "Post",
+export const blog = defineType({
+  name: "blog",
+  title: "Blog",
   type: "document",
   fields: [
     defineField({
@@ -26,8 +26,8 @@ export const post = defineType({
       to: { type: "author" },
     }),
     defineField({
-      name: "mainImage",
-      title: "Main image",
+      name: "bannerImage",
+      title: "banner image",
       type: "image",
       options: {
         hotspot: true,
@@ -68,7 +68,7 @@ export const post = defineType({
     select: {
       title: "title",
       author: "author.name",
-      media: "mainImage",
+      media: "bannerImage",
     },
     prepare(selection) {
       const { author } = selection;

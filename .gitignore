@@ -45,3 +45,6 @@ env.prod
 
 # bun dependencies
 bun.lock
+
+# Sanity Studio dependencies
+src/sanity/meetquoteshack/node_modules
