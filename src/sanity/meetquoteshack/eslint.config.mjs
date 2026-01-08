@@ -1,3 +1,4 @@
 import studio from '@sanity/eslint-config-studio'
+var test= [...studio]
 
-export default [...studio]
+export default test
