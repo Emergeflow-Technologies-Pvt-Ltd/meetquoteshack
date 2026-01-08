@@ -1,8 +1,8 @@
 import { defineField, defineType } from "sanity";
 
-export const post = defineType({
-  name: "post",
-  title: "Post",
+export const blog = defineType({
+  name: "blog",
+  title: "Blog",
   type: "document",
   fields: [
     defineField({
@@ -26,19 +26,17 @@ export const post = defineType({
       to: { type: "author" },
     }),
     defineField({
-      name: "mainImage",
-      title: "Main image",
+      name: "bannerImage",
+      title: "banner image",
       type: "image",
       options: {
         hotspot: true,
       },
-      fields: [
-        {
-          name: "alt",
-          type: "string",
-          title: "Alternative Text",
-        },
-      ],
+    }),
+    defineField({
+      name: "description",
+      title: "description",
+      type: "string",
     }),
     defineField({
       name: "categories",
@@ -56,19 +54,13 @@ export const post = defineType({
       title: "Body",
       type: "blockContent",
     }),
-    defineField({
-      name: "excerpt",
-      title: "Excerpt",
-      type: "text",
-      rows: 3,
-    }),
   ],
 
   preview: {
     select: {
       title: "title",
       author: "author.name",
-      media: "mainImage",
+      media: "bannerImage",
     },
     prepare(selection) {
       const { author } = selection;
