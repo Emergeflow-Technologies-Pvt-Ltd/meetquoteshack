@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
 import { SessionProvider } from "next-auth/react";
-import Script from 'next/script';
+import Script from "next/script";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

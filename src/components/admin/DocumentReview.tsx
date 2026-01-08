@@ -109,7 +109,7 @@ export default function DocumentReview({
     return (
       <div className="mt-2 flex items-center gap-2">
         <div
-          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+          className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
             document.status === "APPROVED"
               ? "bg-green-100 text-green-800"
               : "bg-red-100 text-red-800"
@@ -210,8 +210,8 @@ export default function DocumentReview({
               {isSubmitting
                 ? "Submitting..."
                 : status === "APPROVED"
-                ? "Approve"
-                : "Reject"}
+                  ? "Approve"
+                  : "Reject"}
             </Button>
           </DialogFooter>
         </DialogContent>

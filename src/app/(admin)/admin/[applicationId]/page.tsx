@@ -1,10 +1,11 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
-import { use } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, useCallback, useRef } from "react"
+import { use } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import type { Agent } from "@prisma/client"
 import {
   LoanStatus,
   Application,
@@ -12,25 +13,25 @@ import {
   Document,
   DocumentType,
   ApplicationStatusHistory,
-} from "@prisma/client";
-import { availableDocumentTypes } from "@/lib/constants";
+} from "@prisma/client"
+import { availableDocumentTypes } from "@/lib/constants"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import axios from "axios";
-import { getStatusColors } from "@/lib/utils";
-import { ChevronLeft, Eye, Trash2 } from "lucide-react";
-import DocumentReview from "@/components/admin/DocumentReview";
-import { toast } from "@/hooks/use-toast";
+} from "@/components/ui/select"
+import axios from "axios"
+import { getStatusColors } from "@/lib/utils"
+import { ChevronLeft, Eye, Trash2 } from "lucide-react"
+import DocumentReview from "@/components/admin/DocumentReview"
+import { toast } from "@/hooks/use-toast"
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
-} from "@/components/shared/chips";
-import { useRouter } from "next/navigation";
+} from "@/components/shared/chips"
+import { useRouter } from "next/navigation"
 import {
   applicationStatusLabels,
   downPaymentLabels,
@@ -41,187 +42,220 @@ import {
   propertyTypeLabels,
   residencyStatusTypeLabels,
   vehicleTypeLabels,
-} from "@/components/shared/general.const";
+} from "@/components/shared/general.const"
+
+import AgentAssignment from "@/components/admin/AgentAssignment"
+import LenderAssignment from "@/components/shared/LenderAssignment"
 
 interface Props {
   params: Promise<{
-    applicationId: string;
-  }>;
+    applicationId: string
+  }>
 }
 
 type ApplicationWithUser = Application & {
-  user: User;
-  documents: Document[];
-  documentKey?: string;
-  estimatedPropertyValue?: number;
-  intendedPropertyAddress?: string;
-  applicationStatusHistory?: ApplicationStatusHistory[];
-};
+  user: User
+  documents: Document[]
+  documentKey?: string
+  agent?: Agent | null
+  estimatedPropertyValue?: number
+  intendedPropertyAddress?: string
+  applicationStatusHistory?: ApplicationStatusHistory[]
+  potentialLenderIds?: string[]
+  matchLenderIds?: string[]
+  loaneeSelectedMatchLenderIds?: string[]
+  assignmentMode?: "single" | "multi"
+}
+
+type AgentWithUser = Agent & { user: User | null }
 
 export default function ApplicationPage({ params }: Props) {
-  const { applicationId } = use(params);
+  const { applicationId } = use(params)
   const [application, setApplication] = useState<ApplicationWithUser | null>(
     null
-  );
+  )
+  const fetchRef = useRef(false)
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([]);
-  const [lenders, setLenders] = useState<User[]>([]);
-  const [selectedLenderId, setSelectedLenderId] = useState<string | null>(null);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedDocTypes, setSelectedDocTypes] = useState<DocumentType[]>([])
+  const [lenders, setLenders] = useState<User[]>([])
+  const [agents, setAgents] = useState<AgentWithUser[]>([])
+  const [loadingAgents, setLoadingAgents] = useState<boolean>(true)
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
+  const router = useRouter()
 
-    axios
-      .get(`/api/applications/${applicationId}`)
-      .then(({ data }) => {
-        setApplication(data.application);
-        setLenders(data.lenderList);
-        console.log("=====", data.application);
+  const fetchData = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) setIsLoading(true)
 
-        if (data.application.documents?.length > 0) {
-          const urlMap = new Map<string, string>();
-          Promise.all(
-            data.application.documents.map(async (doc: Document) => {
-              if (doc.fileKey) {
-                return axios
-                  .get(`/api/documents/${doc.id}`)
-                  .then(({ data }) => {
-                    urlMap.set(doc.id, data.url);
-                  });
-              }
-            })
-          );
-        }
-      })
-
-      .catch((error) => {
-        console.error("Error fetching application:", error);
+      try {
+        const { data } = await axios.get(`/api/applications/${applicationId}`)
+        const app: ApplicationWithUser = data.application
+        setApplication(app)
+        setLenders(data.lenderList || [])
+      } catch (error) {
+        console.error("Error fetching application:", error)
         toast({
           title: "Error",
           description: "Failed to fetch application data",
           variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [applicationId]);
+        })
+      } finally {
+        if (showLoading) setIsLoading(false)
+      }
+    },
+    [applicationId]
+  )
 
   useEffect(() => {
-    fetchData();
-  }, [applicationId, fetchData]);
+    fetchData()
+  }, [fetchData])
 
-  const handleAddDocument = async () => {
-    if (!selectedDocTypes.length || !application) return;
+  useEffect(() => {
+    if (fetchRef.current) return
+    fetchRef.current = true
 
-    axios
-      .post(`/api/applications/${application.id}/documents`, {
-        documentTypes: selectedDocTypes,
-      })
-      .then(({ data: newDocs }) => {
-        setApplication((prev) =>
-          prev
-            ? {
-                ...prev,
-                documents: [...prev.documents, ...newDocs],
-              }
-            : null
-        );
-        setSelectedDocTypes([]);
-      })
-      .catch((error) => {
-        console.error("Failed to add document requirements:", error);
-      });
-  };
+    const fetchAgents = async () => {
+      setLoadingAgents(true)
+      try {
+        const res = await fetch("/api/agent")
+        const text = await res.text()
 
-  const handleRemoveDocument = async (docId: string) => {
-    if (!application) return;
+        let parsed
+        try {
+          parsed = JSON.parse(text)
+        } catch {
+          setAgents([])
+          return
+        }
 
-    const doc = application.documents.find((d) => d.id === docId);
-    if (!doc) return;
-
-    if (doc.fileKey) {
-      alert("Cannot delete document after file has been uploaded");
-      return;
+        if (Array.isArray(parsed)) {
+          setAgents(parsed)
+        } else if (Array.isArray(parsed?.agents)) {
+          setAgents(parsed.agents)
+        } else {
+          setAgents([])
+        }
+      } catch {
+        setAgents([])
+      } finally {
+        setLoadingAgents(false)
+      }
     }
 
-    axios
-      .delete(`/api/applications/${application.id}/documents`, {
+    fetchAgents()
+  }, [])
+
+  const onUpdateApplication = (updatedApp: ApplicationWithUser) => {
+    setApplication(updatedApp)
+  }
+
+  const handleAddDocument = async () => {
+    if (!selectedDocTypes.length || !application) return
+
+    try {
+      const { data } = await axios.post(
+        `/api/applications/${application.id}/documents`,
+        { documentTypes: selectedDocTypes }
+      )
+      const newDocs: Document[] = data
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              documents: [...prev.documents, ...newDocs],
+            }
+          : null
+      )
+      setSelectedDocTypes([])
+    } catch (error) {
+      console.error("Failed to add document requirements:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add documents",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleRemoveDocument = async (docId: string) => {
+    if (!application) return
+
+    const doc = application.documents.find((d) => d.id === docId)
+    if (!doc) return
+
+    if (doc.fileKey) {
+      alert("Cannot delete document after file has been uploaded")
+      return
+    }
+
+    try {
+      await axios.delete(`/api/applications/${application.id}/documents`, {
         data: { documentId: docId },
       })
-      .then(() => {
-        setApplication((prev) =>
-          prev
-            ? {
-                ...prev,
-                documents: prev.documents.filter((doc) => doc.id !== docId),
-              }
-            : null
-        );
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              documents: prev.documents.filter((doc) => doc.id !== docId),
+            }
+          : null
+      )
+    } catch (error) {
+      console.error("Failed to remove document:", error)
+      toast({
+        title: "Error",
+        description: "Failed to remove document",
+        variant: "destructive",
       })
-      .catch((error) => {
-        console.error("Failed to remove document:", error);
-      });
-  };
-  console.log("this is the history===", application?.applicationStatusHistory);
+    }
+  }
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex animate-pulse flex-col items-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
           <span className="text-gray-600">Loading application details...</span>
         </div>
       </div>
-    );
+    )
   }
 
   if (!application) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex animate-pulse flex-col items-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
           <span className="text-gray-600">Loading application details...</span>
         </div>
       </div>
-    );
+    )
   }
 
   const handleRejectApplication = async () => {
     try {
-      await axios.patch(`/api/applications/${application.id}/reject`);
-
-      // Update local state
-      setApplication((prev) => (prev ? { ...prev, status: "REJECTED" } : null));
+      await axios.patch(`/api/applications/${application.id}/reject`)
+      setApplication((prev) => (prev ? { ...prev, status: "REJECTED" } : null))
     } catch (error) {
-      console.error("Failed to update status:", error);
-      alert("Failed to update application status");
+      console.error("Failed to update status:", error)
+      toast({
+        title: "Error",
+        description: "Failed to reject application",
+        variant: "destructive",
+      })
     }
-  };
-
-  const handleStatusUpdate = async (newStatus: LoanStatus) => {
-    try {
-      await axios.patch(`/api/applications/${application.id}`, {
-        status: newStatus,
-        lenderId: selectedLenderId, // send lenderId along with status
-      });
-      setApplication((prev) => (prev ? { ...prev, status: newStatus } : null));
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      alert("Failed to update application status");
-    }
-  };
+  }
 
   const availableToAdd = availableDocumentTypes.filter(
     (docType) =>
       !application.documents.some((doc) => doc.documentType === docType.type)
-  );
+  )
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between gap-4 mt-8 pb-4">
+      <div className="mx-auto max-w-7xl">
+        <div className="mt-8 flex justify-between gap-4 pb-4">
           <div className="flex items-center gap-4">
             <button className="rounded-full" onClick={() => router.back()}>
               <ChevronLeft className="h-4 w-4" />
@@ -236,6 +270,7 @@ export default function ApplicationPage({ params }: Props) {
               </p>
             </div>
           </div>
+
           <Badge
             className="px-3 py-1 text-sm font-medium"
             style={{
@@ -248,71 +283,33 @@ export default function ApplicationPage({ params }: Props) {
             {application?.status.replace(/_/g, " ")}
           </Badge>
         </div>
-        <div className="w-full mt-6 pt-4 border-t mb-6">
-          {!["REJECTED", "APPROVED"].includes(
-            application?.status as string
-          ) && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h3 className="text-lg font-semibold">Assign to Lender</h3>
 
-              {application?.lenderId ? (
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                  <Select
-                    value={selectedLenderId || application?.lenderId || ""}
-                    onValueChange={(value) => setSelectedLenderId(value)}
-                  >
-                    <SelectTrigger className="w-[250px]">
-                      <SelectValue placeholder="Reassign lender..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lenders.map((lender) => (
-                        <SelectItem key={lender.id} value={lender.id}>
-                          {lender.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        {!["REJECTED", "APPROVED"].includes(application.status as string) && (
+          <div className="w-full">
+            <div className="mb-8 mt-6 w-full">
+              <div className="flex w-full items-center justify-between px-4 py-2">
+                <h3 className="text-lg font-semibold">Assign to Lender</h3>
+                <div className="flex items-center gap-2">
+                  <LenderAssignment
+                    application={application}
+                    lenders={lenders}
+                    onUpdate={onUpdateApplication}
+                    onRefetch={() => fetchData(false)}
+                  />
 
-                  <Button
-                    onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
-                    disabled={!selectedLenderId}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                  >
-                    Reassign
-                  </Button>
+                  <AgentAssignment
+                    application={application}
+                    agents={agents}
+                    loadingAgents={loadingAgents}
+                    onUpdate={onUpdateApplication}
+                  />
                 </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto sm:justify-end">
-                  <Select
-                    value={selectedLenderId || ""}
-                    onValueChange={(value) => setSelectedLenderId(value)}
-                  >
-                    <SelectTrigger className="w-[250px]">
-                      <SelectValue placeholder="Select lender..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lenders.map((lender) => (
-                        <SelectItem key={lender.id} value={lender.id}>
-                          {lender.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Button
-                    onClick={() => handleStatusUpdate("ASSIGNED_TO_LENDER")}
-                    disabled={!selectedLenderId}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Assign
-                  </Button>
-                </div>
-              )}
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left Column - Applicant Info */}
           <div className="space-y-6">
             <Card>
@@ -325,7 +322,7 @@ export default function ApplicationPage({ params }: Props) {
                     Name
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.firstName} {application.lastName}
+                    {application?.firstName ?? ""} {application?.lastName ?? ""}
                   </p>
                 </div>
                 <div>
@@ -333,7 +330,7 @@ export default function ApplicationPage({ params }: Props) {
                     Current Address
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.currentAddress}
+                    {application?.currentAddress ?? "N/A"}
                   </p>
                 </div>
                 <div>
@@ -341,7 +338,7 @@ export default function ApplicationPage({ params }: Props) {
                     Email
                   </label>
                   <p className="text-sm text-gray-900">
-                    {application.personalEmail}
+                    {application?.personalEmail ?? "N/A"}
                   </p>
                 </div>
 
@@ -394,7 +391,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Employment Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {employmentTypeLabels[application.employmentStatus]}
                     </p>
                   </div>
@@ -457,7 +454,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Housing Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {housingStatusTypeLabels[application.housingStatus]}
                     </p>
                   </div>
@@ -476,7 +473,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Residency Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {residencyStatusTypeLabels[application.residencyStatus]}
                     </p>
                   </div>
@@ -484,7 +481,7 @@ export default function ApplicationPage({ params }: Props) {
                     <label className="text-xs font-medium text-gray-500">
                       Marital Status
                     </label>
-                    <p className="text-sm text-gray-900 capitalize">
+                    <p className="text-sm capitalize text-gray-900">
                       {maritalStatusLabels[application.maritalStatus]}
                     </p>
                   </div>
@@ -529,13 +526,12 @@ export default function ApplicationPage({ params }: Props) {
             </Card>
           </div>
 
-          {/* Right Column - Documents */}
           <div className="lg:col-span-2">
             <Card className="mb-6">
               <CardHeader className="pb-3">
                 <CardTitle>Loan Details</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-xs font-medium text-gray-500">
                     Loan Amount
@@ -616,7 +612,7 @@ export default function ApplicationPage({ params }: Props) {
                 <CardHeader className="pb-3">
                   <CardTitle>Co-Applicant Details</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-xs font-medium text-gray-500">
                       Full Name
@@ -676,9 +672,9 @@ export default function ApplicationPage({ params }: Props) {
                   <Select
                     value={undefined}
                     onValueChange={(value) => {
-                      const docType = value as DocumentType;
+                      const docType = value as DocumentType
                       if (!selectedDocTypes.includes(docType)) {
-                        setSelectedDocTypes((prev) => [...prev, docType]);
+                        setSelectedDocTypes((prev) => [...prev, docType])
                       }
                     }}
                   >
@@ -703,7 +699,7 @@ export default function ApplicationPage({ params }: Props) {
                     <Button
                       onClick={handleAddDocument}
                       disabled={!selectedDocTypes.length}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-blue-600 text-white hover:bg-blue-700"
                     >
                       Add ({selectedDocTypes.length})
                     </Button>
@@ -712,16 +708,16 @@ export default function ApplicationPage({ params }: Props) {
               </CardHeader>
               <CardContent>
                 {selectedDocTypes.length > 0 && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-100">
+                  <div className="mb-4 rounded border border-blue-100 bg-blue-50 p-3">
                     <div className="flex flex-wrap gap-2">
                       {selectedDocTypes.map((docType) => {
                         const docTypeConfig = availableDocumentTypes.find(
                           (type) => type.type === docType
-                        );
+                        )
                         return (
                           <Badge
                             key={docType}
-                            className="bg-white border border-blue-200 text-blue-800 flex items-center gap-1 px-2 py-1"
+                            className="flex items-center gap-1 border border-blue-200 bg-white px-2 py-1 text-blue-800"
                           >
                             {docTypeConfig?.label}
                             <button
@@ -735,7 +731,7 @@ export default function ApplicationPage({ params }: Props) {
                               ×
                             </button>
                           </Badge>
-                        );
+                        )
                       })}
                     </div>
                   </div>
@@ -745,11 +741,11 @@ export default function ApplicationPage({ params }: Props) {
                   {application.documents.map((doc) => {
                     const docTypeConfig = availableDocumentTypes.find(
                       (type) => type.type === doc.documentType
-                    );
+                    )
                     return (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between p-3 border rounded hover:bg-gray-50"
+                        className="flex items-center justify-between rounded border p-3 hover:bg-gray-50"
                       >
                         <div>
                           <p className="font-medium text-gray-900">
@@ -775,18 +771,18 @@ export default function ApplicationPage({ params }: Props) {
                                 axios
                                   .get(`/api/documents/${doc.id}`)
                                   .then(({ data }) => {
-                                    window.open(data.url, "_blank");
+                                    window.open(data.url, "_blank")
                                   })
                                   .catch((error) => {
                                     console.error(
                                       "Failed to fetch document URL:",
                                       error
-                                    );
-                                  });
+                                    )
+                                  })
                               }}
-                              className="hover:bg-blue-50 border-blue-200 text-blue-600"
+                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
                             >
-                              <Eye className="w-4 h-4 mr-2" />
+                              <Eye className="mr-2 h-4 w-4" />
                               View
                             </Button>
                           )}
@@ -794,9 +790,9 @@ export default function ApplicationPage({ params }: Props) {
                             variant="outline"
                             onClick={() => handleRemoveDocument(doc.id)}
                             disabled={doc.fileKey !== null}
-                            className="hover:bg-red-50 border-red-200 text-red-600"
+                            className="border-red-200 text-red-600 hover:bg-red-50"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                         <DocumentReview
@@ -805,7 +801,7 @@ export default function ApplicationPage({ params }: Props) {
                           onStatusChange={fetchData}
                         />
                       </div>
-                    );
+                    )
                   })}
                 </div>
               </CardContent>
@@ -813,11 +809,11 @@ export default function ApplicationPage({ params }: Props) {
             {!["REJECTED", "APPROVED"].includes(
               application?.status as string
             ) && (
-              <div className="flex w-full justify-end mt-6">
+              <div className="mt-6 flex w-full justify-end">
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    handleRejectApplication();
+                    handleRejectApplication()
                   }}
                 >
                   Reject Application
@@ -828,5 +824,5 @@ export default function ApplicationPage({ params }: Props) {
         </div>
       </div>
     </div>
-  );
+  )
 }

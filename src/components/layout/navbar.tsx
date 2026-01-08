@@ -51,7 +51,8 @@ import NotificationIcon from "../assets/notification.svg";
 
 export const Navbar = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [open, setOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [notifications, setNotifications] = useState<
     Prisma.NotificationGetPayload<{ include: { application: true } }>[]
   >([]);
@@ -61,14 +62,11 @@ export const Navbar = ({ session }: { session: Session | null }) => {
   const [modalOpenMobile, setModalOpenMobile] = useState(false);
   const userRole = session?.user?.role;
   const router = useRouter();
-  console.log(session?.user.id);
 
   useEffect(() => {
     const fetchUnreadNotifications = async () => {
       try {
         const { data } = await axios.get("/api/notifications");
-        console.log("Raw notifications from API:", data);
-
         let filteredNotifications = data;
 
         if (session?.user?.role === "LOANEE") {
@@ -95,9 +93,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
   const unreadCount = notifications.length;
 
   return (
-    <header className="sticky top-2 lg:top-5 z-40">
+    <header className="sticky top-2 z-40 lg:top-5">
       <div className="container mx-auto">
-        <div className="bg-opacity-15 border rounded-2xl flex justify-between items-center p-2 bg-background/70 backdrop-blur-sm">
+        <div className="flex items-center justify-between rounded-2xl border bg-background/70 bg-opacity-15 p-2 backdrop-blur-sm">
           <Logo />
           {/* <!-- Mobile --> */}
           <div className="flex items-center lg:hidden">
@@ -111,7 +109,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
               <SheetContent
                 side="left"
-                className="flex flex-col justify-between rounded-tr-2xl rounded-br-2xl bg-card border-secondary"
+                className="flex flex-col justify-between rounded-br-2xl rounded-tr-2xl border-secondary bg-card"
               >
                 <div>
                   <SheetHeader className="mb-4 ml-4">
@@ -140,16 +138,16 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                           userRole === UserRole.LENDER) && (
                           <>
                             <button
-                              className="relative flex items-center gap-2 p-2 rounded-md hover:bg-accent text-left"
+                              className="relative flex items-center gap-2 rounded-md p-2 text-left hover:bg-accent"
                               onClick={() => {
                                 setIsOpen(false);
                                 setModalOpenMobile(true);
                               }}
                             >
-                              <Bell className="w-5 h-5" />
+                              <Bell className="h-5 w-5" />
                               <span>Notifications</span>
                               {!loading && unreadCount > 0 && (
-                                <span className="absolute top-2 left-6 w-2 h-2 bg-red-500 rounded-full"></span>
+                                <span className="absolute left-6 top-2 h-2 w-2 rounded-full bg-red-500"></span>
                               )}
                             </button>
                           </>
@@ -188,6 +186,16 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             <Link href="/admin">Admin Dashboard</Link>
                           </Button>
                         )}
+                        {userRole === UserRole.AGENT && (
+                          <Button
+                            onClick={() => setIsOpen(false)}
+                            asChild
+                            variant="ghost"
+                            className="justify-start text-base"
+                          >
+                            <Link href="/agent">Agent Dashboard</Link>
+                          </Button>
+                        )}
                         <Button
                           onClick={() => setIsOpen(false)}
                           asChild
@@ -209,12 +217,12 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </>
                     ) : (
                       <>
-                        <Dialog open={open} onOpenChange={setOpen}>
+                        <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
                           <DialogTrigger asChild>
                             <Button
                               variant="default"
-                              className="justify-start text-base mt-2"
-                              onClick={() => setOpen(true)}
+                              className="mt-2 justify-start text-base"
+                              onClick={() => setLoginOpen(true)}
                             >
                               Login
                             </Button>
@@ -223,13 +231,13 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             <DialogHeader>
                               <DialogTitle>Select your role</DialogTitle>
                             </DialogHeader>
-                            <div className="flex flex-col gap-4 mt-2">
+                            <div className="mt-2 flex flex-col gap-4">
                               <Button
                                 variant="secondary"
                                 onClick={() => {
                                   router.push("/lender/login");
                                   setIsOpen(false);
-                                  setOpen(false);
+                                  setLoginOpen(false);
                                 }}
                               >
                                 Login as Lender
@@ -239,31 +247,81 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                                 onClick={() => {
                                   router.push("/loanee/login");
                                   setIsOpen(false);
-                                  setOpen(false);
+                                  setLoginOpen(false);
                                 }}
                               >
                                 Login as Loanee
                               </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setLoginOpen(false);
+                                }}
+                              >
+                                Login as Agent
+                              </Button>
                             </div>
                           </DialogContent>
                         </Dialog>
-                        <Button
-                          variant="outline"
-                          className="justify-start text-base"
-                          onClick={() => {
-                            router.push("/lender/register");
-                            setIsOpen(false);
-                            setOpen(false);
-                          }}
+                        <Dialog
+                          open={registerOpen}
+                          onOpenChange={setRegisterOpen}
                         >
-                          Sign up as Lender
-                        </Button>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="default"
+                              className="mt-2 justify-start text-base"
+                              onClick={() => setRegisterOpen(true)}
+                            >
+                              Register
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle>Select your role</DialogTitle>
+                            </DialogHeader>
+                            <div className="mt-2 flex flex-col gap-4">
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  router.push("/lender/login");
+                                  setIsOpen(false);
+                                  setRegisterOpen(false);
+                                }}
+                              >
+                                Register as Lender
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setRegisterOpen(false);
+                                }}
+                              >
+                                Register as Loanee
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  router.push("/loanee/login");
+                                  setIsOpen(false);
+                                  setRegisterOpen(false);
+                                }}
+                              >
+                                Register as Agent
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </>
                     )}
                   </div>
                 </div>
 
-                <SheetFooter className="flex-col sm:flex-col justify-start items-start">
+                <SheetFooter className="flex-col items-start justify-start sm:flex-col">
                   <Separator className="mb-2" />
                 </SheetFooter>
               </SheetContent>
@@ -273,14 +331,14 @@ export const Navbar = ({ session }: { session: Session | null }) => {
               <DialogContent className="max-w-sm">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-blue-500" />
+                    <Bell className="h-5 w-5 text-blue-500" />
                     Notifications
                   </DialogTitle>
                 </DialogHeader>
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
+                    className="flex cursor-pointer items-center justify-between rounded-lg bg-accent/50 p-3 transition hover:bg-accent"
                   >
                     <div
                       onClick={() => {
@@ -296,7 +354,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       />
 
                       <div className="flex flex-col">
-                        <span className="font-medium text-sm">
+                        <span className="text-sm font-medium">
                           {n.type === "DOCUMENT_REQUEST"
                             ? `Documents requested for Application ${n.applicationId}`
                             : `Documents submitted for Application ${n.applicationId}`}
@@ -322,7 +380,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             console.error("Error marking as read:", error);
                           }
                         }}
-                        className="px-3 py-1 text-xs rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition"
+                        className="rounded-md bg-green-100 px-3 py-1 text-xs text-green-800 transition hover:bg-green-200"
                         title="Mark as Read"
                       >
                         Mark as Read
@@ -334,7 +392,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
             </Dialog>
           </div>
           {/* <!-- Desktop --> */}
-          <NavigationMenu className="hidden lg:block mx-auto">
+          <NavigationMenu className="mx-auto hidden lg:block">
             <NavigationMenuList className="space-x-0">
               <NavigationMenuItem>
                 {routeList.map(({ href, label }) => (
@@ -353,16 +411,16 @@ export const Navbar = ({ session }: { session: Session | null }) => {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden items-center gap-4 lg:flex">
             {/* Show bell only if logged in */}
             {session && userRole !== UserRole.ADMIN && (
               <button
-                className="relative p-2 rounded-full hover:bg-accent"
+                className="relative rounded-full p-2 hover:bg-accent"
                 onClick={() => setModalOpen(true)}
               >
-                <Bell className="w-6 h-6" />
+                <Bell className="h-6 w-6" />
                 {!loading && unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500"></span>
                 )}
               </button>
             )}
@@ -371,7 +429,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-blue-500" />
+                    <Bell className="h-5 w-5 text-blue-500" />
                     Notifications
                   </DialogTitle>
                 </DialogHeader>
@@ -379,7 +437,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent cursor-pointer transition"
+                    className="flex cursor-pointer items-center justify-between rounded-lg bg-accent/50 p-3 transition hover:bg-accent"
                   >
                     <div
                       onClick={() => {
@@ -395,7 +453,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       />
 
                       <div className="flex flex-col">
-                        <span className="font-medium text-sm">
+                        <span className="text-sm font-medium">
                           {n.type === "DOCUMENT_REQUEST"
                             ? `Documents requested for Application ${n.applicationId}`
                             : `Documents submitted for Application ${n.applicationId}`}
@@ -421,7 +479,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             console.error("Error marking as read:", error);
                           }
                         }}
-                        className="px-3 py-1 text-xs rounded-md bg-green-100 hover:bg-green-200 text-green-800 transition"
+                        className="rounded-md bg-green-100 px-3 py-1 text-xs text-green-800 transition hover:bg-green-200"
                         title="Mark as Read"
                       >
                         Mark as Read
@@ -439,7 +497,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     width={45}
                     src={ProfileIcon}
                     alt="Profile"
-                    className="rounded-full cursor-pointer"
+                    className="cursor-pointer rounded-full"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -464,6 +522,11 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       <Link href="/lender/dashboard">Lender Dashboard</Link>
                     </DropdownMenuItem>
                   )}
+                  {userRole === UserRole.AGENT && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/agent/dashboard">Agent Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
                   {userRole === UserRole.ADMIN && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin">Admin Dashboard</Link>
@@ -480,31 +543,53 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="default">Login</Button>
-                </DropdownMenuTrigger>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/lender/register")}
-                >
-                  Sign up as Lender
-                </Button>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => router.push("/loanee/login")}
-                  >
-                    As Loanee
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      router.push("/lender/login");
-                    }}
-                  >
-                    As Lender
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="default">Login</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => router.push("/loanee/login")}
+                    >
+                      As Loanee
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/lender/login")}
+                    >
+                      As Lender
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/agent/login")}
+                    >
+                      As Agent
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="default">Register</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => router.push("/loanee/login")}
+                    >
+                      As Loanee
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/lender/register")}
+                    >
+                      As Lender
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/agent/register")}
+                    >
+                      As Agent
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             )}
           </div>
         </div>

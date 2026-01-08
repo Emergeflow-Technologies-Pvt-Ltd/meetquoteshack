@@ -67,10 +67,10 @@ export default function AdminLogin() {
 
   return (
     <Section className="mt-20">
-      <div className="max-w-md mx-auto">
+      <div className="mx-auto max-w-md">
         <Card className="p-6">
           <CardHeader className="mb-8">
-            <CardTitle className="text-center text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-center text-3xl font-bold text-transparent">
               Admin Login
             </CardTitle>
           </CardHeader>
@@ -114,7 +114,7 @@ export default function AdminLogin() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-medium py-6 rounded-lg transition-all duration-300"
+                  className="w-full rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 py-6 font-medium text-white transition-all duration-300 hover:from-violet-600 hover:to-purple-700"
                 >
                   Login
                 </Button>

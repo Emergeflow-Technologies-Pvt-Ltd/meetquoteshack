@@ -9,21 +9,25 @@ export async function GET(
   try {
     const { documentId } = await params;
     const document = await prisma.document.findUnique({
-      where: { id: documentId }
+      where: { id: documentId },
     });
     if (!document) {
-      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      );
     }
 
     if (!document.fileKey) {
-      return NextResponse.json({ error: "No file associated with this document" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No file associated with this document" },
+        { status: 404 }
+      );
     }
 
-    
     const url = await getPresignedUrl(document.fileKey);
 
     return NextResponse.json({ url });
-
   } catch (error) {
     console.error("Error fetching document:", error);
     return NextResponse.json(

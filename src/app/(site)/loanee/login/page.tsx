@@ -1,34 +1,24 @@
 "use client";
 
 import React from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Section from "@/components/shared/section";
 import Image from "next/image";
 import Icon from "../../../../components/assets/google-icon.svg";
-import { useRouter } from "next/navigation";
 
 export default function LoaneeLogin() {
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/" });
+    signIn("google", { callbackUrl: "/loanee/loan-application" });
   };
-
-  const router = useRouter();
-  const { status } = useSession();
-
-  React.useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/loan-application");
-    }
-  }, [status, router]);
 
   return (
     <Section className="mt-24">
-      <div className="max-w-md mx-auto">
-        <Card className="p-8 shadow-xl rounded-2xl border border-gray-100 bg-white">
+      <div className="mx-auto max-w-md">
+        <Card className="rounded-2xl border border-gray-100 bg-white p-8 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
               Loanee Login
             </CardTitle>
             <p className="mt-4 text-sm text-gray-500">
@@ -41,7 +31,7 @@ export default function LoaneeLogin() {
               type="button"
               variant="outline"
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-3 py-3 text-sm font-medium border-gray-300 hover:bg-gray-100 transition"
+              className="flex w-full items-center justify-center gap-3 border-gray-300 py-3 text-sm font-medium transition hover:bg-gray-100"
             >
               <Image src={Icon} alt="Google icon" width={20} height={20} />
               Continue with Google

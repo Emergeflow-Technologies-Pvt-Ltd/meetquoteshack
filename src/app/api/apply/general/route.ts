@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 import prisma from "@/lib/db";
 import {
   ResidencyStatus,
@@ -8,8 +8,11 @@ import {
   EducationLevel,
   Prisma,
   MaritalStatus,
+  PrequalStatus,
+  CreditTier,
 } from "@prisma/client";
 import { getServerSession } from "next-auth";
+import { computePrequalification } from "@/lib/prequal";
 
 export async function POST(request: Request) {
   try {
@@ -18,12 +21,46 @@ export async function POST(request: Request) {
     validateRequiredFields(data);
     validateNumericFields(data);
 
+    // 1) resolve agent from agentCode
+    let agentConnect: Prisma.AgentWhereUniqueInput | undefined;
+    if (data.agentCode && data.agentCode.trim() !== "") {
+      const agent = await prisma.agent.findUnique({
+        where: { agentCode: data.agentCode.trim() },
+      });
+
+      if (agent) {
+        agentConnect = { id: agent.id };
+      }
+    }
+
+    // 2) prequal
+    const prequal = computePrequalification({
+      loanAmount: Number(data.loanAmount ?? 0),
+      creditScore: Number(data.creditScore ?? 0),
+      grossIncome: Number(data.grossIncome ?? 0),
+      monthlyDebts: Number(data.monthlyDebts ?? 0),
+      estimatedPropertyValue: Number(data.estimatedPropertyValue ?? 0),
+      workplaceDuration: Number(data.workplaceDuration ?? 0),
+      loanType: data.loanType,
+    });
+
     const formattedData: Prisma.ApplicationCreateInput = {
       user: {
         connect: {
           id: user.id,
         },
       },
+
+      agentCode:
+        data.agentCode && data.agentCode.trim() !== ""
+          ? data.agentCode.trim()
+          : null,
+
+      ...(agentConnect && {
+        agent: {
+          connect: agentConnect,
+        },
+      }),
 
       loanType: data.loanType,
       hasCoApplicant: data.hasCoApplicant,
@@ -35,6 +72,7 @@ export async function POST(request: Request) {
       coApplicantAddress: data.coApplicantAddress || null,
       coApplicantEmail: data.coApplicantEmail || null,
       otherIncome: data.otherIncome,
+      otherIncomeAmount: data.otherIncomeAmount || null,
       estimatedPropertyValue: data.estimatedPropertyValue
         ? data.estimatedPropertyValue.toString()
         : null,
@@ -51,7 +89,7 @@ export async function POST(request: Request) {
       currentAddress: data.currentAddress,
       yearsAtCurrentAddress: data.yearsAtCurrentAddress,
       housingStatus: data.housingStatus as HousingStatus,
-      housingPayment: data.housingPayment,
+      housingPayment: Number(data.housingPayment ?? 0),
       residencyStatus: data.residencyStatus as ResidencyStatus,
       employmentStatus: data.employmentStatus as EmploymentStatus,
       grossIncome: data.grossIncome,
@@ -66,14 +104,36 @@ export async function POST(request: Request) {
       personalPhone: data.personalPhone,
       personalEmail: data.personalEmail,
       loanAmount: data.loanAmount,
+      creditScore: data.creditScore,
+
+      // 4) Store prequalification snapshot
+      prequalStatus: prequal.prequalStatus as PrequalStatus,
+      prequalLabel: prequal.prequalLabel,
+      prequalCreditTier: prequal.creditTier.toUpperCase() as CreditTier,
+
+      prequalDti: prequal.dti,
+      prequalTdsr: prequal.tdsr,
+      prequalLti: prequal.lti,
+      prequalLtv: prequal.ltv,
+
+      prequalPayment: prequal.proposedLoanPayment,
+      prequalRoomMonthly: prequal.availableForNewLoanMonthly,
+      prequalMortMin: prequal.mortgageRangeMin,
+      prequalMortMax: prequal.mortgageRangeMax,
+
+      prequalExplanation: prequal.statusDetail,
+      prequalSnapshot: prequal,
     };
+
     return await createGeneralApplication(formattedData);
   } catch (error) {
     return handleError(error);
   }
 }
 
-async function validateRequestData(request: Request): Promise<GeneralLoanFormValues> {
+async function validateRequestData(
+  request: Request
+): Promise<GeneralLoanFormValues> {
   if (!request.body) {
     throw createErrorResponse(
       "Invalid request",
@@ -126,6 +186,7 @@ function validateRequiredFields(data: GeneralLoanFormValues) {
     "currentAddress",
     "employmentStatus",
     "housingStatus",
+    "housingPayment",
     "residencyStatus",
     "workplaceName",
     "workplacePhone",
@@ -134,7 +195,7 @@ function validateRequiredFields(data: GeneralLoanFormValues) {
     "maritalStatus",
     "personalPhone",
     "personalEmail",
-    "loanAmount"
+    "loanAmount",
   ] as const;
 
   const missingFields = requiredFields.filter((field) => !data[field]);
@@ -156,7 +217,7 @@ function validateNumericFields(data: GeneralLoanFormValues) {
     "yearsAtCurrentAddress",
     "housingPayment",
     "grossIncome",
-    "loanAmount"
+    "loanAmount",
   ] as const;
   const invalidFields = numericFields.filter(
     (field) =>
@@ -200,7 +261,8 @@ async function createGeneralApplication(
       "Database error",
       {
         message: "Failed to create general application",
-        error: dbError instanceof Error ? dbError.message : "Unknown database error",
+        error:
+          dbError instanceof Error ? dbError.message : "Unknown database error",
       },
       500
     );
@@ -209,7 +271,7 @@ async function createGeneralApplication(
 
 function createErrorResponse(
   title: string,
-  error: { message: string;[key: string]: unknown; },
+  error: { message: string; [key: string]: unknown },
   status: number
 ) {
   return NextResponse.json(error, { status });

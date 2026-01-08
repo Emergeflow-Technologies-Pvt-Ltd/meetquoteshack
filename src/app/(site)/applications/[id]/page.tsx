@@ -1,9 +1,21 @@
-"use client";
+//src\app\(site)\applications\[id]\page.tsx
+"use client"
 
 import { useEffect, useState, use } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox"
+import { toast } from "@/hooks/use-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import Section from "@/components/shared/section";
+import Image from "next/image";
 import {
   Home,
   FileText,
@@ -46,6 +58,7 @@ import {
 } from "@/components/shared/chips";
 import LoaneeChat from "../components/LoaneeChat";
 import { useRouter } from "next/navigation";
+import { PrequalificationSummary } from "@/components/shared/prequalification-summary";
 
 export default function ApplicationPage({
   params,
@@ -61,6 +74,12 @@ export default function ApplicationPage({
         lender?: {
           user?: { id: string };
         } | null;
+        agent?: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+        } | null;
       })
     | null
   >(null);
@@ -71,38 +90,163 @@ export default function ApplicationPage({
   const [loadingApp, setLoadingApp] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
+  const [matchLendersDialogOpen, setMatchLendersDialogOpen] = useState(false)
+  const [lenders, setLenders] = useState<{ id: string; name: string }[]>([])
+  const [selectedMatchLenderIds, setSelectedMatchLenderIds] = useState<
+    string[]
+  >([])
+  const [dialogMatchLenderIds, setDialogMatchLenderIds] = useState<string[]>([])
+  const [isSavingMatches, setIsSavingMatches] = useState(false)
+
+  const toggleMatchLender = (id: string) => {
+    setDialogMatchLenderIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
+  const openMatchLendersDialog = () => {
+    setDialogMatchLenderIds(selectedMatchLenderIds)
+    setMatchLendersDialogOpen(true)
+  }
+
+  const handleSaveMatches = async () => {
+    if (!application) return
+    setIsSavingMatches(true)
+    try {
+      const payload = {
+        matchLenderIds: dialogMatchLenderIds,
+      }
+      // Use dedicated endpoint for matching to allow loanees to save matches
+      const res = await axios.post(`/api/applications/${id}/matches`, payload)
+
+      const returnedMatchIds = res.data.matchLenderIds || []
+
+      // Update local state
+      setApplication((prev) =>
+        prev
+          ? {
+              ...prev,
+              matchLenderIds: returnedMatchIds,
+            }
+          : null
+      )
+      setSelectedMatchLenderIds(returnedMatchIds)
+
+      toast({
+        title: "Success",
+        description: "Matches updated.",
+      })
+      setMatchLendersDialogOpen(false)
+    } catch (err) {
+      console.error("Match save error:", err)
+      toast({
+        title: "Error",
+        description: "Failed to save matches",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingMatches(false)
+    }
+  }
+
+  const [canAccessPrequalification, setCanAccessPrequalification] =
+    useState(false);
+
   // Chat States
   const [messages, setMessages] = useState<Message[]>([]);
 
   // Fetch Application + Messages
   useEffect(() => {
     const fetchApplication = async () => {
-      if (session?.user?.email) {
-        try {
-          setLoadingApp(true);
-          const { data } = await axios.get(`/api/applications/${id}`);
-          setApplication(data.application);
+      if (!session?.user?.email) return;
 
-          if (data.application.status === "IN_CHAT") {
-            setLoadingMessages(true);
-            const res = await axios.get(`/api/messages?applicationId=${id}`);
-            setMessages(res.data);
-            setLoadingMessages(false);
-          }
-        } catch (error) {
-          console.error("Error fetching application:", error);
-        } finally {
-          setLoadingApp(false);
+      try {
+        setLoadingApp(true);
+
+        const res = await axios.get(`/api/applications/${id}`);
+
+        const applicationData = res.data?.application ?? res.data;
+        const lendersList = res.data?.lenderList || [];
+
+        setApplication(applicationData ?? null);
+        setLenders(lendersList);
+        setSelectedMatchLenderIds(applicationData?.matchLenderIds || []);
+
+        // ✅ Safe status check
+        if (applicationData?.status === "IN_CHAT") {
+          setLoadingMessages(true);
+          const msgRes = await axios.get(`/api/messages?applicationId=${id}`);
+          setMessages(msgRes.data);
+          setLoadingMessages(false);
         }
+      } catch (error) {
+        console.error("Error fetching application:", error);
+        setApplication(null);
+        setCanAccessPrequalification(false);
+      } finally {
+        setLoadingApp(false);
       }
     };
 
     fetchApplication();
   }, [session, id]);
 
-  console.log("this is the data", application);
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const fetchAccess = async () => {
+      try {
+        const res = await axios.get("/api/subscription/access");
+
+        setCanAccessPrequalification(
+          Boolean(res.data?.canAccessPrequalification)
+        );
+      } catch (err) {
+        console.error("Failed to fetch access", err);
+        setCanAccessPrequalification(false);
+      }
+    };
+
+    fetchAccess();
+  }, [session]);
+
+  useEffect(() => {}, [application]);
 
   const lenderUserId = application?.lender?.user?.id;
+
+  type AssignedAgent = {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    agentCode?: string | null;
+    calendlyUrl?: string | null;
+  };
+
+  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(null);
+  const [agentLoading, setAgentLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAssignedAgent() {
+      try {
+        const res = await fetch(`/api/applications/${id}/agent`);
+
+        if (!res.ok) {
+          setAssignedAgent(null);
+          return;
+        }
+
+        const data = await res.json();
+        setAssignedAgent(data.agent);
+      } catch {
+        setAssignedAgent(null);
+      } finally {
+        setAgentLoading(false);
+      }
+    }
+
+    fetchAssignedAgent();
+  }, [application, id]);
 
   const handleFileUpload = async (docId: string, file: File) => {
     if (!session?.user?.email) return;
@@ -157,13 +301,13 @@ export default function ApplicationPage({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case "APPROVED":
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "REJECTED":
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
       case "UPLOADED":
-        return <CheckCircle className="w-4 h-4 text-blue-500" />;
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
       default:
         return null;
     }
@@ -195,18 +339,152 @@ export default function ApplicationPage({
   return (
     <Section className="py-12 md:py-24">
       <div
-        className={`flex flex-col lg:flex-row lg:gap-6 md:mb-6 ${
+        className={`flex flex-col md:mb-6 lg:flex-row lg:gap-6 ${
           application?.status === LoanStatus.IN_CHAT ? "h-auto lg:h-[88vh]" : ""
         }`}
       >
         <div
           className={`flex-1 space-y-8 ${
             application?.status === LoanStatus.IN_CHAT
-              ? "overflow-y-auto lg:pr-4 mb-6"
+              ? "mb-6 overflow-y-auto lg:pr-4"
               : ""
           }`}
         >
-          <div className="flex justify-between gap-4 sticky top-0 bg-white z-10 pb-4">
+          {!agentLoading && assignedAgent && (
+            <div className="space-y-4">
+              <Card className="border-violet-500 bg-violet-50/60">
+                <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  {/* Left */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-xl font-semibold text-white">
+                      {assignedAgent.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-500">Assigned Agent</p>
+                      <h2 className="text-lg font-semibold text-violet-700">
+                        {assignedAgent.name}
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        {assignedAgent.email} • {assignedAgent.phone}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() =>
+                        router.push(`/applications/agent/${assignedAgent.id}`)
+                      }
+                    >
+                      View Agent Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-violet-500 bg-violet-50/60">
+                <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <h3 className="text-lg font-semibold text-violet-700">
+                      List of lenders to match
+                    </h3>
+                    {selectedMatchLenderIds.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMatchLenderIds.map((id) => {
+                          const lender = lenders.find((l) => l.id === id)
+                          return (
+                            <Badge
+                              key={id}
+                              variant="secondary"
+                              className="bg-violet-100 text-violet-700 hover:bg-violet-200"
+                            >
+                              {lender?.name || "Unknown"}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        No lenders selected
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Right */}
+                  <div>
+                    <Button onClick={openMatchLendersDialog}>
+                      Match Lenders
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Dialog
+                open={matchLendersDialogOpen}
+                onOpenChange={setMatchLendersDialogOpen}
+              >
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle>Select Lenders to match</DialogTitle>
+                    <DialogDescription>
+                      Choose multiple lenders to match with loanee.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="mt-4 max-h-60 space-y-2 overflow-y-auto rounded-md border p-2">
+                    {lenders.map((l) => {
+                      const checked = dialogMatchLenderIds.includes(l.id)
+                      return (
+                        <div
+                          key={l.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => toggleMatchLender(l.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault()
+                              toggleMatchLender(l.id)
+                            }
+                          }}
+                          className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
+                            checked
+                              ? "border-primary/40 bg-primary/5"
+                              : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <Checkbox checked={checked} />
+                          <span className="block text-sm">{l.name}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <DialogFooter className="mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setMatchLendersDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
+                      onClick={handleSaveMatches}
+                      disabled={isSavingMatches}
+                    >
+                      {isSavingMatches ? "Saving..." : "Save Matches"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+
+          <div className="sticky top-0 z-10 flex justify-between gap-4 bg-white pb-4">
             <div className="flex items-center gap-4">
               <button className="rounded-full" onClick={() => router.back()}>
                 <ChevronLeft className="h-4 w-4" />
@@ -240,17 +518,17 @@ export default function ApplicationPage({
 
           {/* Cards Section */}
           <div className="grid grid-cols-1 gap-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {/* Personal Info */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-600" />
+                    <User className="h-5 w-5 text-blue-600" />
                     Personal Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <span className="text-gray-500">Name</span>
                       <p className="font-medium">
@@ -341,12 +619,12 @@ export default function ApplicationPage({
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
+                    <DollarSign className="h-5 w-5 text-blue-600" />
                     Financial Overview
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <span className="text-gray-500">Gross Income</span>
                       <p className="font-medium">
@@ -409,12 +687,12 @@ export default function ApplicationPage({
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Home className="w-5 h-5 text-blue-600" />
+                    <Home className="h-5 w-5 text-blue-600" />
                     Property & Mortgage Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-700">
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <span className="text-gray-500">Property Type</span>
                       <p className="font-medium">
@@ -468,12 +746,12 @@ export default function ApplicationPage({
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-blue-600" />
+                      <User className="h-5 w-5 text-blue-600" />
                       Co-applicant Details
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm text-gray-700">
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       <div>
                         <span className="text-gray-500">Name</span>
                         <p className="font-medium">
@@ -520,7 +798,7 @@ export default function ApplicationPage({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
+                  <FileText className="h-5 w-5 text-blue-600" />
                   Required Documents
                 </CardTitle>
               </CardHeader>
@@ -529,22 +807,22 @@ export default function ApplicationPage({
                   {application?.documents?.map((doc) => (
                     <div
                       key={doc.id}
-                      className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg transition-all ${
+                      className={`flex flex-col justify-between rounded-lg border p-4 transition-all md:flex-row md:items-center ${
                         doc.status === "APPROVED"
-                          ? "bg-green-50 border-green-200"
+                          ? "border-green-200 bg-green-50"
                           : doc.status === "UPLOADED"
-                          ? "bg-blue-50 border-blue-200"
-                          : "hover:border-primary/50"
+                            ? "border-blue-200 bg-blue-50"
+                            : "hover:border-primary/50"
                       }`}
                     >
-                      <div className="flex items-center gap-3 mb-3 md:mb-0">
+                      <div className="mb-3 flex items-center gap-3 md:mb-0">
                         <FileText
-                          className={`w-5 h-5 ${
+                          className={`h-5 w-5 ${
                             doc.status === "APPROVED"
                               ? "text-green-500"
                               : doc.status === "UPLOADED"
-                              ? "text-blue-500"
-                              : "text-muted-foreground"
+                                ? "text-blue-500"
+                                : "text-muted-foreground"
                           }`}
                         />
                         <div>
@@ -598,8 +876,7 @@ export default function ApplicationPage({
                               onClick={() => {
                                 const input = document.createElement("input");
                                 input.type = "file";
-                                input.accept =
-                                  ".pdf,.jpg,.jpeg,.png,.doc,.docx";
+                                input.accept = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
                                 input.onchange = (e) => {
                                   const file = (e.target as HTMLInputElement)
                                     .files?.[0];
@@ -620,7 +897,7 @@ export default function ApplicationPage({
                                 </>
                               ) : (
                                 <>
-                                  <Upload className="w-4 h-4 mr-2" />
+                                  <Upload className="mr-2 h-4 w-4" />
                                   Upload
                                 </>
                               )}
@@ -632,6 +909,17 @@ export default function ApplicationPage({
                 </div>
               </CardContent>
             </Card>
+
+            {canAccessPrequalification ? (
+              <PrequalificationSummary
+                application={application}
+                context="loanee"
+              />
+            ) : (
+              <LockedPrequalificationSection
+                onUpgrade={() => router.push("/loanee/subscription")}
+              />
+            )}
           </div>
         </div>
         {application?.status === "IN_CHAT" && (
@@ -644,5 +932,39 @@ export default function ApplicationPage({
         )}
       </div>
     </Section>
+  );
+}
+
+function LockedPrequalificationSection({
+  onUpgrade,
+}: {
+  onUpgrade: () => void;
+}) {
+  return (
+    <Card className="relative min-h-[220px] overflow-hidden border border-dashed bg-gray-300/40">
+      {/* Blur overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-sm" />
+
+      <CardHeader className="relative z-10 pb-2">
+        <CardTitle className="text-sm font-semibold">
+          Pre-qualification Summary
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="relative z-10 flex flex-col items-center justify-center py-10 text-center">
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-purple-100">
+          <Image src="/lock.svg" alt="Locked" width={52} height={52} priority />
+        </div>
+
+        <p className="mb-4 max-w-sm text-xs text-gray-600">
+          View eligibility, affordability, and risk insights with Smart plan or
+          during your free trial.
+        </p>
+
+        <Button size="sm" onClick={onUpgrade}>
+          Upgrade to Smart
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Controller, useWatch, UseFormReturn } from "react-hook-form";
-import { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 import {
   DownPayment,
   LoanType,
@@ -93,7 +93,7 @@ const TypeofApplication = ({ form }: Props) => {
               </SelectContent>
             </Select>
             {fieldState.error && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="mt-1 text-sm text-red-500">
                 {fieldState.error.message}
               </p>
             )}
@@ -163,7 +163,7 @@ const TypeofApplication = ({ form }: Props) => {
                   {Object.values(PropertyType).map((type) => (
                     <label
                       key={type}
-                      className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-all ${
+                      className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-all ${
                         field.value === type
                           ? "border-gray-400 bg-gray-100"
                           : "border-gray-300 hover:border-gray-400"
@@ -212,7 +212,7 @@ const TypeofApplication = ({ form }: Props) => {
                   {Object.values(DownPayment).map((type) => (
                     <label
                       key={type}
-                      className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-all ${
+                      className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-all ${
                         field.value === type
                           ? "border-gray-400 bg-gray-100"
                           : "border-gray-300 hover:border-gray-400"
@@ -303,7 +303,7 @@ const TypeofApplication = ({ form }: Props) => {
                   ].map((option) => (
                     <label
                       key={option.label}
-                      className={`flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer transition-all ${
+                      className={`flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 transition-all ${
                         field.value === option.value
                           ? "border-gray-400 bg-gray-100"
                           : "border-gray-300 hover:border-gray-400"

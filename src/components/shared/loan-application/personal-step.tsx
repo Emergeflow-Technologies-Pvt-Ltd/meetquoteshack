@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { UseFormReturn } from "react-hook-form";
-import type { GeneralLoanFormValues } from "@/app/(site)/loan-application/types";
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
 
 import { MaritalStatus, EducationLevel } from "@prisma/client";
 import { convertEnumValueToLabel } from "@/lib/utils";
@@ -185,56 +185,51 @@ export function PersonalStep({ form }: PersonalStepProps) {
         )}
       />
 
-      {/* Education Level & Field of Study */}
-      <div className="flex gap-4 flex-row">
-        {/* Education Level */}
-        <FormField
-          control={form.control}
-          name="generalEducationLevel"
-          render={({ field }) => (
-            <FormItem className="w-1/2">
-              <FormLabel>Education Level</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value as string}
-                  className="flex flex-wrap gap-2"
-                >
-                  {Object.entries(EducationLevel).map(([value]) => (
-                    <FormItem
-                      key={value}
-                      className="flex items-center space-x-2"
-                    >
-                      <FormControl>
-                        <RadioGroupItem value={value} />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        {convertEnumValueToLabel(value)}
-                      </FormLabel>
-                    </FormItem>
-                  ))}
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {/* Education Level */}
+      <FormField
+        control={form.control}
+        name="generalEducationLevel"
+        render={({ field }) => (
+          <FormItem className="w-full">
+            <FormLabel>Education Level</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value as string}
+                className="flex flex-row items-center gap-8"
+              >
+                {Object.entries(EducationLevel).map(([value]) => (
+                  <FormItem key={value} className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value={value} />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      {convertEnumValueToLabel(value)}
+                    </FormLabel>
+                  </FormItem>
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-        {/* Field of Study */}
-        <FormField
-          control={form.control}
-          name="generalFieldOfStudy"
-          render={({ field }) => (
-            <FormItem className="w-1/2">
-              <FormLabel>Field of Study</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Computer Science" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      {/* Field of Study */}
+      <FormField
+        control={form.control}
+        name="generalFieldOfStudy"
+        render={({ field }) => (
+          <FormItem className="w-1/2">
+            <FormLabel>Field of Study</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g. Computer Science" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      {/* </div> */}
     </div>
   );
 }

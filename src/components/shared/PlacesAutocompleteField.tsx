@@ -166,11 +166,11 @@ export function PlacesAutocompleteField<T extends FieldValues>({
                 }}
               />
               {options.length > 0 && (
-                <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-md border bg-background shadow-md z-50">
+                <div className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-md border bg-background shadow-md">
                   {options.slice(0, 5).map((option) => (
                     <div
                       key={option}
-                      className="px-3 py-2 text-sm cursor-pointer hover:bg-muted"
+                      className="cursor-pointer px-3 py-2 text-sm hover:bg-muted"
                       onMouseDown={() => handleSelect(option)}
                     >
                       {option}

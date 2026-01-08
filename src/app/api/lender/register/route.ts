@@ -2,15 +2,16 @@ import prisma from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { BecomeLenderProps } from "@/lib/schema";
 import { hash } from "bcrypt";
+import { UserRole } from "@prisma/client";
+
+const LENDER_FREE_TIER_DAYS = 60;
 
 export async function POST(request: NextRequest) {
   const body: BecomeLenderProps = await request.json();
 
   try {
     const existingUser = await prisma.user.findUnique({
-      where: {
-        email: body.email,
-      },
+      where: { email: body.email },
     });
 
     if (existingUser) {
@@ -18,12 +19,20 @@ export async function POST(request: NextRequest) {
     }
 
     const hashedPassword = await hash(body.password, 10);
+
+    // ✅ CREATE USER WITH FREE TIER
     const user = await prisma.user.create({
       data: {
         name: body.name,
         email: body.email,
         password: hashedPassword,
-        role: "LENDER",
+        role: UserRole.LENDER,
+
+        // 🔑 CRITICAL FIX
+        freeTierEndsAt: new Date(
+          Date.now() + LENDER_FREE_TIER_DAYS * 24 * 60 * 60 * 1000
+        ),
+        hasSeenFreeTrialModal: false,
       },
     });
 
@@ -44,6 +53,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error(error);
-    return new NextResponse(JSON.stringify(error), { status: 500 });
+    return new NextResponse("Something went wrong", { status: 500 });
   }
 }

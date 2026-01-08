@@ -12,9 +12,12 @@ declare module "next-auth" {
     user: DefaultSession["user"] & {
       id: string;
       role: UserRole;
+      hasSeenFreeTrialModal: boolean;
     };
   }
 }
+
+const LOANEE_FREE_TIER_DAYS = 90;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -31,7 +34,7 @@ export const authOptions: NextAuthOptions = {
       name: "Lender Login",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -48,7 +51,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password
+        );
 
         if (!isPasswordValid) {
           return null;
@@ -59,35 +65,80 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
         };
-      }
+      },
     }),
   ],
   adapter: PrismaAdapter(prisma) as Adapter,
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    async signIn({ user, account }) {
+      // Only handle Google OAuth
+      if (account?.provider === "google" && user.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: {
+            id: true,
+            role: true,
+            freeTierEndsAt: true,
+          },
+        });
+
+        if (!dbUser) return true;
+
+        // 1️⃣ Assign role if missing (CRITICAL)
+        if (!dbUser.role) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { role: UserRole.LOANEE },
+          });
+        }
+
+        // 2️⃣ Set free tier ONCE
+        if (!dbUser.freeTierEndsAt) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: {
+              freeTierEndsAt: new Date(
+                Date.now() + LOANEE_FREE_TIER_DAYS * 24 * 60 * 60 * 1000
+              ),
+              hasSeenFreeTrialModal: false,
+            },
+          });
+        }
+      }
+
+      return true;
+    },
+
     jwt: async ({ token, account, user }) => {
-      const dbuser = await prisma.user.findFirst({
-        where: {
-          email: token.email,
-        },
-        select: {
-          role: true,
-        },
-      });
-      if (account) {
-        token.accessToken = account.access_token;
-        token.id = user?.id;
-        token.role = dbuser?.role;
+      if (account && user) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+          select: { id: true, role: true },
+        });
+
+        token.id = dbUser?.id;
+        token.role = dbUser?.role;
       }
       return token;
     },
+
     session: async ({ session, token }) => {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+        select: {
+          role: true,
+          hasSeenFreeTrialModal: true,
+        },
+      });
+
       return {
         ...session,
         user: {
           ...session.user,
-          role: token.role,
-          id: token.sub,
+          id: token.id as string,
+          role: dbUser?.role as UserRole,
+          hasSeenFreeTrialModal: dbUser?.hasSeenFreeTrialModal ?? false,
         },
       };
     },

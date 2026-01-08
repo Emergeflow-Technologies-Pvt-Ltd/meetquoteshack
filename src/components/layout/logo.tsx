@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function Logo() {
   return (
-    <Link href="/" className="flex font-bold items-center">
+    <Link href="/" className="flex items-center font-bold">
       <Image src={QuoteshackLogo} alt="logo" width={150} height={40} />
     </Link>
   );

@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: quoteshack-postgres
+    ports:
+      # Map port 5433 to avoid conflict with local PostGreSQL
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  prisma:
+    image: oven/bun:1
+    working_dir: /app
+    volumes:
+      - ../../prisma:/app/prisma
+      - ../../package.json:/app/package.json
+    command: sh -c "bun install && bunx prisma generate && bunx prisma db push"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres
+    depends_on:
+      - postgres
