@@ -122,19 +122,13 @@ export function PayPerMatchModal({
                 <span className="font-bold text-emerald-500">
                   <Check />
                 </span>
-                <span className="text-sm">Soft Credit Check</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="font-bold text-emerald-500">
-                  <Check />
-                </span>
-                <span className="text-sm">Income Verification</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="font-bold text-emerald-500">
-                  <Check />
-                </span>
                 <span className="text-sm">Identity Verification</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="font-bold text-emerald-500">
+                  <Check />
+                </span>
+                <span className="text-sm">Pre-Qualification Check</span>
               </li>
             </ul>
           </div>
