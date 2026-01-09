@@ -392,7 +392,7 @@ export default function Loanee() {
                         <ul className="space-y-2 text-sm text-[#111827]">
                           <li className="flex gap-3">
                             <Check className="h-4 w-4 text-violet-500" />
-                            Pre-qualification check
+                            Unlimited Pre-qualification check
                           </li>
                           <li className="flex gap-3">
                             <Check className="h-4 w-4 text-violet-500" />
@@ -400,15 +400,19 @@ export default function Loanee() {
                           </li>
                           <li className="flex gap-3">
                             <Check className="h-4 w-4 text-violet-500" />
-                            Credit score monitoring
+                            Apply for loans
+                          </li>
+                          <li className="flex gap-3">
+                            <Check className="h-4 w-4 text-[#10B981]" />
+                            Upload & send documents
+                          </li>
+                          <li className="flex gap-3">
+                            <Check className="h-4 w-4 text-[#10B981]" />
+                            Chat with lenders
                           </li>
                           <li className="flex gap-3">
                             <Check className="h-4 w-4 text-violet-500" />
-                            Analytics reports
-                          </li>
-                          <li className="flex gap-3">
-                            <Check className="h-4 w-4 text-violet-500" />
-                            Expert loan advice
+                            Connect with an advisor
                           </li>
                         </ul>
                       </CardContent>
@@ -462,7 +466,7 @@ export default function Loanee() {
                           // you can replace this with router.push or modal trigger
                           window.dispatchEvent(
                             new CustomEvent("open-loanee-modal")
-                          );
+                          )
                         }}
                         className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-900 transition hover:bg-gray-50"
                       >
@@ -507,5 +511,5 @@ export default function Loanee() {
         </Section>
       </div>
     </>
-  );
+  )
 }
