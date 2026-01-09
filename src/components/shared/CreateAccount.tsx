@@ -66,6 +66,7 @@ export const CreateAccount = () => {
               variant="outline"
               className="rounded-lg border-violet-600 px-8 py-6 text-lg font-semibold text-violet-600 transition-all duration-200 hover:bg-violet-50"
               size="lg"
+              onClick={() => router.push("/lender")}
             >
               View Opportunities
             </Button>

@@ -29,12 +29,12 @@ export default function Lenders() {
   const handleGetStartedClick = () => {
     const role = session?.user?.role;
     if (!role) {
-      router.push("/loanee/login");
+      router.push("/lender/register");
       return;
     }
-    if (role === "LOANEE") {
-      router.push("/loanee/loan-application");
-    } else if (role === "LENDER") {
+    if (role === "LENDER") {
+      router.push("/lender/dashboard")
+    } else if (role === "LOANEE" || role === "AGENT") {
       toast({
         title: "Access Denied",
         description:
@@ -142,7 +142,7 @@ export default function Lenders() {
               className="flex w-full transform items-center justify-center gap-2 rounded-full bg-violet-600 px-10 py-4 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-violet-700 hover:shadow-violet-200 sm:w-auto"
             >
               <span className="text-center">
-                Find A Loan Now, It&apos;s Free
+                Sign up as Lender
               </span>
               <ArrowRight className="h-5 w-5" />
             </button>
@@ -460,10 +460,7 @@ export default function Lenders() {
                     <button
                       type="button"
                       onClick={() => {
-                        // you can replace this with router.push or modal trigger
-                        window.dispatchEvent(
-                          new CustomEvent("open-loanee-modal")
-                        );
+                        window.location.href = "mailto:admin@meetquoteshack.com"
                       }}
                       className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-900 transition hover:bg-gray-50"
                     >
