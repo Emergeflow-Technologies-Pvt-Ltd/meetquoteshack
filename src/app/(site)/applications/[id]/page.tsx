@@ -390,53 +390,48 @@ export default function ApplicationPage({
             </div>
           )}
 
-          <Card className="border-violet-500 bg-violet-50/60">
-            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-1 flex-col gap-2">
-                {lenders.length === 0 ? (
-                  <h3 className="text-lg font-semibold text-violet-700">
-                    No lenders to match currently
-                  </h3>
-                ) : selectedMatchLenderIds.length === 0 ? (
-                  <h3 className="text-lg font-semibold text-violet-700">
-                    {lenders.length}{" "}
-                    {lenders.length === 1 ? "lender" : "lenders"} to match from
-                    list
-                  </h3>
-                ) : (
-                  <>
+          {lenders.length > 0 && (
+            <Card className="border-violet-500 bg-violet-50/60">
+              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-1 flex-col gap-2">
+                  {selectedMatchLenderIds.length === 0 ? (
                     <h3 className="text-lg font-semibold text-violet-700">
-                      You selected these lenders
+                      {lenders.length}{" "}
+                      {lenders.length === 1 ? "lender" : "lenders"} to match
+                      from list
                     </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedMatchLenderIds.map((id) => {
-                        const lender = lenders.find((l) => l.id === id)
-                        return (
-                          <Badge
-                            key={id}
-                            variant="secondary"
-                            className="bg-violet-100 text-violet-700 hover:bg-violet-200"
-                          >
-                            {lender?.name || "Unknown"}
-                          </Badge>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-semibold text-violet-700">
+                        You selected these lenders
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMatchLenderIds.map((id) => {
+                          const lender = lenders.find((l) => l.id === id)
+                          return (
+                            <Badge
+                              key={id}
+                              variant="secondary"
+                              className="bg-violet-100 text-violet-700 hover:bg-violet-200"
+                            >
+                              {lender?.name || "Unknown"}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
 
-              {/* Right */}
-              <div>
-                <Button
-                  onClick={openMatchLendersDialog}
-                  disabled={lenders.length === 0}
-                >
-                  Match Lenders
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                {/* Right */}
+                <div>
+                  <Button onClick={openMatchLendersDialog}>
+                    Match Lenders
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Dialog
             open={matchLendersDialogOpen}
