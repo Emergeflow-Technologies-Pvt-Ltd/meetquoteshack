@@ -1,9 +1,9 @@
 //src\app\(site)\applications\[id]\page.tsx
 "use client"
 
-import { useEffect, useState, use } from "react";
-import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState, use } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "@/hooks/use-toast"
 import {
@@ -14,8 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import Section from "@/components/shared/section";
-import Image from "next/image";
+import Section from "@/components/shared/section"
+import Image from "next/image"
 import {
   Home,
   FileText,
@@ -26,22 +26,22 @@ import {
   User,
   DollarSign,
   ChevronLeft,
-} from "lucide-react";
-import axios from "axios";
-import { Application, Document, LoanStatus, Message } from "@prisma/client";
-import { Badge } from "@/components/ui/badge";
-import { availableDocumentTypes } from "@/lib/constants";
-import { Button } from "@/components/ui/button";
-import { uploadFile, getPresignedUrl } from "@/lib/upload";
-import { getStatusColors } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
+} from "lucide-react"
+import axios from "axios"
+import { Application, Document, LoanStatus, Message } from "@prisma/client"
+import { Badge } from "@/components/ui/badge"
+import { availableDocumentTypes } from "@/lib/constants"
+import { Button } from "@/components/ui/button"
+import { uploadFile, getPresignedUrl } from "@/lib/upload"
+import { getStatusColors } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Progress } from "@/components/ui/progress"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/tooltip"
 import {
   applicationStatusLabels,
   downPaymentLabels,
@@ -51,44 +51,44 @@ import {
   propertyTypeLabels,
   residencyStatusTypeLabels,
   vehicleTypeLabels,
-} from "@/components/shared/general.const";
+} from "@/components/shared/general.const"
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
-} from "@/components/shared/chips";
-import LoaneeChat from "../components/LoaneeChat";
-import { useRouter } from "next/navigation";
-import { PrequalificationSummary } from "@/components/shared/prequalification-summary";
+} from "@/components/shared/chips"
+import LoaneeChat from "../components/LoaneeChat"
+import { useRouter } from "next/navigation"
+import { PrequalificationSummary } from "@/components/shared/prequalification-summary"
 
 export default function ApplicationPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>
 }) {
-  const { data: session } = useSession();
-  const { id } = use(params);
+  const { data: session } = useSession()
+  const { id } = use(params)
 
   const [application, setApplication] = useState<
     | (Application & {
-        documents: Document[];
+        documents: Document[]
         lender?: {
-          user?: { id: string };
-        } | null;
+          user?: { id: string }
+        } | null
         agent?: {
-          id: string;
-          name: string;
-          email: string;
-          phone: string;
-        } | null;
+          id: string
+          name: string
+          email: string
+          phone: string
+        } | null
       })
     | null
-  >(null);
+  >(null)
 
-  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const router = useRouter();
-  const [loadingApp, setLoadingApp] = useState(true);
-  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const router = useRouter()
+  const [loadingApp, setLoadingApp] = useState(true)
+  const [loadingMessages, setLoadingMessages] = useState(false)
 
   const [matchLendersDialogOpen, setMatchLendersDialogOpen] = useState(false)
   const [lenders, setLenders] = useState<{ id: string; name: string }[]>([])
@@ -150,168 +150,168 @@ export default function ApplicationPage({
   }
 
   const [canAccessPrequalification, setCanAccessPrequalification] =
-    useState(false);
+    useState(false)
 
   // Chat States
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([])
 
   // Fetch Application + Messages
   useEffect(() => {
     const fetchApplication = async () => {
-      if (!session?.user?.email) return;
+      if (!session?.user?.email) return
 
       try {
-        setLoadingApp(true);
+        setLoadingApp(true)
 
-        const res = await axios.get(`/api/applications/${id}`);
+        const res = await axios.get(`/api/applications/${id}`)
 
-        const applicationData = res.data?.application ?? res.data;
-        const lendersList = res.data?.lenderList || [];
+        const applicationData = res.data?.application ?? res.data
+        const lendersList = res.data?.lenderList || []
 
-        setApplication(applicationData ?? null);
-        setLenders(lendersList);
-        setSelectedMatchLenderIds(applicationData?.matchLenderIds || []);
+        setApplication(applicationData ?? null)
+        setLenders(lendersList)
+        setSelectedMatchLenderIds(applicationData?.matchLenderIds || [])
 
         // ✅ Safe status check
         if (applicationData?.status === "IN_CHAT") {
-          setLoadingMessages(true);
-          const msgRes = await axios.get(`/api/messages?applicationId=${id}`);
-          setMessages(msgRes.data);
-          setLoadingMessages(false);
+          setLoadingMessages(true)
+          const msgRes = await axios.get(`/api/messages?applicationId=${id}`)
+          setMessages(msgRes.data)
+          setLoadingMessages(false)
         }
       } catch (error) {
-        console.error("Error fetching application:", error);
-        setApplication(null);
-        setCanAccessPrequalification(false);
+        console.error("Error fetching application:", error)
+        setApplication(null)
+        setCanAccessPrequalification(false)
       } finally {
-        setLoadingApp(false);
+        setLoadingApp(false)
       }
-    };
+    }
 
-    fetchApplication();
-  }, [session, id]);
+    fetchApplication()
+  }, [session, id])
 
   useEffect(() => {
-    if (!session?.user) return;
+    if (!session?.user) return
 
     const fetchAccess = async () => {
       try {
-        const res = await axios.get("/api/subscription/access");
+        const res = await axios.get("/api/subscription/access")
 
         setCanAccessPrequalification(
           Boolean(res.data?.canAccessPrequalification)
-        );
+        )
       } catch (err) {
-        console.error("Failed to fetch access", err);
-        setCanAccessPrequalification(false);
+        console.error("Failed to fetch access", err)
+        setCanAccessPrequalification(false)
       }
-    };
+    }
 
-    fetchAccess();
-  }, [session]);
+    fetchAccess()
+  }, [session])
 
-  useEffect(() => {}, [application]);
+  useEffect(() => {}, [application])
 
-  const lenderUserId = application?.lender?.user?.id;
+  const lenderUserId = application?.lender?.user?.id
 
   type AssignedAgent = {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    agentCode?: string | null;
-    calendlyUrl?: string | null;
-  };
+    id: string
+    name: string
+    email: string
+    phone: string
+    agentCode?: string | null
+    calendlyUrl?: string | null
+  }
 
-  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(null);
-  const [agentLoading, setAgentLoading] = useState(true);
+  const [assignedAgent, setAssignedAgent] = useState<AssignedAgent | null>(null)
+  const [agentLoading, setAgentLoading] = useState(true)
 
   useEffect(() => {
     async function fetchAssignedAgent() {
       try {
-        const res = await fetch(`/api/applications/${id}/agent`);
+        const res = await fetch(`/api/applications/${id}/agent`)
 
         if (!res.ok) {
-          setAssignedAgent(null);
-          return;
+          setAssignedAgent(null)
+          return
         }
 
-        const data = await res.json();
-        setAssignedAgent(data.agent);
+        const data = await res.json()
+        setAssignedAgent(data.agent)
       } catch {
-        setAssignedAgent(null);
+        setAssignedAgent(null)
       } finally {
-        setAgentLoading(false);
+        setAgentLoading(false)
       }
     }
 
-    fetchAssignedAgent();
-  }, [application, id]);
+    fetchAssignedAgent()
+  }, [application, id])
 
   const handleFileUpload = async (docId: string, file: File) => {
-    if (!session?.user?.email) return;
+    if (!session?.user?.email) return
 
     try {
-      setUploadingDocId(docId);
-      setUploadProgress(0);
+      setUploadingDocId(docId)
+      setUploadProgress(0)
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
-          const newProgress = prev + Math.random() * 15;
-          return newProgress >= 90 ? 90 : newProgress;
-        });
-      }, 300);
+          const newProgress = prev + Math.random() * 15
+          return newProgress >= 90 ? 90 : newProgress
+        })
+      }, 300)
 
-      const key = await uploadFile(session.user.email, file);
+      const key = await uploadFile(session.user.email, file)
 
       if (typeof key === "string") {
-        const signedUrl = await getPresignedUrl(key);
+        const signedUrl = await getPresignedUrl(key)
 
         await axios.patch(`/api/applications/${id}`, {
           fileName: file.name,
           fileKey: key,
           fileUrl: signedUrl,
           docId: docId,
-        });
+        })
 
         await axios.post(`/api/notifications/submitted`, {
           applicationId: id,
           ...(lenderUserId && { lenderUserId }),
-        });
+        })
 
-        setUploadProgress(100);
-        clearInterval(progressInterval);
+        setUploadProgress(100)
+        clearInterval(progressInterval)
 
-        const { data } = await axios.get(`/api/applications/${id}`);
-        setApplication(data);
+        const { data } = await axios.get(`/api/applications/${id}`)
+        setApplication(data)
 
         setTimeout(() => {
-          setUploadingDocId(null);
-          setUploadProgress(0);
-        }, 1000);
+          setUploadingDocId(null)
+          setUploadProgress(0)
+        }, 1000)
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      setUploadingDocId(null);
-      setUploadProgress(0);
+      console.error("Error uploading file:", error)
+      setUploadingDocId(null)
+      setUploadProgress(0)
     }
-  };
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4 text-yellow-500" />
       case "APPROVED":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />
       case "REJECTED":
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
+        return <AlertCircle className="h-4 w-4 text-red-500" />
       case "UPLOADED":
-        return <CheckCircle className="h-4 w-4 text-blue-500" />;
+        return <CheckCircle className="h-4 w-4 text-blue-500" />
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   if (loadingApp || loadingMessages) {
     return (
@@ -333,7 +333,7 @@ export default function ApplicationPage({
           </CardContent>
         </Card>
       </Section>
-    );
+    )
   }
 
   return (
@@ -387,102 +387,114 @@ export default function ApplicationPage({
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-violet-500 bg-violet-50/60">
-                <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-1 flex-col gap-2">
-                    <h3 className="text-lg font-semibold text-violet-700">
-                      List of lenders to match
-                    </h3>
-                    {selectedMatchLenderIds.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMatchLenderIds.map((id) => {
-                          const lender = lenders.find((l) => l.id === id)
-                          return (
-                            <Badge
-                              key={id}
-                              variant="secondary"
-                              className="bg-violet-100 text-violet-700 hover:bg-violet-200"
-                            >
-                              {lender?.name || "Unknown"}
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        No lenders selected
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Right */}
-                  <div>
-                    <Button onClick={openMatchLendersDialog}>
-                      Match Lenders
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Dialog
-                open={matchLendersDialogOpen}
-                onOpenChange={setMatchLendersDialogOpen}
-              >
-                <DialogContent className="sm:max-w-[480px]">
-                  <DialogHeader>
-                    <DialogTitle>Select Lenders to match</DialogTitle>
-                    <DialogDescription>
-                      Choose multiple lenders to match with loanee.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="mt-4 max-h-60 space-y-2 overflow-y-auto rounded-md border p-2">
-                    {lenders.map((l) => {
-                      const checked = dialogMatchLenderIds.includes(l.id)
-                      return (
-                        <div
-                          key={l.id}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => toggleMatchLender(l.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault()
-                              toggleMatchLender(l.id)
-                            }
-                          }}
-                          className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
-                            checked
-                              ? "border-primary/40 bg-primary/5"
-                              : "border-border hover:bg-muted/50"
-                          }`}
-                        >
-                          <Checkbox checked={checked} />
-                          <span className="block text-sm">{l.name}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  <DialogFooter className="mt-6">
-                    <Button
-                      variant="outline"
-                      onClick={() => setMatchLendersDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
-                      onClick={handleSaveMatches}
-                      disabled={isSavingMatches}
-                    >
-                      {isSavingMatches ? "Saving..." : "Save Matches"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
             </div>
           )}
+
+          <Card className="border-violet-500 bg-violet-50/60">
+            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-1 flex-col gap-2">
+                {lenders.length === 0 ? (
+                  <h3 className="text-lg font-semibold text-violet-700">
+                    No lenders to match currently
+                  </h3>
+                ) : selectedMatchLenderIds.length === 0 ? (
+                  <h3 className="text-lg font-semibold text-violet-700">
+                    {lenders.length}{" "}
+                    {lenders.length === 1 ? "lender" : "lenders"} to match from
+                    list
+                  </h3>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-violet-700">
+                      You selected these lenders
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMatchLenderIds.map((id) => {
+                        const lender = lenders.find((l) => l.id === id)
+                        return (
+                          <Badge
+                            key={id}
+                            variant="secondary"
+                            className="bg-violet-100 text-violet-700 hover:bg-violet-200"
+                          >
+                            {lender?.name || "Unknown"}
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Right */}
+              <div>
+                <Button
+                  onClick={openMatchLendersDialog}
+                  disabled={lenders.length === 0}
+                >
+                  Match Lenders
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Dialog
+            open={matchLendersDialogOpen}
+            onOpenChange={setMatchLendersDialogOpen}
+          >
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Select Lenders to match</DialogTitle>
+                <DialogDescription>
+                  Choose multiple lenders to match with loanee.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="mt-4 max-h-60 space-y-2 overflow-y-auto rounded-md border p-2">
+                {lenders.map((l) => {
+                  const checked = dialogMatchLenderIds.includes(l.id)
+                  return (
+                    <div
+                      key={l.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleMatchLender(l.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          toggleMatchLender(l.id)
+                        }
+                      }}
+                      className={`flex w-full cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-left transition ${
+                        checked
+                          ? "border-primary/40 bg-primary/5"
+                          : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <Checkbox checked={checked} />
+                      <span className="block text-sm">{l.name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <DialogFooter className="mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setMatchLendersDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-[#9b87f5] text-white hover:bg-[#7c6cf0]"
+                  onClick={handleSaveMatches}
+                  disabled={isSavingMatches}
+                >
+                  {isSavingMatches ? "Saving..." : "Save Matches"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <div className="sticky top-0 z-10 flex justify-between gap-4 bg-white pb-4">
             <div className="flex items-center gap-4">
@@ -874,17 +886,17 @@ export default function ApplicationPage({
                               size="sm"
                               disabled={uploadingDocId === doc.id}
                               onClick={() => {
-                                const input = document.createElement("input");
-                                input.type = "file";
-                                input.accept = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
+                                const input = document.createElement("input")
+                                input.type = "file"
+                                input.accept = ".pdf,.jpg,.jpeg,.png,.doc,.docx"
                                 input.onchange = (e) => {
                                   const file = (e.target as HTMLInputElement)
-                                    .files?.[0];
+                                    .files?.[0]
                                   if (file) {
-                                    handleFileUpload(doc.id, file);
+                                    handleFileUpload(doc.id, file)
                                   }
-                                };
-                                input.click();
+                                }
+                                input.click()
                               }}
                             >
                               {uploadingDocId === doc.id ? (
@@ -932,13 +944,13 @@ export default function ApplicationPage({
         )}
       </div>
     </Section>
-  );
+  )
 }
 
 function LockedPrequalificationSection({
   onUpgrade,
 }: {
-  onUpgrade: () => void;
+  onUpgrade: () => void
 }) {
   return (
     <Card className="relative min-h-[220px] overflow-hidden border border-dashed bg-gray-300/40">
@@ -966,5 +978,5 @@ function LockedPrequalificationSection({
         </Button>
       </CardContent>
     </Card>
-  );
+  )
 }
