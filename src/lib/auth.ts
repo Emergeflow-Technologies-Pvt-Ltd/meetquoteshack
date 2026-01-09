@@ -87,7 +87,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn() {
       // Only handle Google OAuth
       // if (account?.provider === "google" && user.email) {
       //   const dbUser = await prisma.user.findUnique({
