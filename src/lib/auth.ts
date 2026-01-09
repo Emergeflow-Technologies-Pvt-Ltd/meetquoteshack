@@ -13,6 +13,7 @@ declare module "next-auth" {
       id: string;
       role: UserRole;
       hasSeenFreeTrialModal: boolean;
+      freeTierEndsAt: Date | null;
     };
   }
 }
@@ -70,42 +71,57 @@ export const authOptions: NextAuthOptions = {
   ],
   adapter: PrismaAdapter(prisma) as Adapter,
   secret: process.env.NEXTAUTH_SECRET,
+
+   events: {
+    async createUser({ user }) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          role: UserRole.LOANEE,
+          freeTierEndsAt: new Date(
+            Date.now() + LOANEE_FREE_TIER_DAYS * 24 * 60 * 60 * 1000
+          ),
+          hasSeenFreeTrialModal: false,
+        },
+      });
+    },
+  },
   callbacks: {
     async signIn({ user, account }) {
       // Only handle Google OAuth
-      if (account?.provider === "google" && user.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: {
-            id: true,
-            role: true,
-            freeTierEndsAt: true,
-          },
-        });
+      // if (account?.provider === "google" && user.email) {
+      //   const dbUser = await prisma.user.findUnique({
+      //     where: { email: user.email },
+      //     select: {
+      //       id: true,
+      //       role: true,
+      //       freeTierEndsAt: true,
+      //     },
+      //   });
 
-        if (!dbUser) return true;
+      //   if (!dbUser) return true;
 
-        // 1️⃣ Assign role if missing (CRITICAL)
-        if (!dbUser.role) {
-          await prisma.user.update({
-            where: { id: dbUser.id },
-            data: { role: UserRole.LOANEE },
-          });
-        }
+      //   // 1️⃣ Assign role if missing (CRITICAL)
+      //   if (!dbUser.role) {
+      //     await prisma.user.update({
+      //       where: { id: dbUser.id },
+      //       data: { role: UserRole.LOANEE },
+      //     });
+      //   }
 
-        // 2️⃣ Set free tier ONCE
-        if (!dbUser.freeTierEndsAt) {
-          await prisma.user.update({
-            where: { id: dbUser.id },
-            data: {
-              freeTierEndsAt: new Date(
-                Date.now() + LOANEE_FREE_TIER_DAYS * 24 * 60 * 60 * 1000
-              ),
-              hasSeenFreeTrialModal: false,
-            },
-          });
-        }
-      }
+      //   // 2️⃣ Set free tier ONCE
+      //   if (!dbUser.freeTierEndsAt) {
+      //     await prisma.user.update({
+      //       where: { id: dbUser.id },
+      //       data: {
+      //         freeTierEndsAt: new Date(
+      //           Date.now() + LOANEE_FREE_TIER_DAYS * 24 * 60 * 60 * 1000
+      //         ),
+      //         hasSeenFreeTrialModal: false,
+      //       },
+      //     });
+      //   }
+      // }
 
       return true;
     },
@@ -129,6 +145,7 @@ export const authOptions: NextAuthOptions = {
         select: {
           role: true,
           hasSeenFreeTrialModal: true,
+          freeTierEndsAt: true,
         },
       });
 
@@ -139,6 +156,8 @@ export const authOptions: NextAuthOptions = {
           id: token.id as string,
           role: dbUser?.role as UserRole,
           hasSeenFreeTrialModal: dbUser?.hasSeenFreeTrialModal ?? false,
+          freeTierEndsAt: dbUser?.freeTierEndsAt ?? null,
+
         },
       };
     },
