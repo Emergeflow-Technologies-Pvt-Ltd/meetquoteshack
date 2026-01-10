@@ -55,8 +55,8 @@ export async function POST(req: Request) {
         quantity: 1,
       },
     ],
-    success_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}?match=success`,
-    cancel_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/agent/dashboard/${applicationId}?match=success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/agent/dashboard/${applicationId}`,
     metadata: {
       role: "AGENT",
       applicationId,
