@@ -109,8 +109,8 @@ export async function POST(req: Request) {
         },
       ],
       customer_email: session.user.email ?? undefined,
-      success_url: `${baseUrl}/lender/dashboard/${application.id}?match=success`,
-      cancel_url: `${baseUrl}/lender/dashboard/${application.id}?match=cancelled`,
+      success_url: `${process.env.NEXTAUTH_URL}/lender/dashboard/${application.id}?match=success`,
+      cancel_url: `${process.env.NEXTAUTH_URL}/lender/dashboard/${application.id}?match=cancelled`,
       metadata: {
         applicationId: application.id,
         lenderUserId: session.user.id,
