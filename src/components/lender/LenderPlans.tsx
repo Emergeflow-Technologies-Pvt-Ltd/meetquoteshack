@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Check, Crown, Zap, X } from "lucide-react";
 import { LENDER_PRICES } from "@/lib/lender-prices";
+import { useToast } from "@/hooks/use-toast";
+
 
 type PlanType = "simple" | "standard";
 type IntervalType = "monthly" | "yearly" | "twoYear";
@@ -19,6 +21,8 @@ export default function LenderPlans() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null);
   const [interval, setInterval] = useState<IntervalType>("monthly");
   const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
+
 
   const openModal = (plan: PlanType) => {
     setSelectedPlan(plan);
@@ -42,33 +46,64 @@ export default function LenderPlans() {
     twoYear: "Save 50%",
   };
 
-  const proceedToPayment = async () => {
-    if (!selectedPlan || isProcessing) return;
+const proceedToPayment = async () => {
+  if (!selectedPlan || isProcessing) return;
 
-    try {
-      setIsProcessing(true);
+  try {
+    setIsProcessing(true);
 
-      const res = await fetch("/api/checkout/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: selectedPlan,
-          interval,
-        }),
+    const res = await fetch("/api/checkout/subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plan: selectedPlan,
+        interval,
+      }),
+    });
+
+    const data = await res.json();
+
+    // 🔴 FREE TIER / ERROR HANDLING
+    if (!res.ok) {
+      const endDate = data.freeTierEndsAt
+        ? new Date(data.freeTierEndsAt).toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+        : null;
+
+      toast({
+        title: "Free trial active",
+        description: endDate
+          ? `Your free trial is currently active. You can subscribe after it ends on ${endDate}.`
+          : data.message || "You cannot subscribe yet.",
+        variant: "destructive",
       });
 
-      const data = await res.json();
-
-      if (data.url) {
-        window.location.href = data.url; // redirect to Stripe
-      } else {
-        setIsProcessing(false);
-      }
-    } catch (err) {
-      console.error(err);
       setIsProcessing(false);
+      return;
     }
-  };
+
+    // ✅ SUCCESS
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error("No checkout URL returned");
+    }
+  } catch (err) {
+    console.error(err);
+
+    toast({
+      title: "Error",
+      description: "Failed to start payment. Please try again.",
+      variant: "destructive",
+    });
+
+    setIsProcessing(false);
+  }
+};
+
 
   return (
     <>
