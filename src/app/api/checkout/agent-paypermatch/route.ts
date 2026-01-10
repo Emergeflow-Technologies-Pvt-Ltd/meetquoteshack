@@ -55,13 +55,26 @@ export async function POST(req: Request) {
         quantity: 1,
       },
     ],
-    success_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}?match=success`,
-    cancel_url: `${process.env.NEXTAUTH_URL}/agent/dashboard/${applicationId}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/agent/dashboard/${applicationId}?match=success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/agent/dashboard/${applicationId}`,
     metadata: {
       role: "AGENT",
       applicationId,
       agentId: agent.id,
     },
+
+          // ---------- Branding / appearance for Stripe Checkout ----------
+      branding_settings: {
+        button_color: "#7C3AED", // primary CTA color (purple)
+        background_color: "#F9F5FF", // checkout background
+        border_style: "rounded",
+        font_family: "inter",
+        display_name: "QuoteShack",
+        logo: { type: "url", url: "https://example.com/your-logo.png" },
+        icon: { type: "url", url: "https://example.com/your-icon.png" },
+      },
+
+      locale: "en",
   });
 
   console.log("🟢 Stripe checkout session created", {
