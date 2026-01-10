@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Check } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export function PayPerMatchModal({
   open,
@@ -32,38 +33,58 @@ export function PayPerMatchModal({
 
   if (!open) return null;
 
-  const handleProceed = async () => {
-    setLoading(true);
-    try {
-      const endpoint =
-        role === "AGENT"
-          ? "/api/checkout/agent-paypermatch"
-          : "/api/checkout/paypermatch";
+const handleProceed = async () => {
+  setLoading(true);
 
-      const res = await axios.post(endpoint, {
-        applicationId,
-      });
+  try {
+    const endpoint =
+      role === "AGENT"
+        ? "/api/checkout/agent-paypermatch"
+        : "/api/checkout/paypermatch";
 
-      const url = res.data?.url as string | undefined;
-      if (!url) throw new Error("No checkout URL returned");
+    const res = await axios.post(endpoint, {
+      applicationId,
+    });
 
-      window.location.href = url;
-    } catch (err: unknown) {
-      console.error("PayPerMatch error", err);
+    const url = res.data?.url as string | undefined;
 
-      let msg = "Failed to start payment";
-
-      if (axios.isAxiosError(err)) {
-        const data = err.response?.data as { error?: string } | undefined;
-        msg = data?.error ?? err.message;
-      } else if (err instanceof Error) {
-        msg = err.message;
-      }
-
-      alert("Payment Error: " + msg);
-      setLoading(false);
+    if (!url) {
+      throw new Error("No checkout URL returned");
     }
-  };
+
+    window.location.href = url;
+  } catch (err: unknown) {
+    console.error("PayPerMatch error", err);
+
+    let description =
+      "We couldn’t start the payment. Please try again in a moment.";
+
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      const data = err.response?.data as { error?: string } | undefined;
+
+      if (status === 400) {
+        description = data?.error ?? "This application is already unlocked.";
+      } else if (status === 401) {
+        description = "Please sign in again.";
+      } else if (status === 404) {
+        description = "Profile not found.";
+      } else if (status === 500) {
+        description =
+          "Payment service is temporarily unavailable. Please try again later.";
+      }
+    }
+
+    toast({
+      title: "Payment failed",
+      description,
+      variant: "destructive",
+    });
+
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
