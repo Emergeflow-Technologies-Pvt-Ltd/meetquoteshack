@@ -89,12 +89,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID;
+    const priceId = process.env.STRIPE_PRICE_LENDER_PAYPERMATCH;
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
     if (!priceId) {
       return NextResponse.json(
-        { error: "STRIPE_PRICE_ID is not configured" },
+        { error: "STRIPE_PRICE_LENDER_PAYPERMATCH is not configured" },
         { status: 500 }
       );
     }
