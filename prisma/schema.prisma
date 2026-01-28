@@ -29,6 +29,12 @@ model User {
   subscriptions            Subscription[]
   agentReviews AgentReview[]   @relation("UserAgentReviews")
   hasSeenFreeTrialModal Boolean  @default(false)
+
+  advisorId     String?
+  advisor       Agent?      @relation("UserAdvisor", fields: [advisorId], references: [id])
+
+  sentAdvisorMessages     AdvisorMessage[] @relation("SentAdvisorMessages")
+  receivedAdvisorMessages AdvisorMessage[] @relation("ReceivedAdvisorMessages")
 }
 
 model Subscription {
@@ -142,6 +148,8 @@ model Agent {
   applications Application[]
 
   @@index([userId])
+
+  users         User[]      @relation("UserAdvisor")
 }
 
 
@@ -522,4 +530,19 @@ enum CreditTier {
   GOOD
   FAIR
   POOR
+}
+
+model AdvisorMessage {
+  id        String   @id @default(cuid())
+  senderId  String
+  receiverId String
+  content   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  sender    User     @relation("SentAdvisorMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User     @relation("ReceivedAdvisorMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
 }

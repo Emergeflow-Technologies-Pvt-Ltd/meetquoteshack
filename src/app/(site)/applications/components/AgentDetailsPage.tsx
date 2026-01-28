@@ -26,12 +26,14 @@ type Props = {
   };
   reviews: Review[];
   applicationId?: string | null;
+  action?: React.ReactNode;
 };
 
 export default function AgentDetailsPage({
   agent,
   reviews,
   applicationId,
+  action,
 }: Props) {
   const initials = agent.name
     .split(" ")
@@ -76,21 +78,25 @@ export default function AgentDetailsPage({
               </div>
             </div>
             {agent.calendlyUrl && (
-              <div className="flex justify-start sm:justify-end">
+              <div className="flex justify-start gap-4 sm:justify-end">
+                {action}
                 <BookCallButton calendlyUrl={agent.calendlyUrl} />
               </div>
             )}
+            {!agent.calendlyUrl && action && (
+              <div className="flex justify-start sm:justify-end">{action}</div>
+            )}
           </div>
 
-          <div className="ml-20 flex w-[1220px] flex-col gap-4 rounded-lg border border-violet-400 bg-violet-50 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Share Your Experience</h3>
-              <p className="text-sm text-gray-600">
-                How was your experience working with {agent.name}?
-              </p>
-            </div>
+          {applicationId && (
+            <div className="ml-20 flex w-[1220px] flex-col gap-4 rounded-lg border border-violet-400 bg-violet-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Share Your Experience</h3>
+                <p className="text-sm text-gray-600">
+                  How was your experience working with {agent.name}?
+                </p>
+              </div>
 
-            {applicationId && (
               <LeaveReviewAction
                 agent={{
                   id: agent.id,
@@ -99,8 +105,8 @@ export default function AgentDetailsPage({
                 applicationId={applicationId}
                 hasReviewed={hasReviewed}
               />
-            )}
-          </div>
+            </div>
+          )}
 
           <section className="space-y-4">
             <h3 className="text-lg font-semibold">Agent Performance</h3>
