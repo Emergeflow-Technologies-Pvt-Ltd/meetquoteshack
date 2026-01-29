@@ -57,6 +57,11 @@ export const availableDocumentTypes: DocumentTypeConfig[] = [
     description: "Property related documents (deed, assessment, etc.)",
   },
   {
+    type: DocumentType.VERIFICATION_RECORD,
+    label: "Verification Record",
+    description: "Admin verification reports from third-party verification",
+  },
+  {
     type: DocumentType.OTHER,
     label: "Other Documents",
     description: "Additional supporting documents",

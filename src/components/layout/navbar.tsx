@@ -165,16 +165,28 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                           </Button>
                         )}
                         {userRole === UserRole.LENDER && (
-                          <Button
-                            onClick={() => setIsOpen(false)}
-                            asChild
-                            variant="ghost"
-                            className="justify-start text-base"
-                          >
-                            <Link href="/lender/dashboard">
-                              Lender Dashboard
-                            </Link>
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/lender/dashboard">
+                                Lender Dashboard
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/verified-documents">
+                                Verified Documents
+                              </Link>
+                            </Button>
+                          </>
                         )}
                         {userRole === UserRole.ADMIN && (
                           <Button
@@ -187,14 +199,26 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                           </Button>
                         )}
                         {userRole === UserRole.AGENT && (
-                          <Button
-                            onClick={() => setIsOpen(false)}
-                            asChild
-                            variant="ghost"
-                            className="justify-start text-base"
-                          >
-                            <Link href="/agent">Agent Dashboard</Link>
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/agent">Agent Dashboard</Link>
+                            </Button>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/verified-documents">
+                                Verified Documents
+                              </Link>
+                            </Button>
+                          </>
                         )}
                         <Button
                           onClick={() => setIsOpen(false)}
@@ -518,14 +542,28 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     </DropdownMenuItem>
                   )}
                   {userRole === UserRole.LENDER && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/lender/dashboard">Lender Dashboard</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/lender/dashboard">Lender Dashboard</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/verified-documents">
+                          Verified Documents
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {userRole === UserRole.AGENT && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/agent/dashboard">Agent Dashboard</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/agent/dashboard">Agent Dashboard</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/verified-documents">
+                          Verified Documents
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {userRole === UserRole.ADMIN && (
                     <DropdownMenuItem asChild>

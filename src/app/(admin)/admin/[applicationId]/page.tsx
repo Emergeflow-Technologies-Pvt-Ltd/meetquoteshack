@@ -46,6 +46,7 @@ import {
 
 import AgentAssignment from "@/components/admin/AgentAssignment"
 import LenderAssignment from "@/components/shared/LenderAssignment"
+import VerificationUploadModal from "@/components/admin/VerificationUploadModal"
 
 interface Props {
   params: Promise<{
@@ -81,6 +82,7 @@ export default function ApplicationPage({ params }: Props) {
   const [lenders, setLenders] = useState<User[]>([])
   const [agents, setAgents] = useState<AgentWithUser[]>([])
   const [loadingAgents, setLoadingAgents] = useState<boolean>(true)
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false)
 
   const router = useRouter()
 
@@ -285,28 +287,43 @@ export default function ApplicationPage({ params }: Props) {
         </div>
 
         {!["REJECTED", "APPROVED"].includes(application.status as string) && (
-          <div className="w-full">
-            <div className="mb-8 mt-6 w-full">
-              <div className="flex w-full items-center justify-between px-4 py-2">
-                <h3 className="text-lg font-semibold">Assign to Lender</h3>
-                <div className="flex items-center gap-2">
-                  <LenderAssignment
-                    application={application}
-                    lenders={lenders}
-                    onUpdate={onUpdateApplication}
-                    onRefetch={() => fetchData(false)}
-                  />
+          <>
+            <div className="w-full">
+              <div className="mb-8 mt-6 w-full">
+                <div className="flex w-full items-center justify-between px-4 py-2">
+                  <h3 className="text-lg font-semibold">Assign to Lender</h3>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => setVerificationModalOpen(true)}
+                      className="bg-violet-600 text-white hover:bg-violet-700"
+                    >
+                      Verified Document
+                    </Button>
+                    <LenderAssignment
+                      application={application}
+                      lenders={lenders}
+                      onUpdate={onUpdateApplication}
+                      onRefetch={() => fetchData(false)}
+                    />
 
-                  <AgentAssignment
-                    application={application}
-                    agents={agents}
-                    loadingAgents={loadingAgents}
-                    onUpdate={onUpdateApplication}
-                  />
+                    <AgentAssignment
+                      application={application}
+                      agents={agents}
+                      loadingAgents={loadingAgents}
+                      onUpdate={onUpdateApplication}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <VerificationUploadModal
+              applicationId={application.id}
+              open={verificationModalOpen}
+              onOpenChange={setVerificationModalOpen}
+              onUploadComplete={() => fetchData(false)}
+            />
+          </>
         )}
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -738,71 +755,76 @@ export default function ApplicationPage({ params }: Props) {
                 )}
 
                 <div className="space-y-3">
-                  {application.documents.map((doc) => {
-                    const docTypeConfig = availableDocumentTypes.find(
-                      (type) => type.type === doc.documentType
+                  {application.documents
+                    .filter(
+                      (doc) =>
+                        doc.documentType !== DocumentType.VERIFICATION_RECORD
                     )
-                    return (
-                      <div
-                        key={doc.id}
-                        className="flex items-center justify-between rounded border p-3 hover:bg-gray-50"
-                      >
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {docTypeConfig?.label}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {docTypeConfig?.description}
-                          </p>
-                          {doc.fileName && (
-                            <p className="text-sm text-blue-500">
-                              {doc.fileName}
+                    .map((doc) => {
+                      const docTypeConfig = availableDocumentTypes.find(
+                        (type) => type.type === doc.documentType
+                      )
+                      return (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between rounded border p-3 hover:bg-gray-50"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {docTypeConfig?.label}
                             </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Badge className={getStatusColors(doc.status)}>
-                            {doc.status}
-                          </Badge>
-                          {doc.fileKey && (
+                            <p className="text-sm text-gray-500">
+                              {docTypeConfig?.description}
+                            </p>
+                            {doc.fileName && (
+                              <p className="text-sm text-blue-500">
+                                {doc.fileName}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge className={getStatusColors(doc.status)}>
+                              {doc.status}
+                            </Badge>
+                            {doc.fileKey && (
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  axios
+                                    .get(`/api/documents/${doc.id}`)
+                                    .then(({ data }) => {
+                                      window.open(data.url, "_blank")
+                                    })
+                                    .catch((error) => {
+                                      console.error(
+                                        "Failed to fetch document URL:",
+                                        error
+                                      )
+                                    })
+                                }}
+                                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
-                              onClick={() => {
-                                axios
-                                  .get(`/api/documents/${doc.id}`)
-                                  .then(({ data }) => {
-                                    window.open(data.url, "_blank")
-                                  })
-                                  .catch((error) => {
-                                    console.error(
-                                      "Failed to fetch document URL:",
-                                      error
-                                    )
-                                  })
-                              }}
-                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                              onClick={() => handleRemoveDocument(doc.id)}
+                              disabled={doc.fileKey !== null}
+                              className="border-red-200 text-red-600 hover:bg-red-50"
                             >
-                              <Eye className="mr-2 h-4 w-4" />
-                              View
+                              <Trash2 className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            onClick={() => handleRemoveDocument(doc.id)}
-                            disabled={doc.fileKey !== null}
-                            className="border-red-200 text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          </div>
+                          <DocumentReview
+                            document={doc}
+                            applicationId={application.id}
+                            onStatusChange={fetchData}
+                          />
                         </div>
-                        <DocumentReview
-                          document={doc}
-                          applicationId={application.id}
-                          onStatusChange={fetchData}
-                        />
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
                 </div>
               </CardContent>
             </Card>
