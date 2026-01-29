@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,13 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Upload, X, FileText, Loader2, Eye, Trash2 } from "lucide-react"
+import { Upload, X, FileText, Loader2 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { uploadFile } from "@/lib/upload"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import axios from "axios"
+import axios, { isAxiosError } from "axios"
 import { DocumentType, Document } from "@prisma/client"
 
 interface VerificationUploadModalProps {
@@ -46,14 +45,7 @@ export default function VerificationUploadModal({
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null)
 
-  // Fetch existing verification documents when modal opens
-  useEffect(() => {
-    if (open) {
-      fetchExistingDocuments()
-    }
-  }, [open, applicationId])
-
-  const fetchExistingDocuments = async () => {
+  const fetchExistingDocuments = useCallback(async () => {
     setLoadingDocs(true)
     try {
       const { data } = await axios.get(`/api/applications/${applicationId}`)
@@ -67,7 +59,14 @@ export default function VerificationUploadModal({
     } finally {
       setLoadingDocs(false)
     }
-  }
+  }, [applicationId])
+
+  // Fetch existing verification documents when modal opens
+  useEffect(() => {
+    if (open) {
+      fetchExistingDocuments()
+    }
+  }, [open, fetchExistingDocuments])
 
   const handleDeleteDocument = async (docId: string) => {
     if (
@@ -92,12 +91,16 @@ export default function VerificationUploadModal({
       if (onUploadComplete) {
         onUploadComplete()
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting document:", error)
+      let errorMessage = "Failed to delete document"
+      if (isAxiosError(error) && error.response?.data?.error) {
+        errorMessage = error.response.data.error
+      }
+
       toast({
         title: "Error",
-        description:
-          error?.response?.data?.error || "Failed to delete document",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -183,15 +186,6 @@ export default function VerificationUploadModal({
           clearInterval(progressInterval)
 
           if (typeof key === "string") {
-            const response = await axios.post(
-              `/api/applications/${applicationId}/documents/verification`,
-              {
-                fileName: fileItem.file.name,
-                fileKey: key,
-                fileType: fileItem.file.type,
-                documentType: DocumentType.VERIFICATION_RECORD,
-              }
-            )
             // Update progress to 100%
             setFiles((prev) =>
               prev.map((f, idx) =>
@@ -203,13 +197,25 @@ export default function VerificationUploadModal({
           } else {
             throw new Error("Upload failed: Invalid key returned")
           }
-        } catch (error: any) {
+        } catch (error) {
           console.error("Error uploading file:", error)
-          console.error("Error details:", {
-            message: error?.message,
-            response: error?.response?.data,
-            status: error?.response?.status,
-          })
+          let errorMessage = "Upload failed"
+          let errorDetails = {}
+
+          if (isAxiosError(error)) {
+            errorMessage =
+              error.response?.data?.error || error.message || "Upload failed"
+            errorDetails = {
+              message: error.message,
+              response: error.response?.data,
+              status: error.response?.status,
+            }
+          } else if (error instanceof Error) {
+            errorMessage = error.message
+            errorDetails = { message: error.message }
+          }
+
+          console.error("Error details:", errorDetails)
 
           failCount++
 
@@ -219,10 +225,7 @@ export default function VerificationUploadModal({
                 ? {
                     ...f,
                     uploading: false,
-                    error:
-                      error?.response?.data?.error ||
-                      error?.message ||
-                      "Upload failed",
+                    error: errorMessage,
                   }
                 : f
             )
@@ -230,7 +233,7 @@ export default function VerificationUploadModal({
 
           toast({
             title: "Upload Failed",
-            description: `Failed to upload ${fileItem.file.name}: ${error?.response?.data?.error || error?.message || "Unknown error"}`,
+            description: `Failed to upload ${fileItem.file.name}: ${errorMessage}`,
             variant: "destructive",
           })
         }
@@ -261,12 +264,13 @@ export default function VerificationUploadModal({
           variant: "destructive",
         })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Upload error:", error)
       toast({
         title: "Error",
         description:
-          error?.message || "Failed to upload verification documents",
+          (error as Error)?.message ||
+          "Failed to upload verification documents",
         variant: "destructive",
       })
     } finally {

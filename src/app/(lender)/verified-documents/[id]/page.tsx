@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Section from "@/components/shared/section"
-import { ChevronLeft, Eye, Download, FileText, Loader2, X } from "lucide-react"
+import { ChevronLeft, FileText, Loader2 } from "lucide-react"
 import axios from "axios"
 import { Application, Document } from "@prisma/client"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import Image from "next/image"
 
 interface Props {
   params: Promise<{ id: string }>
@@ -326,7 +327,7 @@ export default function DocumentVerifiedDetailPage({ params }: Props) {
                     </div>
                   </div>
                 )}
-                <img
+                <Image
                   src={previewModal.url}
                   alt={previewModal.fileName}
                   className={`h-auto w-full ${contentLoading ? "hidden" : ""}`}
