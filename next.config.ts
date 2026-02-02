@@ -20,6 +20,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cdn.sanity.io",
       },
+      {
+        protocol: "https",
+        hostname: "nwxtipioedjamyxpdhzs.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "rqdovfebkbkdoqshktbe.supabase.co",
+      },
     ],
   },
 
@@ -27,9 +35,9 @@ const nextConfig: NextConfig = {
     config.watchOptions = {
       ...(config.watchOptions || {}),
       ignored: ["**/node_modules/.prisma/**", "**/node_modules/**"],
-    };
-    return config;
+    }
+    return config
   },
-};
+}
 
 export default nextConfig;

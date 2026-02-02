@@ -75,6 +75,25 @@ export async function POST(
 
     // ✅ Ensure loanee owns the application
     if (application.userId !== session.user.id) {
+      console.error("Application ownership mismatch:", {
+        applicationUserId: application.userId,
+        sessionUserId: session.user.id,
+        applicationId,
+        agentId,
+      });
+
+      // Double-check user exists and session is valid
+      const currentUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!currentUser) {
+        return NextResponse.json(
+          { error: "Session invalid. Please log out and log in again." },
+          { status: 401 }
+        );
+      }
+
       return NextResponse.json(
         { error: "Not your application" },
         { status: 403 }

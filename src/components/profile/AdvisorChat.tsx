@@ -97,13 +97,13 @@ export default function AdvisorChat({
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
                   isMe
-                    ? "bg-blue-600 text-white"
-                    : "border bg-white text-gray-800"
+                    ? "bg-white text-gray-800 border"
+                    : "bg-gray-200 text-gray-800"
                 }`}
               >
                 <p className="text-sm">{message.content}</p>
                 <div
-                  className={`mt-1 text-xs ${isMe ? "text-blue-200" : "text-gray-400"}`}
+                  className={`mt-1 text-xs ${isMe ? "text-gray-400" : "text-gray-500"}`}
                 >
                   {new Date(message.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -135,7 +135,7 @@ export default function AdvisorChat({
           <Button
             type="submit"
             disabled={loading || !newMessage.trim()}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-purple-600 hover:bg-purple-700"
           >
             Send
           </Button>

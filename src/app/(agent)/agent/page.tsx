@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 export default function Agents() {
   const fadeIn = {
@@ -17,6 +18,13 @@ export default function Agents() {
 
   const router = useRouter();
   const { data: session } = useSession();
+
+  // Redirect LOANEE users to /loanee
+  useEffect(() => {
+    if (session?.user?.role === "LOANEE") {
+      router.push("/loanee");
+    }
+  }, [session, router]);
 
   const handleLoginClick = () => {
     const role = session?.user?.role;

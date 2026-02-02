@@ -217,7 +217,6 @@ export default function DocumentVerifiedDetailPage({ params }: Props) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-emerald-600" />
               Verification Documents ({verificationDocs.length})
             </CardTitle>
           </CardHeader>
@@ -240,7 +239,7 @@ export default function DocumentVerifiedDetailPage({ params }: Props) {
                     className="flex items-center justify-between rounded-lg border p-4 hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-3">
-                      <FileText className="h-8 w-8 text-emerald-600" />
+                      <FileText className="h-6 w-6 text-purple-600" />
                       <div>
                         <p className="font-medium text-gray-900">
                           {doc.fileName || "Verification Document"}
@@ -318,9 +317,9 @@ export default function DocumentVerifiedDetailPage({ params }: Props) {
                 />
               </div>
             ) : previewModal.fileType === "image" ? (
-              <div className="relative">
+              <div className="relative h-[70vh] w-full">
                 {contentLoading && (
-                  <div className="flex items-center justify-center py-20">
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-50">
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
                       <p className="text-sm text-gray-600">Loading image...</p>
@@ -330,8 +329,10 @@ export default function DocumentVerifiedDetailPage({ params }: Props) {
                 <Image
                   src={previewModal.url}
                   alt={previewModal.fileName}
-                  className={`h-auto w-full ${contentLoading ? "hidden" : ""}`}
+                  fill
+                  className="object-contain"
                   onLoad={() => setContentLoading(false)}
+                  unoptimized
                 />
               </div>
             ) : (

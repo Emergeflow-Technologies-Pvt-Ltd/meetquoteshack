@@ -186,6 +186,24 @@ export default function VerificationUploadModal({
           clearInterval(progressInterval)
 
           if (typeof key === "string") {
+            // Update progress to 90% (file uploaded, now saving to DB)
+            setFiles((prev) =>
+              prev.map((f, idx) =>
+                idx === i ? { ...f, progress: 90, uploading: true } : f
+              )
+            )
+
+            // Save document record to database
+            await axios.post(
+              `/api/applications/${applicationId}/documents/verification`,
+              {
+                fileName: fileItem.file.name,
+                fileKey: key,
+                fileType: fileItem.file.type,
+                documentType: "VERIFICATION_RECORD",
+              }
+            )
+
             // Update progress to 100%
             setFiles((prev) =>
               prev.map((f, idx) =>

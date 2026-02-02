@@ -48,13 +48,14 @@ export default function SelectAdvisorButton({
     }
   }
 
+  // Don't show button when advisor is already selected
+  if (isSelected) {
+    return null
+  }
+
   return (
     <Button onClick={handleSelect} disabled={loading} className={className}>
-      {loading
-        ? "Processing..."
-        : isSelected
-          ? "Chat with Advisor"
-          : "Select Advisor"}
+      {loading ? "Processing..." : "Select Advisor"}
     </Button>
   )
 }
