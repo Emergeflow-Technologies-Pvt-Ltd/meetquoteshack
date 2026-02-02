@@ -10,12 +10,12 @@ import {
   Mail,
   Shield,
 } from "lucide-react";
-import { UserRole } from "@prisma/client";
+import { UserRole, Agent } from "@prisma/client";
 
 // import ManageSubscriptionButton from "@/components/shared/ManageSubscriptionButton";
 import ManageSubscriptionOpener from "@/components/ManageSubscriptionOpener";
-import PlanSelectorClientLoanee from "@/components/PlanSelectorClientLoanee";
 import AgentReviewsPanel from "@/components/agent/AgentReviewsPanel";
+import ConnectAdvisorCard from "@/components/profile/ConnectAdvisorCard";
 import { getAccessStatus } from "@/lib/subscription-access";
 
 type SubscriptionInfo = {
@@ -64,6 +64,7 @@ export default async function ProfilePage() {
         include: { agent: true },
         orderBy: { createdAt: "desc" },
       },
+      advisor: true,
     },
   });
 
@@ -75,9 +76,12 @@ export default async function ProfilePage() {
 
   // let subData: any = null;
   let subData: SubscriptionInfo | null = null;
-
+  let agents: Agent[] = [];
 
   if (isLoanee) {
+    agents = await prisma.agent.findMany({
+      orderBy: { createdAt: "desc" },
+    });
     try {
       const hdrs = await headers();
       const host = hdrs.get("host");
@@ -129,9 +133,6 @@ export default async function ProfilePage() {
       });
     }
   }
-
-  const latestApplicationWithAgentCode =
-    user.applications.find((app) => app.agentCode) ?? null;
 
 function normalizeStatus(
   status: string | null | undefined
@@ -251,38 +252,7 @@ const loaneeData =
 
       {isLoanee && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Agent Information</CardTitle>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">Agent Code Used:</span>{" "}
-                {latestApplicationWithAgentCode?.agentCode ? (
-                  <Badge className="ml-2 bg-indigo-600 text-white">
-                    {latestApplicationWithAgentCode.agentCode}
-                  </Badge>
-                ) : (
-                  <span className="ml-1 text-gray-500">
-                    No agent code used yet
-                  </span>
-                )}
-              </div>
-
-              {latestApplicationWithAgentCode?.agent && (
-                <p className="text-sm font-medium text-gray-600">
-                  Your Agent:{" "}
-                  <span className="font-medium">
-                    {latestApplicationWithAgentCode.agent.name}
-                  </span>{" "}
-                  ({latestApplicationWithAgentCode.agent.email})
-                </p>
-              )}
-
-              <PlanSelectorClientLoanee />
-            </CardContent>
-          </Card>
+          <ConnectAdvisorCard agents={agents} advisor={user.advisor} />
 
           {/* <ManageSubscriptionOpener
                 plan={subData?.subscription?.plan ?? null}
@@ -325,7 +295,7 @@ const loaneeData =
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F59E0B] text-white">
-            <Sparkles height={16} width={16} />          
+            <Sparkles height={16} width={16} />
           </div>
           <h3 className="text-lg font-semibold text-[#92400E]">
             Free Trial

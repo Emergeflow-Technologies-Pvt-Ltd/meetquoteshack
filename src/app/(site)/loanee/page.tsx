@@ -33,6 +33,7 @@ export default function Loanee() {
   const router = useRouter();
   const { toast } = useToast();
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -102,9 +103,66 @@ export default function Loanee() {
     }
   };
 
+  const handleSubscribe = (plan: "basic" | "smart") => {
+    if (status === "unauthenticated") {
+      setShowAuthModal(true);
+    } else {
+      router.push(`/billing/loanee?plan=${plan}&interval=monthly`);
+    }
+  };
+
   return (
     <>
       {showPaywall && <PaywallClient fullscreen={false} />}
+
+      {/* Authentication Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-black/60 p-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+            <div className="space-y-6 text-center">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Not Logged In
+              </h3>
+              <p className="text-gray-600">
+                Please sign up or log in to subscribe to a plan
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => router.push("/loanee/login")}
+                  className="w-full rounded-lg bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => router.push("/loanee/login")}
+                  className="w-full rounded-lg bg-white px-6 py-1 font-semibold text-violet-600"
+                >
+                  Sign Up
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="py-10 xl:py-20">
         <Head>
@@ -332,7 +390,7 @@ export default function Loanee() {
                           </CardDescription>
                         </div>
 
-                        <div className="mb-6">
+                        <div className="mb-6 text-left">
                           <span className="text-[38px] font-bold text-[#22C55E]">
                             $0
                           </span>
@@ -355,6 +413,12 @@ export default function Loanee() {
                             Chat with lenders
                           </li>
                         </ul>
+                        <button
+                          onClick={() => handleSubscribe("basic")}
+                          className="mt-6 w-full rounded-lg border-2 border-[#10B981] bg-white px-6 py-3 font-semibold text-[#10B981] transition hover:bg-[#D1FAE5]"
+                        >
+                          Subscribe
+                        </button>
                       </CardContent>
                     </Card>
 
@@ -373,14 +437,16 @@ export default function Loanee() {
                           </div>
                         </div>
 
-                        <CardTitle className="text-[18px] font-semibold text-gray-900">
-                          Smart
-                        </CardTitle>
-                        <CardDescription className="mb-5 text-sm text-gray-500">
-                          Proactive borrowers
-                        </CardDescription>
+                        <div className="text-left">
+                          <CardTitle className="text-[18px] font-semibold text-gray-900">
+                            Smart
+                          </CardTitle>
+                          <CardDescription className="mb-5 text-sm text-gray-500">
+                            Proactive borrowers
+                          </CardDescription>
+                        </div>
 
-                        <div className="mt-4">
+                        <div className="mt-4 text-left">
                           <span className="text-[38px] font-bold text-violet-600">
                             $2.99
                           </span>
@@ -415,6 +481,12 @@ export default function Loanee() {
                             Connect with an advisor
                           </li>
                         </ul>
+                        <button
+                          onClick={() => handleSubscribe("smart")}
+                          className="mt-6 w-full rounded-lg bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
+                        >
+                          Subscribe
+                        </button>
                       </CardContent>
                     </Card>
                   </div>

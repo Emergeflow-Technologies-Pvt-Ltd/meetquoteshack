@@ -1,6 +1,8 @@
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import AgentDetailsPage from "../../components/AgentDetailsPage";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function Page({
   params,
@@ -8,6 +10,7 @@ export default async function Page({
   params: Promise<{ agentId: string }>;
 }) {
   const { agentId } = await params;
+  const session = await getServerSession(authOptions);
 
   const agent = await prisma.agent.findUnique({
     where: { id: agentId },
@@ -22,10 +25,17 @@ export default async function Page({
     orderBy: { createdAt: "desc" },
   });
 
-  const application = await prisma.application.findFirst({
-    where: { agentId: agent.id },
-    select: { id: true },
-  });
+  // ✅ Only get application if user is logged in and owns it
+  let application = null;
+  if (session?.user?.id) {
+    application = await prisma.application.findFirst({
+      where: {
+        agentId: agent.id,
+        userId: session.user.id, // ✅ Filter by current user
+      },
+      select: { id: true },
+    });
+  }
 
   return (
     <AgentDetailsPage

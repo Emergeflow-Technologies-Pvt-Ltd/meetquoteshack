@@ -28,7 +28,7 @@ import {
   ChevronLeft,
 } from "lucide-react"
 import axios from "axios"
-import { Application, Document, LoanStatus, Message } from "@prisma/client"
+import { Application, Document, LoanStatus, Message, DocumentType } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { availableDocumentTypes } from "@/lib/constants"
 import { Button } from "@/components/ui/button"
@@ -811,108 +811,114 @@ export default function ApplicationPage({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {application?.documents?.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className={`flex flex-col justify-between rounded-lg border p-4 transition-all md:flex-row md:items-center ${
-                        doc.status === "APPROVED"
-                          ? "border-green-200 bg-green-50"
-                          : doc.status === "UPLOADED"
-                            ? "border-blue-200 bg-blue-50"
-                            : "hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="mb-3 flex items-center gap-3 md:mb-0">
-                        <FileText
-                          className={`h-5 w-5 ${
-                            doc.status === "APPROVED"
-                              ? "text-green-500"
-                              : doc.status === "UPLOADED"
-                                ? "text-blue-500"
-                                : "text-muted-foreground"
-                          }`}
-                        />
-                        <div>
-                          <p className="font-medium">
-                            {
-                              availableDocumentTypes.find(
-                                (type) => type.type === doc.documentType
-                              )?.label
-                            }
-                          </p>
-                          {doc.fileName && (
-                            <p className="text-sm text-blue-600">
-                              {doc.fileName}
+                  {application?.documents
+                    ?.filter(
+                      (doc) =>
+                        doc.documentType !== DocumentType.VERIFICATION_RECORD
+                    )
+                    .map((doc) => (
+                      <div
+                        key={doc.id}
+                        className={`flex flex-col justify-between rounded-lg border p-4 transition-all md:flex-row md:items-center ${
+                          doc.status === "APPROVED"
+                            ? "border-green-200 bg-green-50"
+                            : doc.status === "UPLOADED"
+                              ? "border-blue-200 bg-blue-50"
+                              : "hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="mb-3 flex items-center gap-3 md:mb-0">
+                          <FileText
+                            className={`h-5 w-5 ${
+                              doc.status === "APPROVED"
+                                ? "text-green-500"
+                                : doc.status === "UPLOADED"
+                                  ? "text-blue-500"
+                                  : "text-muted-foreground"
+                            }`}
+                          />
+                          <div>
+                            <p className="font-medium">
+                              {
+                                availableDocumentTypes.find(
+                                  (type) => type.type === doc.documentType
+                                )?.label
+                              }
                             </p>
-                          )}
+                            {doc.fileName && (
+                              <p className="text-sm text-blue-600">
+                                {doc.fileName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  className={`${getStatusColors(
+                                    doc.status
+                                  )} flex items-center gap-1`}
+                                >
+                                  {getStatusIcon(doc.status)}
+                                  {doc.status}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {doc.status === "PENDING" &&
+                                  "Document needs to be uploaded"}
+                                {doc.status === "UPLOADED" &&
+                                  "Document is under review"}
+                                {doc.status === "APPROVED" &&
+                                  "Document has been approved"}
+                                {doc.status === "REJECTED" &&
+                                  "Document was rejected and needs to be re-uploaded"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          {doc.status !== "UPLOADED" &&
+                            doc.status !== "APPROVED" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={uploadingDocId === doc.id}
+                                onClick={() => {
+                                  const input = document.createElement("input")
+                                  input.type = "file"
+                                  input.accept =
+                                    ".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                  input.onchange = (e) => {
+                                    const file = (e.target as HTMLInputElement)
+                                      .files?.[0]
+                                    if (file) {
+                                      handleFileUpload(doc.id, file)
+                                    }
+                                  }
+                                  input.click()
+                                }}
+                              >
+                                {uploadingDocId === doc.id ? (
+                                  <>
+                                    <span className="mr-2">Uploading...</span>
+                                    <Progress
+                                      value={uploadProgress}
+                                      className="h-1 w-12"
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload
+                                  </>
+                                )}
+                              </Button>
+                            )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-3">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                className={`${getStatusColors(
-                                  doc.status
-                                )} flex items-center gap-1`}
-                              >
-                                {getStatusIcon(doc.status)}
-                                {doc.status}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {doc.status === "PENDING" &&
-                                "Document needs to be uploaded"}
-                              {doc.status === "UPLOADED" &&
-                                "Document is under review"}
-                              {doc.status === "APPROVED" &&
-                                "Document has been approved"}
-                              {doc.status === "REJECTED" &&
-                                "Document was rejected and needs to be re-uploaded"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        {doc.status !== "UPLOADED" &&
-                          doc.status !== "APPROVED" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={uploadingDocId === doc.id}
-                              onClick={() => {
-                                const input = document.createElement("input")
-                                input.type = "file"
-                                input.accept = ".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                input.onchange = (e) => {
-                                  const file = (e.target as HTMLInputElement)
-                                    .files?.[0]
-                                  if (file) {
-                                    handleFileUpload(doc.id, file)
-                                  }
-                                }
-                                input.click()
-                              }}
-                            >
-                              {uploadingDocId === doc.id ? (
-                                <>
-                                  <span className="mr-2">Uploading...</span>
-                                  <Progress
-                                    value={uploadProgress}
-                                    className="h-1 w-12"
-                                  />
-                                </>
-                              ) : (
-                                <>
-                                  <Upload className="mr-2 h-4 w-4" />
-                                  Upload
-                                </>
-                              )}
-                            </Button>
-                          )}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>

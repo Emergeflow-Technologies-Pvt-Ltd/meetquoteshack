@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { Menu, Bell } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Menu, Bell } from "lucide-react"
+import React, { useEffect, useState } from "react"
 import {
   Sheet,
   SheetContent,
@@ -9,23 +9,23 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet";
-import { Separator } from "../ui/separator";
+} from "../ui/sheet"
+import { Separator } from "../ui/separator"
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from "../ui/navigation-menu";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+} from "../ui/navigation-menu"
+import { Button } from "../ui/button"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
 // import { ToggleTheme } from "./toggle-theme";
-import Logo from "./logo";
-import { routeList } from "@/data/navbar";
-import { Session } from "next-auth";
-import { signOut } from "next-auth/react";
+import Logo from "./logo"
+import { routeList } from "@/data/navbar"
+import { Session } from "next-auth"
+import { signOut } from "next-auth/react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,64 +33,77 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "../ui/dropdown-menu"
 
-import { Prisma, UserRole } from "@prisma/client";
-import { useRouter } from "next/navigation";
+import { Prisma, UserRole } from "@prisma/client"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import ProfileIcon from "../assets/profile_icon.svg";
-import Image from "next/image";
-import axios from "axios";
-import NotificationIcon from "../assets/notification.svg";
+} from "../ui/dialog"
+import ProfileIcon from "../assets/profile_icon.svg"
+import Image from "next/image"
+import axios from "axios"
+import NotificationIcon from "../assets/notification.svg"
 
 export const Navbar = ({ session }: { session: Session | null }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [registerOpen, setRegisterOpen] = useState(false)
   const [notifications, setNotifications] = useState<
     Prisma.NotificationGetPayload<{ include: { application: true } }>[]
-  >([]);
+  >([])
 
-  const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalOpenMobile, setModalOpenMobile] = useState(false);
-  const userRole = session?.user?.role;
-  const router = useRouter();
+  const [loading, setLoading] = useState(true)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpenMobile, setModalOpenMobile] = useState(false)
+  const userRole = session?.user?.role
+  const router = useRouter()
 
   useEffect(() => {
     const fetchUnreadNotifications = async () => {
       try {
-        const { data } = await axios.get("/api/notifications");
-        let filteredNotifications = data;
+        const { data } = await axios.get("/api/notifications")
+        let filteredNotifications = data
 
         if (session?.user?.role === "LOANEE") {
           filteredNotifications = data.filter(
             (n: { type: string }) => n.type === "DOCUMENT_REQUEST"
-          );
+          )
         } else if (session?.user?.role === "LENDER") {
           filteredNotifications = data.filter(
             (n: { type: string }) => n.type === "DOCUMENT_SUBMITTED"
-          );
+          )
         }
 
-        setNotifications(filteredNotifications);
+        setNotifications(filteredNotifications)
       } catch (error) {
-        console.error("Error fetching unread notifications:", error);
+        console.error("Error fetching unread notifications:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUnreadNotifications();
-  }, [session?.user?.role]);
+    fetchUnreadNotifications()
+  }, [session?.user?.role])
 
-  const unreadCount = notifications.length;
+  const unreadCount = notifications.length
+
+  const visibleRoutes = routeList.filter((route) => {
+    if (!session) return true // Show all routes if not logged in
+
+    const { role } = session.user
+
+    // Only hide Lender and Agent routes for Loanee
+    if (role === "LOANEE") {
+      return !route.href.includes("/lender") && !route.href.includes("/agent")
+    }
+
+    return true // Show all routes for Lenders, Agents, Admins, etc.
+  })
 
   return (
     <header className="sticky top-2 z-40 lg:top-5">
@@ -119,7 +132,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   </SheetHeader>
 
                   <div className="flex flex-col gap-2">
-                    {routeList.map(({ href, label }) => (
+                    {visibleRoutes.map(({ href, label }) => (
                       <Button
                         key={href}
                         onClick={() => setIsOpen(false)}
@@ -140,8 +153,8 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             <button
                               className="relative flex items-center gap-2 rounded-md p-2 text-left hover:bg-accent"
                               onClick={() => {
-                                setIsOpen(false);
-                                setModalOpenMobile(true);
+                                setIsOpen(false)
+                                setModalOpenMobile(true)
                               }}
                             >
                               <Bell className="h-5 w-5" />
@@ -165,16 +178,28 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                           </Button>
                         )}
                         {userRole === UserRole.LENDER && (
-                          <Button
-                            onClick={() => setIsOpen(false)}
-                            asChild
-                            variant="ghost"
-                            className="justify-start text-base"
-                          >
-                            <Link href="/lender/dashboard">
-                              Lender Dashboard
-                            </Link>
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/lender/dashboard">
+                                Lender Dashboard
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/verified-documents">
+                                Verified Documents
+                              </Link>
+                            </Button>
+                          </>
                         )}
                         {userRole === UserRole.ADMIN && (
                           <Button
@@ -187,14 +212,34 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                           </Button>
                         )}
                         {userRole === UserRole.AGENT && (
-                          <Button
-                            onClick={() => setIsOpen(false)}
-                            asChild
-                            variant="ghost"
-                            className="justify-start text-base"
-                          >
-                            <Link href="/agent">Agent Dashboard</Link>
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/agent">Agent Dashboard</Link>
+                            </Button>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/verified-documents">
+                                Verified Documents
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/agentchat">Chat</Link>
+                            </Button>
+                          </>
                         )}
                         <Button
                           onClick={() => setIsOpen(false)}
@@ -206,8 +251,8 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                         </Button>
                         <Button
                           onClick={() => {
-                            signOut({ callbackUrl: "/" });
-                            setIsOpen(false);
+                            signOut({ callbackUrl: "/" })
+                            setIsOpen(false)
                           }}
                           variant="ghost"
                           className="justify-start text-base"
@@ -235,9 +280,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               <Button
                                 variant="secondary"
                                 onClick={() => {
-                                  router.push("/lender/login");
-                                  setIsOpen(false);
-                                  setLoginOpen(false);
+                                  router.push("/lender/login")
+                                  setIsOpen(false)
+                                  setLoginOpen(false)
                                 }}
                               >
                                 Login as Lender
@@ -245,9 +290,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               <Button
                                 variant="outline"
                                 onClick={() => {
-                                  router.push("/loanee/login");
-                                  setIsOpen(false);
-                                  setLoginOpen(false);
+                                  router.push("/loanee/login")
+                                  setIsOpen(false)
+                                  setLoginOpen(false)
                                 }}
                               >
                                 Login as Loanee
@@ -255,9 +300,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               <Button
                                 variant="outline"
                                 onClick={() => {
-                                  router.push("/loanee/login");
-                                  setIsOpen(false);
-                                  setLoginOpen(false);
+                                  router.push("/loanee/login")
+                                  setIsOpen(false)
+                                  setLoginOpen(false)
                                 }}
                               >
                                 Login as Agent
@@ -286,9 +331,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               <Button
                                 variant="secondary"
                                 onClick={() => {
-                                  router.push("/lender/login");
-                                  setIsOpen(false);
-                                  setRegisterOpen(false);
+                                  router.push("/lender/login")
+                                  setIsOpen(false)
+                                  setRegisterOpen(false)
                                 }}
                               >
                                 Register as Lender
@@ -296,9 +341,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               <Button
                                 variant="outline"
                                 onClick={() => {
-                                  router.push("/loanee/login");
-                                  setIsOpen(false);
-                                  setRegisterOpen(false);
+                                  router.push("/loanee/login")
+                                  setIsOpen(false)
+                                  setRegisterOpen(false)
                                 }}
                               >
                                 Register as Loanee
@@ -306,9 +351,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               <Button
                                 variant="outline"
                                 onClick={() => {
-                                  router.push("/loanee/login");
-                                  setIsOpen(false);
-                                  setRegisterOpen(false);
+                                  router.push("/loanee/login")
+                                  setIsOpen(false)
+                                  setRegisterOpen(false)
                                 }}
                               >
                                 Register as Agent
@@ -342,8 +387,8 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   >
                     <div
                       onClick={() => {
-                        setModalOpenMobile(false);
-                        router.push(`/applications/${n.applicationId}`);
+                        setModalOpenMobile(false)
+                        router.push(`/applications/${n.applicationId}`)
                       }}
                       className="flex items-start gap-3"
                     >
@@ -368,16 +413,16 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     {session?.user?.role === "LENDER" && (
                       <button
                         onClick={async (e) => {
-                          e.stopPropagation();
+                          e.stopPropagation()
                           try {
                             await axios.post(`/api/notifications/markAsRead`, {
                               notificationId: n.id,
-                            });
+                            })
                             setNotifications((prev) =>
                               prev.filter((notif) => notif.id !== n.id)
-                            );
+                            )
                           } catch (error) {
-                            console.error("Error marking as read:", error);
+                            console.error("Error marking as read:", error)
                           }
                         }}
                         className="rounded-md bg-green-100 px-3 py-1 text-xs text-green-800 transition hover:bg-green-200"
@@ -395,7 +440,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
           <NavigationMenu className="mx-auto hidden lg:block">
             <NavigationMenuList className="space-x-0">
               <NavigationMenuItem>
-                {routeList.map(({ href, label }) => (
+                {visibleRoutes.map(({ href, label }) => (
                   <NavigationMenuLink
                     key={href}
                     asChild
@@ -441,8 +486,8 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   >
                     <div
                       onClick={() => {
-                        setModalOpen(false);
-                        router.push(`/applications/${n.applicationId}`);
+                        setModalOpen(false)
+                        router.push(`/applications/${n.applicationId}`)
                       }}
                       className="flex items-start gap-3"
                     >
@@ -467,16 +512,16 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     {session?.user?.role === "LENDER" && (
                       <button
                         onClick={async (e) => {
-                          e.stopPropagation();
+                          e.stopPropagation()
                           try {
                             await axios.post(`/api/notifications/markAsRead`, {
                               notificationId: n.id,
-                            });
+                            })
                             setNotifications((prev) =>
                               prev.filter((notif) => notif.id !== n.id)
-                            );
+                            )
                           } catch (error) {
-                            console.error("Error marking as read:", error);
+                            console.error("Error marking as read:", error)
                           }
                         }}
                         className="rounded-md bg-green-100 px-3 py-1 text-xs text-green-800 transition hover:bg-green-200"
@@ -518,14 +563,31 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     </DropdownMenuItem>
                   )}
                   {userRole === UserRole.LENDER && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/lender/dashboard">Lender Dashboard</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/lender/dashboard">Lender Dashboard</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/verified-documents">
+                          Verified Documents
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {userRole === UserRole.AGENT && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/agent/dashboard">Agent Dashboard</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/agent/dashboard">Agent Dashboard</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/verified-documents">
+                          Verified Documents
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/agentchat">Chat</Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {userRole === UserRole.ADMIN && (
                     <DropdownMenuItem asChild>
@@ -595,5 +657,5 @@ export const Navbar = ({ session }: { session: Session | null }) => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}

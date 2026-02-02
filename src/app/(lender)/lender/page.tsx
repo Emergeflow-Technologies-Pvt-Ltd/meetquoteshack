@@ -16,15 +16,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 
 export default function Lenders() {
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  // Redirect LOANEE users to /loanee
+  useEffect(() => {
+    if (session?.user?.role === "LOANEE") {
+      router.push("/loanee");
+    }
+  }, [session, router]);
+
+  const handleSubscribe = (plan: "simple" | "standard") => {
+    if (status === "unauthenticated") {
+      setShowAuthModal(true);
+    } else {
+      router.push(`/billing/lender?plan=${plan}&interval=monthly`);
+    }
+  };
 
   const handleGetStartedClick = () => {
     const role = session?.user?.role;
@@ -100,6 +117,55 @@ export default function Lenders() {
 
   return (
     <div className="py-10 xl:py-20">
+      {/* Authentication Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-black/60 p-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+            <div className="space-y-6 text-center">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Not Logged In
+              </h3>
+              <p className="text-gray-600">
+                Please sign up or log in to subscribe to a plan
+              </p>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => router.push("/lender/login")}
+                  className="w-full rounded-lg bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => router.push("/lender/register")}
+                  className="w-full rounded-lg bg-white px-6 py-1 font-semibold text-violet-600"
+                >
+                  Sign Up
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Head>
         <title>
           Lend Smarter & Grow Your ROI With Our AI Lender Platform | QuoteShack
@@ -333,7 +399,7 @@ export default function Lenders() {
                         </CardDescription>
                       </div>
 
-                      <div className="mb-6">
+                      <div className="mb-6 text-left">
                         <span className="text-[38px] font-bold text-[#22C55E]">
                           $25
                         </span>
@@ -356,6 +422,12 @@ export default function Lenders() {
                           borrowers
                         </li>
                       </ul>
+                      <button
+                        onClick={() => handleSubscribe("simple")}
+                        className="mt-6 w-full rounded-lg border-2 border-[#10B981] bg-white px-6 py-3 font-semibold text-[#10B981] transition hover:bg-[#D1FAE5]"
+                      >
+                        Subscribe
+                      </button>
                     </CardContent>
                   </Card>
 
@@ -374,14 +446,16 @@ export default function Lenders() {
                         </div>
                       </div>
 
-                      <CardTitle className="text-[18px] font-semibold text-gray-900">
-                        Standard
-                      </CardTitle>
-                      <CardDescription className="mb-5 text-sm text-gray-500">
-                        Most popular for growing lenders
-                      </CardDescription>
+                      <div className="text-left">
+                        <CardTitle className="text-[18px] font-semibold text-gray-900">
+                          Standard
+                        </CardTitle>
+                        <CardDescription className="mb-5 text-sm text-gray-500">
+                          Most popular for growing lenders
+                        </CardDescription>
+                      </div>
 
-                      <div className="mt-4">
+                      <div className="mt-4 text-left">
                         <span className="text-[38px] font-bold text-violet-600">
                           $49
                         </span>
@@ -412,6 +486,12 @@ export default function Lenders() {
                           Analytics reports
                         </li>
                       </ul>
+                      <button
+                        onClick={() => handleSubscribe("standard")}
+                        className="mt-6 w-full rounded-lg bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
+                      >
+                        Subscribe
+                      </button>
                     </CardContent>
                   </Card>
                 </div>
