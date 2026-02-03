@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
-import prisma from "@/lib/db";
+import { NextResponse } from "next/server"
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types"
+import prisma from "@/lib/db"
 import {
   ResidencyStatus,
   EmploymentStatus,
@@ -10,26 +10,26 @@ import {
   MaritalStatus,
   PrequalStatus,
   CreditTier,
-} from "@prisma/client";
-import { getServerSession } from "next-auth";
-import { computePrequalification } from "@/lib/prequal";
+} from "@prisma/client"
+import { getServerSession } from "next-auth"
+import { computePrequalification } from "@/lib/prequal"
 
 export async function POST(request: Request) {
   try {
-    const data = await validateRequestData(request);
-    const user = await authenticateUser();
-    validateRequiredFields(data);
-    validateNumericFields(data);
+    const data = await validateRequestData(request)
+    const user = await authenticateUser()
+    validateRequiredFields(data)
+    validateNumericFields(data)
 
     // 1) resolve agent from agentCode
-    let agentConnect: Prisma.AgentWhereUniqueInput | undefined;
+    let agentConnect: Prisma.AgentWhereUniqueInput | undefined
     if (data.agentCode && data.agentCode.trim() !== "") {
       const agent = await prisma.agent.findUnique({
         where: { agentCode: data.agentCode.trim() },
-      });
+      })
 
       if (agent) {
-        agentConnect = { id: agent.id };
+        agentConnect = { id: agent.id }
       }
     }
 
@@ -42,7 +42,21 @@ export async function POST(request: Request) {
       estimatedPropertyValue: Number(data.estimatedPropertyValue ?? 0),
       workplaceDuration: Number(data.workplaceDuration ?? 0),
       loanType: data.loanType,
-    });
+      // Add refinance-specific fields
+      currentMortgageBalance: data.currentMortgageBalance
+        ? Number(data.currentMortgageBalance)
+        : undefined,
+      monthlyMortgagePayment: data.monthlyMortgagePayment
+        ? Number(data.monthlyMortgagePayment)
+        : undefined,
+      propertyTaxMonthly: data.propertyTaxMonthly
+        ? Number(data.propertyTaxMonthly)
+        : undefined,
+      heatingCostMonthly: data.heatingCosts
+        ? Number(data.heatingCosts)
+        : undefined,
+      condoFeesMonthly: data.condoFees ? Number(data.condoFees) : undefined,
+    })
 
     const formattedData: Prisma.ApplicationCreateInput = {
       user: {
@@ -123,11 +137,11 @@ export async function POST(request: Request) {
 
       prequalExplanation: prequal.statusDetail,
       prequalSnapshot: prequal,
-    };
+    }
 
-    return await createGeneralApplication(formattedData);
+    return await createGeneralApplication(formattedData)
   } catch (error) {
-    return handleError(error);
+    return handleError(error)
   }
 }
 
@@ -139,44 +153,44 @@ async function validateRequestData(
       "Invalid request",
       { message: "Request body is missing" },
       400
-    );
+    )
   }
 
-  const data: GeneralLoanFormValues = await request.json();
+  const data: GeneralLoanFormValues = await request.json()
   if (!data) {
     throw createErrorResponse(
       "Invalid request",
       { message: "Request data is missing" },
       400
-    );
+    )
   }
 
-  return data;
+  return data
 }
 
 async function authenticateUser() {
-  const session = await getServerSession();
+  const session = await getServerSession()
   if (!session?.user?.email) {
     throw createErrorResponse(
       "Unauthorized",
       { message: "User not authenticated" },
       401
-    );
+    )
   }
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-  });
+  })
 
   if (!user) {
     throw createErrorResponse(
       "User not found",
       { message: "User account does not exist" },
       404
-    );
+    )
   }
 
-  return user;
+  return user
 }
 
 function validateRequiredFields(data: GeneralLoanFormValues) {
@@ -196,9 +210,9 @@ function validateRequiredFields(data: GeneralLoanFormValues) {
     "personalPhone",
     "personalEmail",
     "loanAmount",
-  ] as const;
+  ] as const
 
-  const missingFields = requiredFields.filter((field) => !data[field]);
+  const missingFields = requiredFields.filter((field) => !data[field])
   if (missingFields.length) {
     throw createErrorResponse(
       "Missing required fields",
@@ -208,7 +222,7 @@ function validateRequiredFields(data: GeneralLoanFormValues) {
         providedData: data,
       },
       400
-    );
+    )
   }
 }
 
@@ -218,12 +232,12 @@ function validateNumericFields(data: GeneralLoanFormValues) {
     "housingPayment",
     "grossIncome",
     "loanAmount",
-  ] as const;
+  ] as const
   const invalidFields = numericFields.filter(
     (field) =>
       data[field] !== undefined &&
       (isNaN(Number(data[field])) || Number(data[field]) < 0)
-  );
+  )
 
   if (invalidFields.length) {
     throw createErrorResponse(
@@ -240,7 +254,7 @@ function validateNumericFields(data: GeneralLoanFormValues) {
         ),
       },
       400
-    );
+    )
   }
 }
 
@@ -250,13 +264,13 @@ async function createGeneralApplication(
   try {
     const application = await prisma.application.create({
       data: formattedData,
-    });
+    })
     return NextResponse.json(
       { message: "Success", id: application.id },
       { status: 201 }
-    );
+    )
   } catch (dbError) {
-    console.error("Database error:", dbError);
+    console.error("Database error:", dbError)
     throw createErrorResponse(
       "Database error",
       {
@@ -265,7 +279,7 @@ async function createGeneralApplication(
           dbError instanceof Error ? dbError.message : "Unknown database error",
       },
       500
-    );
+    )
   }
 }
 
@@ -274,14 +288,14 @@ function createErrorResponse(
   error: { message: string; [key: string]: unknown },
   status: number
 ) {
-  return NextResponse.json(error, { status });
+  return NextResponse.json(error, { status })
 }
 
 function handleError(error: unknown) {
-  console.error("Error:", error);
+  console.error("Error:", error)
   return createErrorResponse(
     "Internal Server Error",
     { message: "An unexpected error occurred" },
     500
-  );
+  )
 }
