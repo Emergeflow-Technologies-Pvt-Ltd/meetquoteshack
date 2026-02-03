@@ -138,9 +138,9 @@ export function computePrequalification(input: PrequalInput) {
   const minCredit = isMortgageLike ? 650 : 730
 
   // Different thresholds for refinance (Canadian) vs other loans
-  let maxDTIForPass = 36
-  let maxDTIForConditional = 40
-  let maxTDSRForPass = 34
+  const maxDTIForPass = 36
+  const maxDTIForConditional = 40
+  const maxTDSRForPass = 34
   let maxGDSForPass = 39
   let maxTDSForPass = 44
   let maxLTVIdeal = 80

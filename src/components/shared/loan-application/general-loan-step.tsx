@@ -68,7 +68,6 @@ export function GeneralLoanStep({
     useWatch({ control: form.control, name: "monthlyMortgagePayment" }) ?? 0
 
   const {
-    dti,
     frontEndDTI,
     backEndDTI,
     gds,
