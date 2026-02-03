@@ -8,24 +8,24 @@ import {
   PropertyType,
   ResidencyStatus,
   VehicleType,
-} from "@prisma/client";
-import * as z from "zod";
+} from "@prisma/client"
+import * as z from "zod"
 
 const moneyField = (message: string) =>
   z.preprocess(
     (val) => {
       if (val === "" || val === null || val === undefined) {
-        return 0;
+        return 0
       }
       if (typeof val === "string") {
-        const trimmed = val.trim();
-        if (trimmed === "") return 0;
-        return trimmed;
+        const trimmed = val.trim()
+        if (trimmed === "") return 0
+        return trimmed
       }
-      return val;
+      return val
     },
     z.number().min(0, message)
-  );
+  )
 
 export const generalLoanFormSchema = z
   .object({
@@ -54,37 +54,37 @@ export const generalLoanFormSchema = z
         if (typeof arg === "string") {
           // If string looks like YYYY-MM-DD, use directly
           if (/^\d{4}-\d{2}-\d{2}$/.test(arg)) {
-            return new Date(arg);
+            return new Date(arg)
           }
 
           // If string looks like DD-MM-YYYY or D-M-YYYY, convert to ISO
-          const parts = arg.split("-");
+          const parts = arg.split("-")
           if (parts.length === 3) {
-            const [p1, p2, p3] = parts;
+            const [p1, p2, p3] = parts
             // assume DD-MM-YYYY
             if (p3.length === 4) {
-              const iso = `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
-              return new Date(iso);
+              const iso = `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`
+              return new Date(iso)
             }
           }
 
           // fallback: let Date try to parse
-          const d = new Date(arg);
-          return isNaN(d.getTime()) ? undefined : d;
+          const d = new Date(arg)
+          return isNaN(d.getTime()) ? undefined : d
         }
-        if (arg instanceof Date) return arg;
-        return undefined;
+        if (arg instanceof Date) return arg
+        return undefined
       },
       z.date({ required_error: "Date of birth is required" }).refine(
         (date) => {
-          const now = new Date();
+          const now = new Date()
           const age =
             now.getFullYear() -
             date.getFullYear() -
             (now < new Date(now.getFullYear(), date.getMonth(), date.getDate())
               ? 1
-              : 0);
-          return age >= 18;
+              : 0)
+          return age >= 18
         },
         { message: "You must be at least 18 years old" }
       )
@@ -147,6 +147,14 @@ export const generalLoanFormSchema = z
       })
       .transform((val) => (val ? Number(val) : null)),
 
+    // Refinance-specific fields
+    currentMortgageBalance: moneyField(
+      "Please enter your current mortgage balance in CAD"
+    ).optional(),
+    monthlyMortgagePayment: moneyField(
+      "Please enter your current monthly mortgage payment in CAD"
+    ).optional(),
+
     hasCoApplicant: z.boolean({
       required_error: "Required",
       invalid_type_error: "Required",
@@ -157,21 +165,21 @@ export const generalLoanFormSchema = z
         (arg) => {
           if (typeof arg === "string") {
             if (/^\d{4}-\d{2}-\d{2}$/.test(arg)) {
-              return new Date(arg);
+              return new Date(arg)
             }
-            const parts = arg.split("-");
+            const parts = arg.split("-")
             if (parts.length === 3) {
-              const [p1, p2, p3] = parts;
+              const [p1, p2, p3] = parts
               if (p3.length === 4) {
-                const iso = `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
-                return new Date(iso);
+                const iso = `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`
+                return new Date(iso)
               }
             }
-            const d = new Date(arg);
-            return isNaN(d.getTime()) ? undefined : d;
+            const d = new Date(arg)
+            return isNaN(d.getTime()) ? undefined : d
           }
-          if (arg instanceof Date) return arg;
-          return undefined;
+          if (arg instanceof Date) return arg
+          return undefined
         },
         z
           .date()
@@ -224,9 +232,9 @@ export const generalLoanFormSchema = z
           code: z.ZodIssueCode.custom,
           message: "Monthly rent is required when housing status is Rent",
           path: ["mortgage"],
-        });
+        })
       }
     }
-  });
+  })
 
-export type GeneralLoanFormValues = z.infer<typeof generalLoanFormSchema>;
+export type GeneralLoanFormValues = z.infer<typeof generalLoanFormSchema>
