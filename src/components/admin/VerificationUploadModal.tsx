@@ -380,18 +380,22 @@ export default function VerificationUploadModal({
           )}
 
           {/* Existing Verification Documents */}
-          {existingDocs.length > 0 && (
+          {(existingDocs.length > 0 || loadingDocs) && (
             <>
               <Separator className="my-4" />
               <div>
                 <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                  Previously Uploaded Documents ({existingDocs.length})
+                  Previously Uploaded Documents
+                  {!loadingDocs && ` (${existingDocs.length})`}
                 </h3>
                 {loadingDocs ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                    <span className="ml-2 text-sm text-gray-500">
+                      Loading documents...
+                    </span>
                   </div>
-                ) : (
+                ) : existingDocs.length > 0 ? (
                   <div className="max-h-64 space-y-2 overflow-y-auto">
                     {existingDocs.map((doc) => (
                       <div
@@ -446,7 +450,7 @@ export default function VerificationUploadModal({
                       </div>
                     ))}
                   </div>
-                )}
+                ) : null}
               </div>
             </>
           )}
