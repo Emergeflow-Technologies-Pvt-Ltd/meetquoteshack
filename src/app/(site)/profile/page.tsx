@@ -1,51 +1,49 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/db";
-import { headers } from "next/headers";
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import prisma from "@/lib/db"
+import { headers } from "next/headers"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Section from "@/components/shared/section";
-import { Badge } from "@/components/ui/badge";
-import {
-  Mail,
-  Shield,
-} from "lucide-react";
-import { UserRole, Agent } from "@prisma/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Section from "@/components/shared/section"
+import { Badge } from "@/components/ui/badge"
+import { Mail, Shield } from "lucide-react"
+import { UserRole, Agent } from "@prisma/client"
 
 // import ManageSubscriptionButton from "@/components/shared/ManageSubscriptionButton";
-import ManageSubscriptionOpener from "@/components/ManageSubscriptionOpener";
-import AgentReviewsPanel from "@/components/agent/AgentReviewsPanel";
-import ConnectAdvisorCard from "@/components/profile/ConnectAdvisorCard";
-import { getAccessStatus } from "@/lib/subscription-access";
+import ManageSubscriptionOpener from "@/components/ManageSubscriptionOpener"
+import AgentReviewsPanel from "@/components/agent/AgentReviewsPanel"
+import ConnectAdvisorCard from "@/components/profile/ConnectAdvisorCard"
+import PrequalCheckCard from "@/components/profile/PrequalCheckCard"
+import { getAccessStatus } from "@/lib/subscription-access"
 
 type SubscriptionInfo = {
   subscription: {
-    plan: string | null;
-    status: string;
-    billingInterval: "MONTHLY" | "YEARLY" | null;
-    currentPeriodEnd: string | null;
-  } | null;
+    plan: string | null
+    status: string
+    billingInterval: "MONTHLY" | "YEARLY" | null
+    currentPeriodEnd: string | null
+  } | null
   freeTier: {
-    endsAt: string | null;
-    daysLeft: number | null;
-  } | null;
-};
+    endsAt: string | null
+    daysLeft: number | null
+  } | null
+}
 
 type AgentReviewWithRelations = {
-  id: string;
-  rating: number;
-  comment: string | null;
-  createdAt: Date;
+  id: string
+  rating: number
+  comment: string | null
+  createdAt: Date
   loanee: {
-    name: string | null;
-  };
+    name: string | null
+  }
   application: {
-    loanType: string | null;
-  };
-};
+    loanType: string | null
+  }
+}
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions)
 
   if (!session?.user?.email || !session.user.id) {
     return (
@@ -54,7 +52,7 @@ export default async function ProfilePage() {
           You must be logged in to view your profile.
         </p>
       </Section>
-    );
+    )
   }
 
   const user = await prisma.user.findUnique({
@@ -66,27 +64,26 @@ export default async function ProfilePage() {
       },
       advisor: true,
     },
-  });
+  })
 
-  if (!user) return null;
+  if (!user) return null
 
-  const isLoanee = user.role === UserRole.LOANEE;
-  const isLender = user.role === UserRole.LENDER;
-  const isAgent = user.role === UserRole.AGENT;
+  const isLoanee = user.role === UserRole.LOANEE
+  const isLender = user.role === UserRole.LENDER
+  const isAgent = user.role === UserRole.AGENT
 
   // let subData: any = null;
-  let subData: SubscriptionInfo | null = null;
-  let agents: Agent[] = [];
+  let subData: SubscriptionInfo | null = null
+  let agents: Agent[] = []
 
   if (isLoanee) {
     agents = await prisma.agent.findMany({
       orderBy: { createdAt: "desc" },
-    });
+    })
     try {
-      const hdrs = await headers();
-      const host = hdrs.get("host");
-      const protocol =
-        process.env.NODE_ENV === "development" ? "http" : "https";
+      const hdrs = await headers()
+      const host = hdrs.get("host")
+      const protocol = process.env.NODE_ENV === "development" ? "http" : "https"
 
       if (host) {
         const res = await fetch(
@@ -95,16 +92,16 @@ export default async function ProfilePage() {
             headers: { cookie: hdrs.get("cookie") ?? "" },
             cache: "no-store",
           }
-        );
+        )
 
-        if (res.ok) subData = await res.json();
+        if (res.ok) subData = await res.json()
       }
     } catch (err) {
-      console.error("[PROFILE_SUB_FETCH_FAILED]", err);
+      console.error("[PROFILE_SUB_FETCH_FAILED]", err)
     }
   }
 
-  let lenderAccess = null;
+  let lenderAccess = null
 
   if (isLender) {
     lenderAccess = await getAccessStatus(
@@ -112,15 +109,15 @@ export default async function ProfilePage() {
       user.role,
       user.createdAt,
       user.freeTierEndsAt
-    );
+    )
   }
 
   // let agentReviews: any[] = [];
-  let agentReviews: AgentReviewWithRelations[] = [];
+  let agentReviews: AgentReviewWithRelations[] = []
   if (isAgent) {
     const agent = await prisma.agent.findUnique({
       where: { userId: user.id },
-    });
+    })
 
     if (agent) {
       agentReviews = await prisma.agentReview.findMany({
@@ -130,27 +127,25 @@ export default async function ProfilePage() {
           application: { select: { loanType: true } },
         },
         orderBy: { createdAt: "desc" },
-      });
+      })
     }
   }
 
-function normalizeStatus(
-  status: string | null | undefined
-): "ACTIVE" | "TRIAL" | "INACTIVE" {
-  if (status === "ACTIVE" || status === "TRIAL") return status;
-  return "INACTIVE";
-}
+  function normalizeStatus(
+    status: string | null | undefined
+  ): "ACTIVE" | "TRIAL" | "INACTIVE" {
+    if (status === "ACTIVE" || status === "TRIAL") return status
+    return "INACTIVE"
+  }
 
-function normalizeBillingInterval(
-  interval: string | null | undefined
-): "MONTHLY" | "YEARLY" | null {
-  if (interval === "MONTHLY" || interval === "YEARLY") return interval;
-  return null;
-}
+  function normalizeBillingInterval(
+    interval: string | null | undefined
+  ): "MONTHLY" | "YEARLY" | null {
+    if (interval === "MONTHLY" || interval === "YEARLY") return interval
+    return null
+  }
 
-
-const loaneeData =
-  subData
+  const loaneeData = subData
     ? {
         subscription: subData.subscription
           ? {
@@ -162,10 +157,9 @@ const loaneeData =
           : null,
         freeTier: subData.freeTier,
       }
-    : null;
+    : null
 
-  const lenderData =
-  lenderAccess
+  const lenderData = lenderAccess
     ? {
         freeTierActive: lenderAccess.freeTierActive,
         freeTierDaysLeft: lenderAccess.freeTierDaysLeft,
@@ -184,10 +178,7 @@ const loaneeData =
             }
           : null,
       }
-    : null;
-
-
-
+    : null
 
   return (
     <Section className="mx-auto max-w-7xl space-y-8 px-4 py-12">
@@ -231,15 +222,15 @@ const loaneeData =
               {(() => {
                 switch (user.role) {
                   case UserRole.ADMIN:
-                    return "Admin";
+                    return "Admin"
                   case UserRole.AGENT:
-                    return "Agent";
+                    return "Agent"
                   case UserRole.LENDER:
-                    return "Lender";
+                    return "Lender"
                   case UserRole.LOANEE:
-                    return "Loanee";
+                    return "Loanee"
                   default:
-                    return user.role;
+                    return user.role
                 }
               })()}
             </p>
@@ -253,6 +244,7 @@ const loaneeData =
       {isLoanee && (
         <>
           <ConnectAdvisorCard agents={agents} advisor={user.advisor} />
+          <PrequalCheckCard />
 
           {/* <ManageSubscriptionOpener
                 plan={subData?.subscription?.plan ?? null}
@@ -262,10 +254,9 @@ const loaneeData =
                 trialEndsAt={subData?.freeTier?.endsAt ?? null}
                 freeTierDaysLeft={subData?.freeTier?.daysLeft ?? null}
               /> */}
-{isLoanee && loaneeData && (
-  <ManageSubscriptionOpener role="LOANEE" data={loaneeData} />
-)}
-
+          {isLoanee && loaneeData && (
+            <ManageSubscriptionOpener role="LOANEE" data={loaneeData} />
+          )}
         </>
       )}
 
@@ -341,7 +332,7 @@ const loaneeData =
       className="inline-flex mt-8 items-center gap-2 rounded-md bg-[#7C3AED] px-2.5 py-6.5 text-sm font-semibold text-white hover:bg-violet-700"
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-full  text-white">
-            <Sparkles height={16} width={16} />          
+            <Sparkles height={16} width={16} />
           </div>
      Upgrade Plan
     </Link>
@@ -455,11 +446,11 @@ const loaneeData =
         </Card>
 
       )} */}
-{isLender && lenderData && (
-  <ManageSubscriptionOpener role="LENDER" data={lenderData} />
-)}
+      {isLender && lenderData && (
+        <ManageSubscriptionOpener role="LENDER" data={lenderData} />
+      )}
 
       {isAgent && <AgentReviewsPanel reviews={agentReviews} />}
     </Section>
-  );
+  )
 }
