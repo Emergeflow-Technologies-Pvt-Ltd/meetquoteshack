@@ -62,3 +62,22 @@ export const quickPrequalSchema = z.object({
 })
 
 export type QuickPrequalValues = z.infer<typeof quickPrequalSchema>
+
+export interface PrequalResult {
+  prequalStatus: "APPROVED" | "CONDITIONAL" | "DENIED"
+  prequalLabel: string
+  statusDetail: string
+  frontEndDTI: number
+  backEndDTI: number
+  gds: number
+  tds: number
+  tdsr: number
+  lti: number
+  ltv: number
+  isRefinance: boolean
+  isMortgageLike: boolean
+  maxRefinanceAmount: number
+  availableRefinanceCash: number
+  eligibleMaxPayment: number
+  creditTier: string
+}
