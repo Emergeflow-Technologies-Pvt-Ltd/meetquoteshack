@@ -15,6 +15,21 @@ export const POSTS_QUERY =
   "excerpt": coalesce(excerpt, array::join(string::split((pt::text(body)), "")[0..200], "") + "...")
 }`);
 
+export const POSTS_PAGINATED_QUERY =
+  defineQuery(`*[_type == "post" && defined(slug.current)] | order(publishedAt desc) [$offset...($offset + $limit)] {
+  _id,
+  title,
+  slug,
+  mainImage {
+    asset->,
+    alt
+  },
+  publishedAt,
+  "author": author->name,
+  "categories": categories[]->title,
+  "excerpt": coalesce(excerpt, array::join(string::split((pt::text(body)), "")[0..200], "") + "...")
+}`);
+
 export const POST_QUERY =
   defineQuery(`*[_type == "post" && slug.current == $slug][0] {
   _id,
