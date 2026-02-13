@@ -61,7 +61,7 @@ export default async function BlogPostPage(props: Props) {
 
           {post.author && (
             <div className="flex items-center gap-2">
-              {post.author.image && (
+              {post.author.image?.asset && (
                 <div className="relative h-6 w-6 overflow-hidden rounded-full">
                   <Image
                     src={urlFor(post.author.image).width(48).height(48).url()}
@@ -94,7 +94,7 @@ export default async function BlogPostPage(props: Props) {
 
       {/* Hero Image */}
       <div className="relative mb-16 aspect-[21/9] w-full overflow-hidden rounded-2xl bg-muted shadow-sm">
-        {post.mainImage ? (
+        {post.mainImage?.asset ? (
           <Image
             src={urlFor(post.mainImage).width(1200).height(600).url()}
             alt={post.title}

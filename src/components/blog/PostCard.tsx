@@ -25,7 +25,7 @@ export function PostCard({ post }: PostCardProps) {
     >
       {/* Image Section */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-        {post.mainImage ? (
+        {post.mainImage?.asset ? (
           <Image
             src={urlFor(post.mainImage).width(800).height(500).url()}
             alt={post.title}
