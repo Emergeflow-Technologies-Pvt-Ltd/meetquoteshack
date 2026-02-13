@@ -5,7 +5,10 @@ export const POSTS_QUERY =
   _id,
   title,
   slug,
-  mainImage,
+  mainImage {
+    asset->,
+    alt
+  },
   publishedAt,
   "author": author->name,
   "categories": categories[]->title,
@@ -17,10 +20,20 @@ export const POST_QUERY =
   _id,
   title,
   slug,
-  mainImage,
+  mainImage {
+    asset->,
+    alt
+  },
   publishedAt,
   excerpt,
   body,
-  "author": author->{name, image, bio},
+  "author": author->{
+    name,
+    image {
+      asset->,
+      alt
+    },
+    bio
+  },
   "categories": categories[]->title
 }`);
