@@ -1,3 +1,5 @@
+import { CreditTier, PrequalStatus } from "@/lib/prequal"
+import { PrequalOffer } from "@/lib/prequal-bank-offer"
 import { LoanType } from "@prisma/client"
 import * as z from "zod"
 
@@ -64,20 +66,35 @@ export const quickPrequalSchema = z.object({
 export type QuickPrequalValues = z.infer<typeof quickPrequalSchema>
 
 export interface PrequalResult {
-  prequalStatus: "APPROVED" | "CONDITIONAL" | "DENIED"
-  prequalLabel: string
-  statusDetail: string
+  dti: number
   frontEndDTI: number
   backEndDTI: number
+
   gds: number
   tds: number
   tdsr: number
+
   lti: number
   ltv: number
-  isRefinance: boolean
+
+  proposedLoanPayment: number
+  availableForNewLoanMonthly: number
+  eligibleMaxPayment: number
+
+  creditTier: CreditTier
+  prequalStatus: PrequalStatus
+  prequalLabel: string
+  statusDetail: string
+
+  mortgageRangeMin: number
+  mortgageRangeMax: number
+
   isMortgageLike: boolean
+  isRefinance: boolean
+
   maxRefinanceAmount: number
   availableRefinanceCash: number
-  eligibleMaxPayment: number
-  creditTier: string
+
+  // ✅ NEW
+  offer: PrequalOffer
 }

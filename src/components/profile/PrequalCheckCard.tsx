@@ -30,25 +30,7 @@ export default function PrequalCheckCard() {
           const data = await response.json()
           if (data) {
             // Map API response to our types
-            setResult({
-              prequalStatus:
-                data.prequalStatus as PrequalResult["prequalStatus"],
-              prequalLabel: data.prequalLabel,
-              statusDetail: data.statusDetail || "",
-              frontEndDTI: Number(data.frontEndDTI),
-              backEndDTI: Number(data.backEndDTI),
-              gds: Number(data.gds),
-              tds: Number(data.tds),
-              tdsr: Number(data.tdsr),
-              lti: Number(data.lti),
-              ltv: Number(data.ltv),
-              isRefinance: data.isRefinance,
-              isMortgageLike: data.isMortgageLike,
-              maxRefinanceAmount: Number(data.maxRefinanceAmount),
-              availableRefinanceCash: Number(data.availableRefinanceCash),
-              eligibleMaxPayment: Number(data.eligibleMaxPayment),
-              creditTier: data.creditTier,
-            })
+            setResult(data)
             setFormValues({
               loanType: data.loanType,
               loanAmount: Number(data.loanAmount),

@@ -1,173 +1,249 @@
 // src/components/shared/prequalification-summary.tsx
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import type { Prisma, PrequalStatus } from "@prisma/client";
+"use client"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import type { Prisma, PrequalStatus } from "@prisma/client"
 
-type NumericLike = Prisma.Decimal | number | null;
+type NumericLike = Prisma.Decimal | number | null
 
 type ApplicationLike = {
-  prequalStatus: PrequalStatus | null;
-  prequalLabel: string | null;
-  prequalCreditTier: string | null;
-  prequalDti: NumericLike;
-  prequalTdsr: NumericLike;
-  prequalLti: NumericLike;
-  prequalLtv: NumericLike;
-  prequalPayment: NumericLike;
-  prequalRoomMonthly: NumericLike;
-  prequalMortMin: NumericLike;
-  prequalMortMax: NumericLike;
-};
+  prequalStatus: PrequalStatus | null
+  prequalLabel: string | null
+  prequalCreditTier: string | null
 
-type PrequalificationSummaryProps = {
-  // 🔹 Now nullable to match your `ApplicationWithRelations | null`
-  application: ApplicationLike | null | undefined;
-  context?: "lender" | "loanee";
-};
+  prequalDti: NumericLike
+  prequalTdsr: NumericLike
+  prequalLti: NumericLike
+  prequalLtv: NumericLike
+
+  prequalPayment: NumericLike
+  prequalRoomMonthly: NumericLike
+  prequalEligiblePayment?: NumericLike // ✅ NEW
+
+  prequalMortMin: NumericLike
+  prequalMortMax: NumericLike
+
+  // 🔥 OFFER
+  prequalRateMin?: NumericLike
+  prequalRateMax?: NumericLike
+  prequalLenderCategory?: string | null
+  prequalLenders?: string[] | null
+
+  // 🔥 REFINANCE
+  prequalMaxRefinanceAmount?: NumericLike
+  prequalAvailableCash?: NumericLike
+}
+
+type Props = {
+  application: ApplicationLike | null | undefined
+  context?: "lender" | "loanee"
+}
 
 export function PrequalificationSummary({
   application,
   context = "lender",
-}: PrequalificationSummaryProps) {
-  // If no application or no prequal data, render nothing
-  if (!application || !application.prequalStatus) return null;
+}: Props) {
+  if (!application || !application.prequalStatus) return null
 
-  const {
-    prequalStatus,
-    prequalLabel,
-    prequalCreditTier,
-    prequalDti,
-    prequalTdsr,
-    prequalLti,
-    prequalLtv,
-    prequalPayment,
-    prequalRoomMonthly,
-    prequalMortMin,
-    prequalMortMax,
-  } = application;
+  const toNum = (v: NumericLike | undefined): number | null =>
+    v === null || v === undefined ? null : Number(v)
 
-  const toNum = (v: NumericLike): number | null =>
-    v === null || v === undefined ? null : Number(v);
+  const dti = toNum(application.prequalDti)
+  const tdsr = toNum(application.prequalTdsr)
+  const lti = toNum(application.prequalLti)
+  const ltv = toNum(application.prequalLtv)
 
-  const dti = toNum(prequalDti);
-  const tdsr = toNum(prequalTdsr);
-  const lti = toNum(prequalLti);
-  const ltv = toNum(prequalLtv);
-  const payment = toNum(prequalPayment);
-  const roomMonthly = toNum(prequalRoomMonthly);
-  const mortMin = toNum(prequalMortMin);
-  const mortMax = toNum(prequalMortMax);
+  const payment = toNum(application.prequalPayment)
+  const roomMonthly = toNum(application.prequalRoomMonthly)
+  const eligiblePayment = toNum(application.prequalEligiblePayment)
+
+  const mortMin = toNum(application.prequalMortMin)
+  const mortMax = toNum(application.prequalMortMax)
+
+  const rateMin = toNum(application.prequalRateMin)
+  const rateMax = toNum(application.prequalRateMax)
+
+  const refinanceMax = toNum(application.prequalMaxRefinanceAmount)
+  const refinanceCash = toNum(application.prequalAvailableCash)
+
+  // ✅ fallback for backward compatibility
+  const displayEligiblePayment = eligiblePayment ?? payment ?? null
 
   const badgeClass =
-    prequalStatus === "APPROVED"
+    application.prequalStatus === "APPROVED"
       ? "bg-emerald-100 text-emerald-800"
-      : prequalStatus === "CONDITIONAL"
+      : application.prequalStatus === "CONDITIONAL"
         ? "bg-amber-100 text-amber-800"
-        : "bg-red-100 text-red-800";
+        : "bg-red-100 text-red-800"
 
-  const lenderExplanation =
-    prequalStatus === "APPROVED"
-      ? "Based on the declared income, debts, credit score and requested amount, this application meets the current automated pre-qualification thresholds."
-      : prequalStatus === "CONDITIONAL"
-        ? "This file is close to meeting automated guidelines. Approval may be possible with a lower loan amount, stronger down payment, or compensating factors."
-        : "Based on the declared data, the application does not meet the automated pre-qualification thresholds. Manual review is recommended if there are additional compensating factors.";
-
-  const loaneeExplanation =
-    prequalStatus === "APPROVED"
-      ? "Based on the information you provided, you currently meet our automated pre-qualification guidelines for the requested loan amount."
-      : prequalStatus === "CONDITIONAL"
-        ? "You are close to meeting our automated guidelines. A smaller loan amount, larger down payment, or stronger overall profile may help."
-        : "Based on the information entered, you do not currently meet our automated pre-qualification guidelines. This is not a final decision; a lender may still review your file manually.";
-
+  // ✅ RESTORED detailed explanation logic
   const explanation =
-    context === "lender" ? lenderExplanation : loaneeExplanation;
+    context === "lender"
+      ? application.prequalStatus === "APPROVED"
+        ? "Based on the declared income, debts, and credit profile, this application meets automated pre-qualification thresholds."
+        : application.prequalStatus === "CONDITIONAL"
+          ? "This file is close to meeting guidelines. Adjustments or compensating factors may help."
+          : "The application does not meet automated thresholds. Manual review may still be possible."
+      : application.prequalStatus === "APPROVED"
+        ? "You meet the current pre-qualification criteria."
+        : application.prequalStatus === "CONDITIONAL"
+          ? "You are close to qualifying. Improvements may help."
+          : "You currently do not meet pre-qualification criteria."
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base font-semibold">
-          Pre-qualification Snapshot (System)
+          Pre-qualification Snapshot
         </CardTitle>
+
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}`}
         >
-          {prequalLabel}
+          {application.prequalLabel}
         </span>
       </CardHeader>
-      <CardContent className="space-y-4 text-sm">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Credit Tier</p>
-            <p className="font-medium">{prequalCreditTier || "N/A"}</p>
+
+      <CardContent className="space-y-5 text-sm">
+        {/* ================= FINANCIAL RATIOS ================= */}
+        <div>
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">
+            Financial Ratios
+          </p>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Metric
+              label="DTI"
+              value={dti !== null ? `${dti.toFixed(1)}%` : "--"}
+            />
+            <Metric
+              label="TDSR"
+              value={tdsr !== null ? `${tdsr.toFixed(1)}%` : "--"}
+            />
+            <Metric
+              label="LTI"
+              value={lti !== null ? `${lti.toFixed(1)}%` : "--"}
+            />
+            {ltv !== null && ltv > 0 && (
+              <Metric label="LTV" value={`${ltv.toFixed(1)}%`} />
+            )}
           </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">DTI (Back-End)</p>
-            <p className="font-medium">
-              {dti != null ? `${dti.toFixed(1)}%` : "--"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">TDSR</p>
-            <p className="font-medium">
-              {tdsr != null ? `${tdsr.toFixed(1)}%` : "--"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">LTI</p>
-            <p className="font-medium">
-              {lti != null ? `${lti.toFixed(1)}%` : "--"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">
-              Est. Proposed Payment
-            </p>
-            <p className="font-medium">
-              {payment != null && payment > 0
-                ? `$${payment.toFixed(2)}/mo`
-                : "--"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">
-              Room for New Loan (DTI rule)
-            </p>
-            <p className="font-medium">
-              {roomMonthly != null && roomMonthly > 0
-                ? `$${roomMonthly.toFixed(2)}/mo`
-                : "--"}
-            </p>
-          </div>
-
-          {ltv != null && ltv > 0 && (
-            <div>
-              <p className="text-xs text-muted-foreground">LTV</p>
-              <p className="font-medium">{ltv.toFixed(1)}%</p>
-            </div>
-          )}
-
-          {mortMin != null && mortMax != null && mortMin > 0 && mortMax > 0 && (
-            <div className="col-span-2">
-              <p className="text-xs text-muted-foreground">
-                Suggested Mortgage Range
-              </p>
-              <p className="font-medium">
-                ${mortMin.toLocaleString()} – ${mortMax.toLocaleString()}
-              </p>
-            </div>
-          )}
         </div>
 
-        <p className="mt-2 text-xs font-medium text-black">{explanation}</p>
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          This is an automated pre-qualification snapshot based on the
-          information provided in the application. It is not a credit decision.
+        {/* ================= AFFORDABILITY ================= */}
+        <div>
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">
+            Affordability
+          </p>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            <Metric
+              label="Est. Payment"
+              value={payment !== null ? `$${payment.toFixed(0)}/mo` : "--"}
+            />
+            <Metric
+              label="Room Available"
+              value={
+                roomMonthly !== null ? `$${roomMonthly.toFixed(0)}/mo` : "--"
+              }
+            />
+            <Metric
+              label="Max Eligible Payment"
+              value={
+                displayEligiblePayment !== null
+                  ? `$${displayEligiblePayment.toFixed(0)}/mo`
+                  : "--"
+              }
+            />
+          </div>
+        </div>
+
+        {/* ================= MORTGAGE RANGE ================= */}
+        {mortMin !== null && mortMax !== null && mortMin > 0 && mortMax > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground">
+              Suggested Mortgage Range
+            </p>
+            <p className="font-semibold">
+              ${mortMin.toLocaleString()} – ${mortMax.toLocaleString()}
+            </p>
+          </div>
+        )}
+
+        {/* ================= OFFER ================= */}
+        {(rateMin !== null || application.prequalLenderCategory) && (
+          <div className="rounded-md border bg-muted p-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">
+              Estimated Offer
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {rateMin !== null && rateMax !== null && (
+                <Metric
+                  label="Rate Range"
+                  value={`${rateMin}% – ${rateMax}%`}
+                />
+              )}
+
+              <Metric
+                label="Lender Type"
+                value={application.prequalLenderCategory || "--"}
+              />
+            </div>
+
+            {application.prequalLenders?.length ? (
+              <p className="mt-2 text-xs">
+                <span className="text-muted-foreground">Lenders: </span>
+                {application.prequalLenders.join(", ")}
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        {/* ================= REFINANCE ================= */}
+        {(refinanceMax !== null || refinanceCash !== null) && (
+          <div className="rounded-md border bg-blue-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-blue-900">
+              Refinance Insights
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Metric
+                label="Max Refinance"
+                value={
+                  refinanceMax !== null
+                    ? `$${refinanceMax.toLocaleString()}`
+                    : "--"
+                }
+              />
+              <Metric
+                label="Available Cash"
+                value={
+                  refinanceCash !== null
+                    ? `$${refinanceCash.toLocaleString()}`
+                    : "--"
+                }
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ================= FOOTER ================= */}
+        <p className="text-xs font-medium">{explanation}</p>
+        <p className="text-[10px] text-muted-foreground">
+          This is an automated pre-qualification snapshot based on provided
+          data. It is not a final credit decision.
         </p>
       </CardContent>
     </Card>
-  );
+  )
+}
+
+/* 🔹 Reusable Metric */
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-medium">{value}</p>
+    </div>
+  )
 }
