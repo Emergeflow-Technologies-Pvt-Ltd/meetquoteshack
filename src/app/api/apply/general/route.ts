@@ -335,14 +335,18 @@ async function createGeneralApplication(
     })
 
     // ✅ send email if lender exists
-    if (application.lender?.email) {
-      await sendNewApplicationReceivedEmail({
-        lenderEmail: application.lender.email,
-        applicantName: `${application.firstName} ${application.lastName}`,
-        loanType: application.loanType,
-        amount: application.loanAmount.toString(),
-        applicationId: application.id,
-      })
+    try {
+      if (application.lender?.email) {
+        await sendNewApplicationReceivedEmail({
+          lenderEmail: application.lender.email,
+          applicantName: `${application.firstName} ${application.lastName}`,
+          loanType: application.loanType,
+          amount: application.loanAmount.toString(),
+          applicationId: application.id,
+        })
+      }
+    } catch (emailError) {
+      console.error("❌ Email failed:", emailError)
     }
 
     return NextResponse.json(
