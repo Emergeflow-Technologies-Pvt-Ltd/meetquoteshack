@@ -202,14 +202,25 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                           </>
                         )}
                         {userRole === UserRole.ADMIN && (
-                          <Button
-                            onClick={() => setIsOpen(false)}
-                            asChild
-                            variant="ghost"
-                            className="justify-start text-base"
-                          >
-                            <Link href="/admin">Admin Dashboard</Link>
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/admin">Admin Dashboard</Link>
+                            </Button>
+
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/admin/customform">Custom Forms</Link>
+                            </Button>
+                          </>
                         )}
                         {userRole === UserRole.AGENT && (
                           <>
@@ -590,9 +601,15 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                     </>
                   )}
                   {userRole === UserRole.ADMIN && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin">Admin Dashboard</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">Admin Dashboard</Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/customform">Custom Forms</Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuItem asChild>
                     <Link href="/profile">Profile</Link>
