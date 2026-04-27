@@ -1,17 +1,25 @@
-"use client";
+"use client"
 
-import React from "react";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import Section from "@/components/shared/section";
-import Image from "next/image";
-import Icon from "../../../../components/assets/google-icon.svg";
+import React from "react"
+import { signIn } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import Section from "@/components/shared/section"
+import Image from "next/image"
+import Icon from "../../../../components/assets/google-icon.svg"
+import { useSearchParams } from "next/navigation"
 
 export default function LoaneeLogin() {
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect")
+
+  const callbackUrl = redirect
+    ? decodeURIComponent(redirect)
+    : "/loanee/loan-application"
+
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/loanee/loan-application" });
-  };
+    signIn("google", { callbackUrl })
+  }
 
   return (
     <Section className="mt-24">
@@ -40,5 +48,5 @@ export default function LoaneeLogin() {
         </Card>
       </div>
     </Section>
-  );
+  )
 }

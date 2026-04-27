@@ -21,6 +21,7 @@ export function PrequalResultDisplay({
             : "border-red-500 bg-red-50/50"
       }`}
     >
+      {/* ================= HEADER ================= */}
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold">Pre-qualification Summary</p>
@@ -42,162 +43,220 @@ export function PrequalResultDisplay({
         </span>
       </div>
 
-      {/* Show refinance-specific info for Canadian refinance */}
+      {/* ================= REFINANCE ================= */}
       {result.isRefinance ? (
         <>
-          {/* Canadian GDS/TDS Display */}
+          {/* GDS / TDS */}
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded border bg-background p-3">
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  GDS (Housing Only)
-                </p>
-                <span
-                  className={`text-sm font-bold ${
-                    result.gds <= 39 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {result.gds.toFixed(1)}%
-                </span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-gray-200">
-                <div
-                  className={`h-2 rounded-full ${
-                    result.gds <= 39 ? "bg-green-500" : "bg-red-500"
-                  }`}
-                  style={{ width: `${Math.min(result.gds, 100)}%` }}
-                />
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">Max: 39%</p>
-            </div>
-
-            <div className="rounded border bg-background p-3">
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">TDS (All Debts)</p>
-                <span
-                  className={`text-sm font-bold ${
-                    result.tds <= 44 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {result.tds.toFixed(1)}%
-                </span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-gray-200">
-                <div
-                  className={`h-2 rounded-full ${
-                    result.tds <= 44 ? "bg-green-500" : "bg-red-500"
-                  }`}
-                  style={{ width: `${Math.min(result.tds, 100)}%` }}
-                />
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">Max: 44%</p>
-            </div>
+            <MetricBar label="GDS" value={result.gds} limit={39} />
+            <MetricBar label="TDS" value={result.tds} limit={44} />
           </div>
 
-          {/* Refinance Analysis */}
+          {/* Refinance Info */}
           <div className="space-y-1 rounded border bg-background p-3 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                Available Refinance Cash:
-              </span>
-              <span className="font-bold text-emerald-600">
-                ${result.availableRefinanceCash.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">LTV:</span>
-              <span
-                className={
-                  result.ltv > 80 ? "font-bold text-red-600" : "font-medium"
-                }
-              >
-                {result.ltv.toFixed(1)}%
-              </span>
-            </div>
+            <Row
+              label="Max Refinance"
+              value={`$${result.maxRefinanceAmount.toLocaleString()}`}
+            />
+            <Row
+              label="Available Cash"
+              value={`$${result.availableRefinanceCash.toLocaleString()}`}
+              highlight
+            />
+            <Row
+              label="LTV"
+              value={`${result.ltv.toFixed(1)}%`}
+              danger={result.ltv > 80}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-xs text-muted-foreground">Credit Score</p>
-              <p className="font-medium">
-                {creditScore} ({result.creditTier})
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">LTI</p>
-              <p className="font-medium">{result.lti.toFixed(1)}</p>
-            </div>
+            <Metric
+              label="Credit"
+              value={`${creditScore} (${result.creditTier})`}
+            />
+            <Metric label="LTI" value={result.lti.toFixed(1)} />
           </div>
         </>
       ) : (
         <>
-          {/* Regular DTI Display for non-refinance loans */}
+          {/* ================= DTI ================= */}
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded border bg-background p-3">
-              <p className="mb-1 text-xs text-muted-foreground">Current DTI</p>
-              <p className="text-2xl font-bold">
-                {result.frontEndDTI.toFixed(1)}%
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Existing debts only
-              </p>
-            </div>
-
-            <div className="rounded border bg-background p-3">
-              <p className="mb-1 text-xs text-muted-foreground">
-                Estimated DTI
-              </p>
-              <p className="text-2xl font-bold">
-                {result.backEndDTI.toFixed(1)}%
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                With new loan payment
-              </p>
-            </div>
+            <MetricCard
+              title="Current DTI"
+              value={`${result.frontEndDTI.toFixed(1)}%`}
+              sub="Existing debts"
+            />
+            <MetricCard
+              title="Estimated DTI"
+              value={`${result.backEndDTI.toFixed(1)}%`}
+              sub="With new loan"
+            />
           </div>
 
+          {/* ================= CORE METRICS ================= */}
           <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Credit Score</p>
-              <p className="font-medium">
-                {creditScore} ({result.creditTier})
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">TDSR</p>
-              <p className="font-medium">{result.tdsr.toFixed(1)}%</p>
-            </div>
-
-            <div>
-              <p className="text-xs text-muted-foreground">LTI</p>
-              <p className="font-medium">{result.lti.toFixed(1)}</p>
-            </div>
+            <Metric
+              label="Credit"
+              value={`${creditScore} (${result.creditTier})`}
+            />
+            <Metric label="TDSR" value={`${result.tdsr.toFixed(1)}%`} />
+            <Metric label="LTI" value={result.lti.toFixed(1)} />
 
             {result.isMortgageLike && result.ltv > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground">LTV</p>
-                <p className="font-medium">{result.ltv.toFixed(1)}%</p>
-              </div>
+              <Metric label="LTV" value={`${result.ltv.toFixed(1)}%`} />
             )}
           </div>
 
-          <div className="rounded border bg-background p-3 text-sm">
-            <div className="flex justify-between">
-              <p className="text-xs text-muted-foreground">
-                Eligible Max Payment (15% of income):
-              </p>
-              <p className="font-medium">
-                ${result.eligibleMaxPayment.toLocaleString()}
-              </p>
-            </div>
+          {/* ================= CAPACITY ================= */}
+          <div className="space-y-2 rounded border bg-background p-3 text-sm">
+            <Row
+              label="Eligible Max Payment"
+              value={`$${result.eligibleMaxPayment.toLocaleString()}/mo`}
+            />
+            <Row
+              label="Room Available"
+              value={`$${result.availableForNewLoanMonthly.toLocaleString()}/mo`}
+            />
           </div>
         </>
       )}
 
+      {/* ================= MORTGAGE RANGE ================= */}
+      {result.isMortgageLike && result.mortgageRangeMax > 0 && (
+        <div className="rounded border bg-background p-3 text-sm">
+          <p className="text-xs text-muted-foreground">
+            Suggested Mortgage Range
+          </p>
+          <p className="font-semibold">
+            ${result.mortgageRangeMin.toLocaleString()} – $
+            {result.mortgageRangeMax.toLocaleString()}
+          </p>
+        </div>
+      )}
+
+      {/* ================= 🔥 OFFER ================= */}
+      {result.offer && result.prequalStatus !== "DECLINED" && (
+        <div className="space-y-2 rounded border bg-muted p-3">
+          <p className="text-xs font-semibold text-muted-foreground">
+            Estimated Offer
+          </p>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <Metric
+              label="Rate"
+              value={`${result.offer.rateRange.min}% – ${result.offer.rateRange.max}%`}
+            />
+            <Metric label="Category" value={result.offer.lenderCategory} />
+          </div>
+
+          <p className="text-xs">
+            <span className="text-muted-foreground">Lenders: </span>
+            {result.offer.lenders.join(", ")}
+          </p>
+
+          {result.offer.notes?.length > 0 && (
+            <ul className="list-disc pl-4 text-xs text-muted-foreground">
+              {result.offer.notes.map((n, i) => (
+                <li key={i}>{n}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* ================= STATUS ================= */}
       {result.statusDetail && (
         <p className="text-xs text-muted-foreground">{result.statusDetail}</p>
       )}
+    </div>
+  )
+}
+
+/* ================= SMALL COMPONENTS ================= */
+
+function Metric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-medium">{value}</p>
+    </div>
+  )
+}
+
+function Row({
+  label,
+  value,
+  highlight,
+  danger,
+}: {
+  label: string
+  value: string
+  highlight?: boolean
+  danger?: boolean
+}) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span
+        className={`font-medium ${
+          highlight
+            ? "font-bold text-emerald-600"
+            : danger
+              ? "text-red-600"
+              : ""
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function MetricCard({
+  title,
+  value,
+  sub,
+}: {
+  title: string
+  value: string
+  sub: string
+}) {
+  return (
+    <div className="rounded border bg-background p-3">
+      <p className="text-xs text-muted-foreground">{title}</p>
+      <p className="text-xl font-bold">{value}</p>
+      <p className="text-xs text-muted-foreground">{sub}</p>
+    </div>
+  )
+}
+
+function MetricBar({
+  label,
+  value,
+  limit,
+}: {
+  label: string
+  value: number
+  limit: number
+}) {
+  return (
+    <div className="rounded border bg-background p-3">
+      <div className="mb-1 flex justify-between text-xs">
+        <span>{label}</span>
+        <span className={value <= limit ? "text-green-600" : "text-red-600"}>
+          {value.toFixed(1)}%
+        </span>
+      </div>
+
+      <div className="h-2 rounded-full bg-gray-200">
+        <div
+          className={`h-2 rounded-full ${
+            value <= limit ? "bg-green-500" : "bg-red-500"
+          }`}
+          style={{ width: `${Math.min(value, 100)}%` }}
+        />
+      </div>
     </div>
   )
 }

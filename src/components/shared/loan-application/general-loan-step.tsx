@@ -67,6 +67,95 @@ export function GeneralLoanStep({
   const monthlyMortgagePayment =
     useWatch({ control: form.control, name: "monthlyMortgagePayment" }) ?? 0
 
+  const propertyTaxMonthly =
+    useWatch({ control: form.control, name: "propertyTaxMonthly" }) ?? 0
+
+  const heatingCosts =
+    useWatch({ control: form.control, name: "heatingCosts" }) ?? 0
+
+  const condoFees = useWatch({ control: form.control, name: "condoFees" }) ?? 0
+
+  // const {
+  //   frontEndDTI,
+  //   backEndDTI,
+  //   gds,
+  //   tds,
+  //   tdsr,
+  //   lti,
+  //   ltv,
+  //   creditTier,
+  //   prequalStatus,
+  //   prequalLabel,
+  //   statusDetail,
+  //   mortgageRangeMin,
+  //   mortgageRangeMax,
+  //   isMortgageLike,
+  //   isRefinance,
+  //   maxRefinanceAmount,
+  //   availableRefinanceCash,
+  //   eligibleMaxPayment,
+  // } = useMemo(
+  //   () =>
+  //     computePrequalification({
+  //       loanAmount,
+  //       creditScore,
+  //       grossIncome,
+  //       monthlyDebts,
+  //       estimatedPropertyValue,
+  //       workplaceDuration,
+  //       loanType,
+  //       currentMortgageBalance,
+  //       monthlyMortgagePayment,
+  //       propertyTaxMonthly: form.getValues("propertyTaxMonthly") || 0,
+  //       heatingCostMonthly: form.getValues("heatingCosts") || 0,
+  //       condoFeesMonthly: form.getValues("condoFees") || 0,
+  //     }),
+  //   [
+  //     loanAmount,
+  //     creditScore,
+  //     grossIncome,
+  //     monthlyDebts,
+  //     estimatedPropertyValue,
+  //     workplaceDuration,
+  //     loanType,
+  //     currentMortgageBalance,
+  //     monthlyMortgagePayment,
+  //     form,
+  //   ]
+  // )
+
+  const result = useMemo(
+    () =>
+      computePrequalification({
+        loanAmount,
+        creditScore,
+        grossIncome,
+        monthlyDebts,
+        estimatedPropertyValue,
+        workplaceDuration,
+        loanType,
+        currentMortgageBalance,
+        monthlyMortgagePayment,
+        propertyTaxMonthly,
+        heatingCostMonthly: heatingCosts,
+        condoFeesMonthly: condoFees,
+      }),
+    [
+      loanAmount,
+      creditScore,
+      grossIncome,
+      monthlyDebts,
+      estimatedPropertyValue,
+      workplaceDuration,
+      loanType,
+      currentMortgageBalance,
+      monthlyMortgagePayment,
+      propertyTaxMonthly,
+      heatingCosts,
+      condoFees,
+    ]
+  )
+
   const {
     frontEndDTI,
     backEndDTI,
@@ -86,35 +175,8 @@ export function GeneralLoanStep({
     maxRefinanceAmount,
     availableRefinanceCash,
     eligibleMaxPayment,
-  } = useMemo(
-    () =>
-      computePrequalification({
-        loanAmount,
-        creditScore,
-        grossIncome,
-        monthlyDebts,
-        estimatedPropertyValue,
-        workplaceDuration,
-        loanType,
-        currentMortgageBalance,
-        monthlyMortgagePayment,
-        propertyTaxMonthly: form.getValues("propertyTaxMonthly") || 0,
-        heatingCostMonthly: form.getValues("heatingCosts") || 0,
-        condoFeesMonthly: form.getValues("condoFees") || 0,
-      }),
-    [
-      loanAmount,
-      creditScore,
-      grossIncome,
-      monthlyDebts,
-      estimatedPropertyValue,
-      workplaceDuration,
-      loanType,
-      currentMortgageBalance,
-      monthlyMortgagePayment,
-      form,
-    ]
-  )
+    offer, // ✅ correct
+  } = result
 
   return (
     <div className="space-y-6">
@@ -395,6 +457,7 @@ export function GeneralLoanStep({
                 control={form.control}
                 name="coApplicantAddress"
                 label="Address"
+                required={false}
                 placeholder="123 Main St, City"
                 onPlaceSelected={({ address }) => {
                   form.setValue("coApplicantAddress", address)
@@ -674,6 +737,33 @@ export function GeneralLoanStep({
           {statusDetail && (
             <p className="text-xs text-muted-foreground">{statusDetail}</p>
           )}
+        </div>
+      )}
+      {offer && (
+        // {offer && prequalStatus !== "DECLINED" && (
+        <div className="space-y-2 rounded border bg-background p-3 text-sm">
+          <p className="text-xs font-semibold text-muted-foreground">
+            Estimated Offer
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Rate Range</p>
+              <p className="font-medium">
+                {offer.rateRange.min}% – {offer.rateRange.max}%
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs text-muted-foreground">Category</p>
+              <p className="font-medium">{offer.lenderCategory}</p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground">Lenders</p>
+            <p className="font-medium">{offer.lenders.join(", ")}</p>
+          </div>
         </div>
       )}
 

@@ -1,9 +1,9 @@
-"use client";
-import { useState, useEffect } from "react";
-import Section from "@/components/shared/section";
-import faqData from "@/data/faq";
-import Faq from "@/components/shared/Faq";
-import LoanTypes from "./LoanTypes";
+"use client"
+import { useState, useEffect } from "react"
+import Section from "@/components/shared/section"
+import faqData from "@/data/faq"
+import Faq from "@/components/shared/Faq"
+import LoanTypes from "./LoanTypes"
 import {
   Clock,
   DollarSign,
@@ -13,103 +13,111 @@ import {
   Check,
   Crown,
   Zap,
-} from "lucide-react";
-import { motion } from "framer-motion";
-import Head from "next/head";
-import { useSession } from "next-auth/react";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+} from "lucide-react"
+import { motion } from "framer-motion"
+import Head from "next/head"
+import { useSession } from "next-auth/react"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import PaywallClient from "@/components/shared/PaywallClient";
+} from "@/components/ui/card"
+import PaywallClient from "@/components/shared/PaywallClient"
 
 export default function Loanee() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const { toast } = useToast();
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [showPaywall, setShowPaywall] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
-    if (status !== "authenticated") return;
-    if (session?.user?.role !== "LOANEE") return;
+    if (status !== "authenticated") return
+    if (session?.user?.role !== "LOANEE") return
 
     // 🔑 use DB flag instead of sessionStorage
     if (!session.user.hasSeenFreeTrialModal) {
-      setShowPaywall(true);
+      setShowPaywall(true)
     } else {
-      setShowPaywall(false);
+      setShowPaywall(false)
     }
-  }, [status, session]);
+  }, [status, session])
 
   const handleLoginClick = () => {
-    const role = session?.user?.role;
+    const role = session?.user?.role
     if (!role) {
-      router.push("/loanee/login");
-      return;
+      router.push(
+        `/loanee/login?redirect=${encodeURIComponent(window.location.href)}`
+      )
+      return
     }
     if (role === "LOANEE") {
       toast({
         title: "Already Logged In",
         description: "You're already logged in as a loanee.",
-      });
+      })
     } else if (role === "LENDER") {
       toast({
         title: "Access Denied",
         description:
           "You're logged in as a lender. Please log out to login as a loanee.",
         variant: "destructive",
-      });
+      })
     } else {
       toast({
         title: "Access Denied",
         description: "You are not allowed to access the loanee login.",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   const handleLoanformClick = () => {
-    const role = session?.user?.role;
+    const role = session?.user?.role
     if (!role) {
       toast({
         title: "Login Required",
         description: "Please login to continue.",
-      });
-      router.push("/loanee/login");
-      return;
+      })
+      router.push(
+        `/loanee/login?redirect=${encodeURIComponent(window.location.href)}`
+      )
+      return
     }
 
     if (role === "LOANEE") {
-      router.push("/loanee/loan-application");
+      router.push(
+        window.location.href.includes("formId")
+          ? window.location.href
+          : "/loanee/loan-application"
+      )
     } else if (role === "LENDER") {
       toast({
         title: "Access Denied",
         description:
           "You're logged in as a lender. Please log out to login as a loanee.",
         variant: "destructive",
-      });
+      })
     } else {
       toast({
         title: "Access Denied",
         description: "You are not allowed to access the loan application.",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   const handleSubscribe = (plan: "basic" | "smart") => {
     if (status === "unauthenticated") {
-      setShowAuthModal(true);
+      setShowAuthModal(true)
     } else {
-      router.push(`/billing/loanee?plan=${plan}&interval=monthly`);
+      router.push(`/billing/loanee?plan=${plan}&interval=monthly`)
     }
-  };
+  }
 
   return (
     <>
@@ -535,7 +543,8 @@ export default function Loanee() {
                       <button
                         type="button"
                         onClick={() => {
-                          window.location.href = "mailto:admin@meetquoteshack.com";
+                          window.location.href =
+                            "mailto:admin@meetquoteshack.com"
                         }}
                         className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-900 transition hover:bg-gray-50"
                       >

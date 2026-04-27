@@ -1,12 +1,12 @@
-import { Check } from "lucide-react";
+import { Check } from "lucide-react"
 
 interface FormHeaderProps {
-  currentStep: number;
+  currentStep: number
   steps: readonly {
-    id: string;
-    title: string;
-    description: string;
-  }[];
+    id: string
+    title: string
+    description: string
+  }[]
 }
 
 export function FormHeader({ currentStep, steps }: FormHeaderProps) {
@@ -45,5 +45,5 @@ export function FormHeader({ currentStep, steps }: FormHeaderProps) {
         </p>
       </div>
     </div>
-  );
+  )
 }

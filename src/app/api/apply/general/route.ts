@@ -3,25 +3,63 @@ import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application
 import prisma from "@/lib/db"
 import {
   ResidencyStatus,
-  EmploymentStatus,
   HousingStatus,
   EducationLevel,
   Prisma,
-  MaritalStatus,
   PrequalStatus,
   CreditTier,
 } from "@prisma/client"
 import { getServerSession } from "next-auth"
 import { computePrequalification } from "@/lib/prequal"
+import { FormType } from "@prisma/client"
+import { sendNewApplicationReceivedEmail } from "../../../../lib/mail.controller"
 
 export async function POST(request: Request) {
   try {
-    const data = await validateRequestData(request)
-    const user = await authenticateUser()
-    validateRequiredFields(data)
-    validateNumericFields(data)
+    const body = await request.json()
 
-    // 1) resolve agent from agentCode
+    // 🔥 Extract formId safely
+    const { formId, ...data } = body as GeneralLoanFormValues & {
+      formId?: string
+    }
+
+    const user = await authenticateUser()
+
+    // 🔥 Detect custom form
+    let lenderConnect: Prisma.LenderWhereUniqueInput | undefined
+    let isCustomApplication = false
+    let formType: FormType = FormType.DEFAULT
+
+    let customFormId: string | undefined
+
+    if (formId) {
+      const customForm = await prisma.customForm.findUnique({
+        where: { shareId: formId },
+      })
+
+      if (!customForm) {
+        return createErrorResponse(
+          "Invalid form",
+          { message: "Custom form not found" },
+          400
+        )
+      }
+
+      lenderConnect = { id: customForm.vendorId }
+      isCustomApplication = true
+
+      // 🔥 IMPORTANT
+      customFormId = customForm.id
+      formType = FormType.CUSTOM
+    }
+
+    // ✅ ONLY validate for normal forms
+    if (!isCustomApplication) {
+      validateRequiredFields(data)
+      validateNumericFields(data)
+    }
+
+    // 1) resolve agent
     let agentConnect: Prisma.AgentWhereUniqueInput | undefined
     if (data.agentCode && data.agentCode.trim() !== "") {
       const agent = await prisma.agent.findUnique({
@@ -33,7 +71,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2) prequal
+    // 2) prequal ONLY for normal forms
     const prequal = computePrequalification({
       loanAmount: Number(data.loanAmount ?? 0),
       creditScore: Number(data.creditScore ?? 0),
@@ -42,7 +80,6 @@ export async function POST(request: Request) {
       estimatedPropertyValue: Number(data.estimatedPropertyValue ?? 0),
       workplaceDuration: Number(data.workplaceDuration ?? 0),
       loanType: data.loanType,
-      // Add refinance-specific fields
       currentMortgageBalance: data.currentMortgageBalance
         ? Number(data.currentMortgageBalance)
         : undefined,
@@ -60,83 +97,111 @@ export async function POST(request: Request) {
 
     const formattedData: Prisma.ApplicationCreateInput = {
       user: {
-        connect: {
-          id: user.id,
-        },
+        connect: { id: user.id },
       },
+
+      formType,
+
+      ...(lenderConnect && {
+        lender: { connect: lenderConnect },
+      }),
+
+      ...(agentConnect && {
+        agent: { connect: agentConnect },
+      }),
+
+      ...(customFormId && {
+        customForm: {
+          connect: { id: customFormId },
+        },
+      }),
 
       agentCode:
         data.agentCode && data.agentCode.trim() !== ""
           ? data.agentCode.trim()
           : null,
 
-      ...(agentConnect && {
-        agent: {
-          connect: agentConnect,
-        },
-      }),
+      // 🔥 STATUS FIX
+      status: isCustomApplication ? "CUSTOM_APPLICATION" : "OPEN",
 
       loanType: data.loanType,
       hasCoApplicant: data.hasCoApplicant,
       monthlyDebts: data.monthlyDebts,
       childCareBenefit: data.childCareBenefit,
+
       coApplicantFullName: data.coApplicantFullName || null,
       coApplicantDateOfBirth: data.coApplicantDateOfBirth || null,
       coApplicantPhone: data.coApplicantPhone || null,
       coApplicantAddress: data.coApplicantAddress || null,
       coApplicantEmail: data.coApplicantEmail || null,
+
       otherIncome: data.otherIncome,
       otherIncomeAmount: data.otherIncomeAmount || null,
+
       estimatedPropertyValue: data.estimatedPropertyValue
         ? data.estimatedPropertyValue.toString()
         : null,
+
       houseType: data.houseType || null,
       downPayment: data.downPayment || null,
       vehicleType: data.vehicleType || null,
       tradeInCurrentVehicle: data.tradeInCurrentVehicle || null,
-      savings: data.savings,
+
+      savings: data.savings || null,
       sin: data.sin || null,
       workplaceDuration: data.workplaceDuration,
       hasBankruptcy: data.hasBankruptcy,
+
       firstName: data.firstName,
       lastName: data.lastName,
       currentAddress: data.currentAddress,
-      yearsAtCurrentAddress: data.yearsAtCurrentAddress,
+
+      yearsAtCurrentAddress: data.yearsAtCurrentAddress ?? null,
+
       housingStatus: data.housingStatus as HousingStatus,
       housingPayment: Number(data.housingPayment ?? 0),
       residencyStatus: data.residencyStatus as ResidencyStatus,
-      employmentStatus: data.employmentStatus as EmploymentStatus,
+
+      employmentStatus: data.employmentStatus ?? null,
       grossIncome: data.grossIncome,
-      workplaceName: data.workplaceName,
-      workplaceAddress: data.workplaceAddress,
-      workplacePhone: data.workplacePhone,
-      workplaceEmail: data.workplaceEmail,
+
+      // 🔥 FIX EMPTY STRINGS
+      workplaceName: data.workplaceName || null,
+      workplaceAddress: data.workplaceAddress || null,
+      workplacePhone: data.workplacePhone || null,
+      workplaceEmail: data.workplaceEmail || null,
+
       generalEducationLevel: data.generalEducationLevel as EducationLevel,
-      generalFieldOfStudy: data.generalFieldOfStudy,
+      generalFieldOfStudy: data.generalFieldOfStudy || null,
+
       dateOfBirth: data.dateOfBirth,
-      maritalStatus: data.maritalStatus as MaritalStatus,
+      maritalStatus: data.maritalStatus ?? null,
+
       personalPhone: data.personalPhone,
       personalEmail: data.personalEmail,
+
       loanAmount: data.loanAmount,
       creditScore: data.creditScore,
 
-      // 4) Store prequalification snapshot
-      prequalStatus: prequal.prequalStatus as PrequalStatus,
-      prequalLabel: prequal.prequalLabel,
-      prequalCreditTier: prequal.creditTier.toUpperCase() as CreditTier,
+      // ✅ ONLY attach prequal if exists
+      ...(prequal && {
+        prequalStatus: prequal.prequalStatus as PrequalStatus,
+        prequalLabel: prequal.prequalLabel,
+        prequalCreditTier: prequal.creditTier.toUpperCase() as CreditTier,
 
-      prequalDti: prequal.dti,
-      prequalTdsr: prequal.tdsr,
-      prequalLti: prequal.lti,
-      prequalLtv: prequal.ltv,
+        prequalDti: prequal.dti,
+        prequalTdsr: prequal.tdsr,
+        prequalLti: prequal.lti,
+        prequalLtv: prequal.ltv,
 
-      prequalPayment: prequal.proposedLoanPayment,
-      prequalRoomMonthly: prequal.availableForNewLoanMonthly,
-      prequalMortMin: prequal.mortgageRangeMin,
-      prequalMortMax: prequal.mortgageRangeMax,
+        prequalPayment: prequal.proposedLoanPayment,
+        prequalRoomMonthly: prequal.availableForNewLoanMonthly,
+        prequalMortMin: prequal.mortgageRangeMin,
+        prequalMortMax: prequal.mortgageRangeMax,
 
-      prequalExplanation: prequal.statusDetail,
-      prequalSnapshot: prequal,
+        prequalExplanation: prequal.statusDetail,
+        prequalSnapshot: JSON.parse(JSON.stringify(prequal)),
+      }),
     }
 
     return await createGeneralApplication(formattedData)
@@ -145,28 +210,28 @@ export async function POST(request: Request) {
   }
 }
 
-async function validateRequestData(
-  request: Request
-): Promise<GeneralLoanFormValues> {
-  if (!request.body) {
-    throw createErrorResponse(
-      "Invalid request",
-      { message: "Request body is missing" },
-      400
-    )
-  }
+// async function validateRequestData(
+//   request: Request
+// ): Promise<GeneralLoanFormValues> {
+//   if (!request.body) {
+//     throw createErrorResponse(
+//       "Invalid request",
+//       { message: "Request body is missing" },
+//       400
+//     )
+//   }
 
-  const data: GeneralLoanFormValues = await request.json()
-  if (!data) {
-    throw createErrorResponse(
-      "Invalid request",
-      { message: "Request data is missing" },
-      400
-    )
-  }
+//   const data: GeneralLoanFormValues = await request.json()
+//   if (!data) {
+//     throw createErrorResponse(
+//       "Invalid request",
+//       { message: "Request data is missing" },
+//       400
+//     )
+//   }
 
-  return data
-}
+//   return data
+// }
 
 async function authenticateUser() {
   const session = await getServerSession()
@@ -197,16 +262,16 @@ function validateRequiredFields(data: GeneralLoanFormValues) {
   const requiredFields = [
     "firstName",
     "lastName",
-    "currentAddress",
-    "employmentStatus",
+    // "currentAddress",
+    // "employmentStatus",
     "housingStatus",
     "housingPayment",
     "residencyStatus",
-    "workplaceName",
-    "workplacePhone",
-    "workplaceEmail",
+    // "workplaceName",
+    // "workplacePhone",
+    // "workplaceEmail",
     "dateOfBirth",
-    "maritalStatus",
+    // "maritalStatus",
     "personalPhone",
     "personalEmail",
     "loanAmount",
@@ -264,7 +329,22 @@ async function createGeneralApplication(
   try {
     const application = await prisma.application.create({
       data: formattedData,
+      include: {
+        lender: true, // 👈 IMPORTANT
+      },
     })
+
+    // ✅ send email if lender exists
+    if (application.lender?.email) {
+      await sendNewApplicationReceivedEmail({
+        lenderEmail: application.lender.email,
+        applicantName: `${application.firstName} ${application.lastName}`,
+        loanType: application.loanType,
+        amount: application.loanAmount.toString(),
+        applicationId: application.id,
+      })
+    }
+
     return NextResponse.json(
       { message: "Success", id: application.id },
       { status: 201 }
@@ -275,8 +355,6 @@ async function createGeneralApplication(
       "Database error",
       {
         message: "Failed to create general application",
-        error:
-          dbError instanceof Error ? dbError.message : "Unknown database error",
       },
       500
     )

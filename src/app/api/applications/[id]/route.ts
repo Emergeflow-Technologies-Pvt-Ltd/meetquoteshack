@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import prisma from "@/lib/db"
 import { authOptions } from "@/lib/auth"
 import { LoanStatus } from "@prisma/client"
+import { sendNewApplicationReceivedEmail } from "../../../../lib/mail.controller"
 
 export async function GET(
   request: Request,
@@ -33,6 +34,7 @@ export async function GET(
             "REJECTED",
             "APPROVED",
             "APPROVED",
+            "CUSTOM_APPLICATION",
           ],
         },
       },
@@ -378,15 +380,13 @@ export async function PATCH(
 
           await tx.potentialLender.deleteMany({ where: { applicationId: id } })
 
-          const potentialsAfter = await tx.potentialLender.findMany({
-            where: { applicationId: id },
-          })
           return {
             application: updated,
-            potentialLenderIds: potentialsAfter.map((p) => p.lenderId),
+            potentialLenderIds: [],
           }
         }
 
+        // ✅ Assign lender
         const updated = await tx.application.update({
           where: { id },
           data: {
@@ -406,7 +406,12 @@ export async function PATCH(
           },
         })
 
-        return { application: updated, potentialLenderIds: [] }
+        // ✅ RETURN lenderId so we can send email AFTER transaction
+        return {
+          application: updated,
+          potentialLenderIds: [],
+          assignedLenderId: lenderId,
+        }
       }
 
       const updatedApplication = await tx.application.update({
@@ -431,6 +436,26 @@ export async function PATCH(
         potentialLenderIds: existingPotentials.map((p) => p.lenderId),
       }
     })
+    // ✅ Send email after DB success
+    if (result.assignedLenderId) {
+      try {
+        const lender = await prisma.lender.findUnique({
+          where: { id: result.assignedLenderId },
+        })
+
+        if (lender?.email) {
+          await sendNewApplicationReceivedEmail({
+            lenderEmail: lender.email,
+            applicantName: `${application.firstName} ${application.lastName}`,
+            loanType: application.loanType,
+            amount: application.loanAmount.toString(),
+            applicationId: application.id,
+          })
+        }
+      } catch (err) {
+        console.error("Email failed:", err)
+      }
+    }
 
     return NextResponse.json(result)
   } catch (error) {

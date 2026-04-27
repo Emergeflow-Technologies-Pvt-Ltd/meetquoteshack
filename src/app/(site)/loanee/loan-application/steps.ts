@@ -27,7 +27,7 @@ export const formSteps = [
     description: "Your employment status and income details",
   },
   {
-    id: "",
+    id: "financial",
     title: "Financial Details",
     description: "YBanking and financial information",
   },
@@ -36,4 +36,4 @@ export const formSteps = [
     title: "review & Submit",
     description: "Review and submit your application",
   },
-] as const;
+] as const

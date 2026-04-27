@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   FormField,
@@ -6,39 +6,41 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
-} from "use-places-autocomplete";
-import { UseControllerProps, FieldValues, Control } from "react-hook-form";
-import { useEffect, useRef, useState } from "react";
-import { useLoadScript } from "@react-google-maps/api";
+} from "use-places-autocomplete"
+import { UseControllerProps, FieldValues, Control } from "react-hook-form"
+import { useEffect, useRef, useState } from "react"
+import { useLoadScript } from "@react-google-maps/api"
 
 type PlacesAutocompleteFieldProps<T extends FieldValues> =
   UseControllerProps<T> & {
-    label: string;
-    placeholder?: string;
+    label: string
+    placeholder?: string
+    required?: boolean
     onPlaceSelected?: (place: {
-      address: string;
-      lat: number;
-      lng: number;
-    }) => void;
-  };
+      address: string
+      lat: number
+      lng: number
+    }) => void
+  }
 
 export function PlacesAutocompleteField<T extends FieldValues>({
   control,
   name,
   label,
   placeholder,
+  required,
   onPlaceSelected,
 }: PlacesAutocompleteFieldProps<T>) {
   // Load Google Maps API with "places" library
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: ["places"],
-  });
+  })
 
   // Initialize the autocomplete hook
   const {
@@ -57,29 +59,29 @@ export function PlacesAutocompleteField<T extends FieldValues>({
     },
     debounce: 200, //delays API calls to avoid spamming.
     initOnMount: isLoaded,
-  });
+  })
 
-  const [options, setOptions] = useState<string[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [options, setOptions] = useState<string[]>([])
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Update options when API returns data
   useEffect(() => {
     if (status === "OK") {
       // Deduplicate using a Set
-      const seen = new Set<string>();
+      const seen = new Set<string>()
       const unique = data
         .map(({ description }) => description) // get the description string
         .filter((desc) => {
-          if (seen.has(desc)) return false; // skip duplicates
-          seen.add(desc);
-          return true;
-        });
+          if (seen.has(desc)) return false // skip duplicates
+          seen.add(desc)
+          return true
+        })
 
-      setOptions(unique); // update dropdown options
+      setOptions(unique) // update dropdown options
     } else {
-      setOptions([]);
+      setOptions([])
     }
-  }, [data, status]);
+  }, [data, status])
 
   // Close dropdown when clicking outside component
   useEffect(() => {
@@ -88,28 +90,28 @@ export function PlacesAutocompleteField<T extends FieldValues>({
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        setOptions([]);
+        setOptions([])
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   // Handle selecting an address
   const handleSelect = async (address: string) => {
-    setValue(address, false);
-    clearSuggestions();
-    setOptions([]);
+    setValue(address, false)
+    clearSuggestions()
+    setOptions([])
 
     try {
-      const results = await getGeocode({ address });
-      const { lat, lng } = await getLatLng(results[0]);
+      const results = await getGeocode({ address })
+      const { lat, lng } = await getLatLng(results[0])
       // Call callback with selected data
-      onPlaceSelected?.({ address, lat, lng });
+      onPlaceSelected?.({ address, lat, lng })
     } catch (error) {
-      console.error("Error getting geocode:", error);
+      console.error("Error getting geocode:", error)
     }
-  };
+  }
 
   if (loadError) {
     return (
@@ -120,7 +122,7 @@ export function PlacesAutocompleteField<T extends FieldValues>({
         </FormControl>
         <FormMessage>Failed to load Google Maps</FormMessage>
       </FormItem>
-    );
+    )
   }
 
   if (!isLoaded) {
@@ -131,7 +133,7 @@ export function PlacesAutocompleteField<T extends FieldValues>({
           <Input placeholder="Loading maps..." disabled />
         </FormControl>
       </FormItem>
-    );
+    )
   }
 
   return (
@@ -141,7 +143,7 @@ export function PlacesAutocompleteField<T extends FieldValues>({
       render={({ field }) => (
         <FormItem>
           <FormLabel>
-            {label} <span className="text-red-500">*</span>
+            {label} {required && <span className="text-red-500">*</span>}
           </FormLabel>
           <FormControl>
             <div className="relative" ref={containerRef}>
@@ -150,17 +152,17 @@ export function PlacesAutocompleteField<T extends FieldValues>({
                 placeholder={placeholder}
                 value={value || field.value || ""}
                 onChange={(e) => {
-                  setValue(e.target.value);
-                  field.onChange(e.target.value);
+                  setValue(e.target.value)
+                  field.onChange(e.target.value)
                 }}
                 onBlur={() => {
-                  field.onChange(value);
+                  field.onChange(value)
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    e.preventDefault();
+                    e.preventDefault()
                     if (value && options.includes(value)) {
-                      handleSelect(value);
+                      handleSelect(value)
                     }
                   }
                 }}
@@ -184,5 +186,5 @@ export function PlacesAutocompleteField<T extends FieldValues>({
         </FormItem>
       )}
     />
-  );
+  )
 }

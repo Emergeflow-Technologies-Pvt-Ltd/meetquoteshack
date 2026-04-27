@@ -1,39 +1,39 @@
-import prisma from "@/lib/db";
+import prisma from "@/lib/db"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
-import { LoanStatus } from "@prisma/client";
-import Section from "@/components/shared/section";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from "next/link"
+import { LoanStatus } from "@prisma/client"
+import Section from "@/components/shared/section"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
-} from "@/components/shared/chips";
+} from "@/components/shared/chips"
 import {
   employmentTypeLabels,
   loanTypeLabels,
-} from "@/components/shared/general.const";
-import AgentInviteCode from "./[applicationId]/components/AgentInviteCode";
-import AgentCalendlyLink from "./[applicationId]/components/AgentCalendlyLink";
+} from "@/components/shared/general.const"
+import AgentInviteCode from "./[applicationId]/components/AgentInviteCode"
+import AgentCalendlyLink from "./[applicationId]/components/AgentCalendlyLink"
 
 export default async function AgentDashboardPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
-    return null;
+    return null
   }
 
   const agent = await prisma.agent.findUnique({
     where: { userId: session.user.id },
-  });
+  })
 
   if (!agent) {
     return (
@@ -42,7 +42,7 @@ export default async function AgentDashboardPage() {
           No agent profile found for this user.
         </p>
       </Section>
-    );
+    )
   }
 
   // const agentUnlocks = await prisma.agentApplicationUnlock.findMany({
@@ -64,14 +64,14 @@ export default async function AgentDashboardPage() {
       agentCode: null,
     },
     orderBy: { createdAt: "desc" },
-  });
+  })
 
   const joinedUsingAgentCode = await prisma.application.findMany({
     where: {
       agentCode: agent.agentCode,
     },
     orderBy: { createdAt: "desc" },
-  });
+  })
 
   const lenderStatusLabelMap: Partial<Record<LoanStatus, string>> = {
     ASSIGNED_TO_POTENTIAL_LENDER: "Potential Assignment",
@@ -80,7 +80,7 @@ export default async function AgentDashboardPage() {
     IN_CHAT: "In Chat",
     APPROVED: "Approved",
     REJECTED: "Rejected",
-  };
+  }
 
   const renderApplicationsGrid = (
     apps: Awaited<typeof assignedApplications>,
@@ -91,7 +91,7 @@ export default async function AgentDashboardPage() {
         <p className="mt-16 rounded-lg bg-gray-50 py-8 text-center text-gray-600">
           {emptyText}
         </p>
-      );
+      )
     }
 
     return (
@@ -148,7 +148,9 @@ export default async function AgentDashboardPage() {
                   <div>
                     <span className="text-gray-500">Employment</span>
                     <p className="font-medium">
-                      {employmentTypeLabels[app.employmentStatus]}
+                      {app.employmentStatus
+                        ? employmentTypeLabels[app.employmentStatus]
+                        : "-"}
                     </p>
                   </div>
                   <div>
@@ -170,7 +172,7 @@ export default async function AgentDashboardPage() {
                   <div>
                     <span className="text-gray-500">Savings</span>
                     <p className="font-medium">
-                      ${app.savings.toLocaleString()}
+                      ${Number(app.savings ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
@@ -183,8 +185,8 @@ export default async function AgentDashboardPage() {
           </Link>
         ))}
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <Section className="py-12">
@@ -231,5 +233,5 @@ export default async function AgentDashboardPage() {
         </TabsContent>
       </Tabs>
     </Section>
-  );
+  )
 }

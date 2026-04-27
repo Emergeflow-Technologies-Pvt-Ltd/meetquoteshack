@@ -1,29 +1,32 @@
-"use client";
+"use client"
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react"
 import {
   FormField,
   FormItem,
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import type { UseFormReturn } from "react-hook-form";
-import { useWatch } from "react-hook-form";
-import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
-import { HousingStatus } from "@prisma/client";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import type { UseFormReturn } from "react-hook-form"
+import { useWatch } from "react-hook-form"
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types"
+import { HousingStatus } from "@prisma/client"
+import { CustomFormConfig } from "@/types/customForm"
 
 interface FinancialStepProps {
-  form: UseFormReturn<GeneralLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues>
+  config?: CustomFormConfig | null
+  stepId?: string
 }
 
 function YesNoToggle({
   value,
   onChange,
 }: {
-  value?: boolean;
-  onChange: (v: boolean) => void;
+  value?: boolean
+  onChange: (v: boolean) => void
 }) {
   return (
     <div className="flex gap-4">
@@ -47,73 +50,90 @@ function YesNoToggle({
         </label>
       ))}
     </div>
-  );
+  )
 }
 
-export function FinancialStep({ form }: FinancialStepProps) {
+export function FinancialStep({ form, config, stepId }: FinancialStepProps) {
+  const stepKeyMapping: Record<string, string> = {
+    eligibility: "step-1",
+    type: "step-2",
+    personal: "step-3",
+    residence: "step-4",
+    employment: "step-5",
+    financial: "step-6",
+    loan: "step-7",
+  }
+
+  const backendStepKey = stepKeyMapping[stepId || ""]
+  const allowedFields = config?.fields?.[backendStepKey]
+
+  const isFieldVisible = (field: keyof GeneralLoanFormValues) => {
+    if (!allowedFields) return true
+    return allowedFields[field]?.enabled === true
+  }
   const housingStatus = useWatch({
     control: form.control,
     name: "housingStatus",
-  }) as HousingStatus | undefined;
+  }) as HousingStatus | undefined
 
   const monthlyDebtsExist = useWatch({
     control: form.control,
     name: "monthlyDebtsExist",
-  }) as boolean | undefined;
+  }) as boolean | undefined
 
   const otherIncome = useWatch({
     control: form.control,
     name: "otherIncome",
-  }) as boolean | undefined;
+  }) as boolean | undefined
 
   const mortgage =
     useWatch({
       control: form.control,
       name: "mortgage",
-    }) ?? 0;
+    }) ?? 0
   const propertyTaxMonthly =
     useWatch({
       control: form.control,
       name: "propertyTaxMonthly",
-    }) ?? 0;
+    }) ?? 0
   const condoFees =
     useWatch({
       control: form.control,
       name: "condoFees",
-    }) ?? 0;
+    }) ?? 0
   const heatingCost =
     useWatch({
       control: form.control,
       name: "heatingCosts",
-    }) ?? 0;
+    }) ?? 0
   const homeInsurance =
     useWatch({
       control: form.control,
       name: "homeInsurance",
-    }) ?? 0;
+    }) ?? 0
 
   // other debts
   const monthlyCarLoanPayment =
     useWatch({
       control: form.control,
       name: "monthlyCarLoanPayment",
-    }) ?? 0;
+    }) ?? 0
   const monthlyCreditCardMinimums =
     useWatch({
       control: form.control,
       name: "monthlyCreditCardMinimums",
-    }) ?? 0;
+    }) ?? 0
   const monthlyOtherLoanPayments =
     useWatch({
       control: form.control,
       name: "monthlyOtherLoanPayments",
-    }) ?? 0;
+    }) ?? 0
 
   const toNumber = useCallback((v: unknown) => {
-    if (typeof v === "number") return isFinite(v) ? v : 0;
-    const n = parseFloat(String(v ?? "0"));
-    return Number.isFinite(n) ? n : 0;
-  }, []);
+    if (typeof v === "number") return isFinite(v) ? v : 0
+    const n = parseFloat(String(v ?? "0"))
+    return Number.isFinite(n) ? n : 0
+  }, [])
 
   // Housing = mortgage/rent + housing parts
   const housingComponent =
@@ -121,26 +141,26 @@ export function FinancialStep({ form }: FinancialStepProps) {
     toNumber(propertyTaxMonthly) +
     toNumber(condoFees) +
     toNumber(heatingCost) +
-    toNumber(homeInsurance);
+    toNumber(homeInsurance)
 
   const otherDebts =
     toNumber(monthlyCarLoanPayment) +
     toNumber(monthlyCreditCardMinimums) +
-    toNumber(monthlyOtherLoanPayments);
+    toNumber(monthlyOtherLoanPayments)
 
-  const totalMonthlyDebts = housingComponent + otherDebts;
+  const totalMonthlyDebts = housingComponent + otherDebts
 
   useEffect(() => {
-    const rounded = Number(housingComponent.toFixed(2));
-    const current = form.getValues().housingPayment;
+    const rounded = Number(housingComponent.toFixed(2))
+    const current = form.getValues().housingPayment
     const currentNum =
-      current === undefined || current === null ? 0 : Number(current);
+      current === undefined || current === null ? 0 : Number(current)
 
     if (Math.abs(currentNum - rounded) > 0.005) {
       form.setValue("housingPayment", rounded, {
         shouldDirty: true,
         shouldValidate: true,
-      });
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -150,13 +170,13 @@ export function FinancialStep({ form }: FinancialStepProps) {
     heatingCost,
     homeInsurance,
     toNumber,
-  ]);
+  ])
 
   useEffect(() => {
     form.setValue("monthlyDebts", Number(totalMonthlyDebts.toFixed(2)), {
       shouldValidate: true,
       shouldDirty: true,
-    });
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     mortgage,
@@ -168,291 +188,311 @@ export function FinancialStep({ form }: FinancialStepProps) {
     monthlyCreditCardMinimums,
     monthlyOtherLoanPayments,
     toNumber,
-  ]);
+  ])
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormField
-          control={form.control}
-          name="savings"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                How much savings do you have?{" "}
-                <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g. 5000"
-                  value={field.value ?? ""}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value === "" ? 0 : Number(e.target.value)
-                    )
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="monthlyDebtsExist"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Do you have monthly liabilities / debts?{" "}
-                <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <YesNoToggle
-                  value={field.value as boolean}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isFieldVisible("savings") && (
+          <FormField
+            control={form.control}
+            name="savings"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  How much savings do you have?{" "}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 5000"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        {isFieldVisible("monthlyDebtsExist") && (
+          <FormField
+            control={form.control}
+            name="monthlyDebtsExist"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Do you have monthly liabilities / debts?{" "}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <YesNoToggle
+                    value={field.value as boolean}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
 
       <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FormField
-          control={form.control}
-          name="mortgage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {housingStatus === HousingStatus.RENT
-                  ? "Rent (monthly)"
-                  : "Mortgage (monthly)"}
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g. 1200.00"
-                  value={field.value ?? ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    field.onChange(val === "" ? 0 : Number(val));
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {housingStatus === HousingStatus.RENT
-                  ? "Enter your monthly rent."
-                  : "Enter your monthly mortgage payment."}
-              </p>
-            </FormItem>
-          )}
-        />
+        {isFieldVisible("mortgage") && (
+          <FormField
+            control={form.control}
+            name="mortgage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {housingStatus === HousingStatus.RENT
+                    ? "Rent (monthly)"
+                    : "Mortgage (monthly)"}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 1200.00"
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      field.onChange(val === "" ? 0 : Number(val))
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {housingStatus === HousingStatus.RENT
+                    ? "Enter your monthly rent."
+                    : "Enter your monthly mortgage payment."}
+                </p>
+              </FormItem>
+            )}
+          />
+        )}
       </div>
 
-      {monthlyDebtsExist === true && (
+      {isFieldVisible("monthlyDebtsExist") && monthlyDebtsExist === true && (
         <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="propertyTaxMonthly"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Property Tax (monthly)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 150.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="condoFees"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Condo / HOA Fees (monthly)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 200.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="heatingCosts"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Heating / Utilities (monthly)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 80.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="homeInsurance"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Home Insurance (monthly)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 60.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="monthlyCarLoanPayment"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Monthly Car Loan Payment</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 250.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="monthlyCreditCardMinimums"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Monthly Credit Card Minimums</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 60.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="monthlyOtherLoanPayments"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Other Loan Payments (monthly)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 120.00"
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? 0 : Number(e.target.value)
-                      )
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Total Monthly Debts</label>
-            <Input
-              type="number"
-              placeholder="auto-calculated"
-              value={Number(totalMonthlyDebts.toFixed(2))}
-              readOnly
+          {isFieldVisible("propertyTaxMonthly") && (
+            <FormField
+              control={form.control}
+              name="propertyTaxMonthly"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Tax (monthly)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 150.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <p className="text-xs text-muted-foreground">
-              This is auto-calculated based on rent/mortgage and debts above.
-            </p>
-          </div>
+          )}
+          {isFieldVisible("condoFees") && (
+            <FormField
+              control={form.control}
+              name="condoFees"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Condo / HOA Fees (monthly)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 200.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {isFieldVisible("heatingCosts") && (
+            <FormField
+              control={form.control}
+              name="heatingCosts"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Heating / Utilities (monthly)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 80.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {isFieldVisible("homeInsurance") && (
+            <FormField
+              control={form.control}
+              name="homeInsurance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Home Insurance (monthly)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 60.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible("monthlyCarLoanPayment") && (
+            <FormField
+              control={form.control}
+              name="monthlyCarLoanPayment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Monthly Car Loan Payment</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 250.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible("monthlyCreditCardMinimums") && (
+            <FormField
+              control={form.control}
+              name="monthlyCreditCardMinimums"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Monthly Credit Card Minimums</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 60.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible("monthlyOtherLoanPayments") && (
+            <FormField
+              control={form.control}
+              name="monthlyOtherLoanPayments"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Other Loan Payments (monthly)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 120.00"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? 0 : Number(e.target.value)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isFieldVisible("monthlyDebts") && (
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">Total Monthly Debts</label>
+              <Input
+                type="number"
+                placeholder="auto-calculated"
+                value={Number(totalMonthlyDebts.toFixed(2))}
+                readOnly
+              />
+              <p className="text-xs text-muted-foreground">
+                This is auto-calculated based on rent/mortgage and debts above.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormField
-          control={form.control}
-          name="otherIncome"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Do you have any other income?{" "}
-                <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <YesNoToggle
-                  value={field.value as boolean}
-                  onChange={(v) => field.onChange(v)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isFieldVisible("otherIncome") && (
+          <FormField
+            control={form.control}
+            name="otherIncome"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Do you have any other income?{" "}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <YesNoToggle
+                    value={field.value as boolean}
+                    onChange={(v) => field.onChange(v)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
-        {otherIncome === true && (
+        {isFieldVisible("otherIncomeAmount") && otherIncome === true && (
           <FormField
             control={form.control}
             name="otherIncomeAmount"
@@ -482,51 +522,54 @@ export function FinancialStep({ form }: FinancialStepProps) {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <FormField
-          control={form.control}
-          name="childCareBenefit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Do you receive Child Care Benefit?{" "}
-                <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <YesNoToggle
-                  value={field.value as boolean}
-                  onChange={(v) => field.onChange(v)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="creditScore"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Credit Score <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g. 300-600"
-                  value={field.value ?? ""}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value === "" ? 0 : Number(e.target.value)
-                    )
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isFieldVisible("childCareBenefit") && (
+          <FormField
+            control={form.control}
+            name="childCareBenefit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Do you receive Child Care Benefit?{" "}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <YesNoToggle
+                    value={field.value as boolean}
+                    onChange={(v) => field.onChange(v)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        {isFieldVisible("creditScore") && (
+          <FormField
+            control={form.control}
+            name="creditScore"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Credit Score <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 300-600"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value)
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
     </div>
-  );
+  )
 }

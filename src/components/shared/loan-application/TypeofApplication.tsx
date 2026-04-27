@@ -1,23 +1,23 @@
-"use client";
+"use client"
 
-import React from "react";
-import { Controller, useWatch, UseFormReturn } from "react-hook-form";
-import { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
+import React from "react"
+import { Controller, useWatch, UseFormReturn } from "react-hook-form"
+import { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types"
 import {
   DownPayment,
   LoanType,
   PropertyType,
   VehicleType,
-} from "@prisma/client";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+} from "@prisma/client"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 
 import {
   FormField,
@@ -25,21 +25,52 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/ui/form"
 
 import {
   downPaymentLabels,
   loanTypeLabels,
   propertyTypeLabels,
   vehicleTypeLabels,
-} from "../general.const";
+} from "../general.const"
+import { CustomFormConfig } from "@/types/customForm"
+
+// type FieldConfig = {
+//   enabled?: boolean
+//   options?: LoanType[]
+// }
+
+// type StepFieldConfig = {
+//   [fieldName: string]: FieldConfig
+// }
+
+// type CustomFormConfig = {
+//   status: "ACTIVE" | "DISABLED"
+//   steps: { id: string }[]
+//   fields?: Record<string, StepFieldConfig>
+// }
 
 type Props = {
-  form: UseFormReturn<GeneralLoanFormValues>;
-};
+  form: UseFormReturn<GeneralLoanFormValues>
+  config?: CustomFormConfig | null
+  stepId?: string
+}
 
-const TypeofApplication = ({ form }: Props) => {
-  const loanType = useWatch({ control: form.control, name: "loanType" });
+const TypeofApplication = ({ form, config, stepId }: Props) => {
+  const stepKeyMapping: Record<string, string> = {
+    eligibility: "step-1",
+    type: "step-2",
+    personal: "step-3",
+    residence: "step-4",
+    employment: "step-5",
+    financial: "step-6",
+    loan: "step-7",
+  }
+
+  const backendStepKey = stepKeyMapping[stepId || ""]
+  const allowedFields = config?.fields?.[backendStepKey]
+  const showAll = !allowedFields
+  const loanType = useWatch({ control: form.control, name: "loanType" })
 
   const loanTypesForPropertyDetails: LoanType[] = [
     "FIRST_TIME_HOME",
@@ -47,59 +78,69 @@ const TypeofApplication = ({ form }: Props) => {
     "MORTGAGE_REFINANCE",
     "HELOC",
     "HOME_REPAIR",
-  ];
+  ]
 
   const loanTypesForDownPayment: LoanType[] = [
     "FIRST_TIME_HOME",
     "INVESTMENT_PROPERTY",
     "CAR",
-  ];
+  ]
 
-  const showPropertyDetails = loanTypesForPropertyDetails.includes(loanType);
-  const showDownPayment = loanTypesForDownPayment.includes(loanType);
+  const showPropertyDetails = loanTypesForPropertyDetails.includes(loanType)
+  const showDownPayment = loanTypesForDownPayment.includes(loanType)
+  const loanTypeConfig = allowedFields?.loanType
+  const allowedLoanTypes: LoanType[] | undefined = loanTypeConfig?.options
+  const loanTypeOptions = allowedLoanTypes?.length
+    ? allowedLoanTypes
+    : Object.values(LoanType)
 
   const showPropertyType =
     loanType === LoanType.FIRST_TIME_HOME ||
-    loanType === LoanType.INVESTMENT_PROPERTY;
+    loanType === LoanType.INVESTMENT_PROPERTY
 
-  const showTradeIn = loanType === LoanType.CAR;
-  const showVehicleType = loanType === LoanType.CAR;
+  const showTradeIn = loanType === LoanType.CAR
+  const showVehicleType = loanType === LoanType.CAR
 
   return (
     <div className="space-y-6">
-      <Label htmlFor="loanType" className="text-lg font-semibold">
-        What type of loan are you applying for?{" "}
-        <span className="text-red-500">*</span>
-      </Label>
-      <Controller
-        control={form.control}
-        name="loanType"
-        rules={{ required: "Loan type is required" }}
-        render={({ field, fieldState }) => (
-          <>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger
-                id="loanType"
-                className={fieldState.error ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Select a loan type" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(LoanType).map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {loanTypeLabels[type]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fieldState.error && (
-              <p className="mt-1 text-sm text-red-500">
-                {fieldState.error.message}
-              </p>
+      {(showAll || allowedFields?.loanType?.enabled) && (
+        <>
+          <Label htmlFor="loanType" className="text-lg font-semibold">
+            What type of loan are you applying for?{" "}
+            <span className="text-red-500">*</span>
+          </Label>
+
+          <Controller
+            control={form.control}
+            name="loanType"
+            rules={{ required: "Loan type is required" }}
+            render={({ field, fieldState }) => (
+              <>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger
+                    id="loanType"
+                    className={fieldState.error ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="Select a loan type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loanTypeOptions.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {loanTypeLabels[type]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.error && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </>
             )}
-          </>
-        )}
-      />
+          />
+        </>
+      )}
 
       {showPropertyDetails && (
         <FormField
@@ -111,9 +152,9 @@ const TypeofApplication = ({ form }: Props) => {
               : false,
             validate: (value) => {
               if (showPropertyDetails && (!value || value <= 0)) {
-                return "Estimated property value is required";
+                return "Estimated property value is required"
               }
-              return true;
+              return true
             },
           }}
           render={({ field }) => (
@@ -147,9 +188,9 @@ const TypeofApplication = ({ form }: Props) => {
           rules={{
             validate: (value) => {
               if (showPropertyType && !value) {
-                return "Property type is required";
+                return "Property type is required"
               }
-              return true;
+              return true
             },
           }}
           render={({ field }) => (
@@ -197,9 +238,9 @@ const TypeofApplication = ({ form }: Props) => {
           rules={{
             validate: (value) => {
               if (showDownPayment && !value) {
-                return "Down payment is required";
+                return "Down payment is required"
               }
-              return true;
+              return true
             },
           }}
           render={({ field }) => (
@@ -246,9 +287,9 @@ const TypeofApplication = ({ form }: Props) => {
           rules={{
             validate: (value) => {
               if (showVehicleType && !value) {
-                return "Vehicle type is required";
+                return "Vehicle type is required"
               }
-              return true;
+              return true
             },
           }}
           render={({ field }) => (
@@ -284,9 +325,9 @@ const TypeofApplication = ({ form }: Props) => {
           rules={{
             validate: (value) => {
               if (showTradeIn && value === undefined) {
-                return "Please specify if trading in vehicle";
+                return "Please specify if trading in vehicle"
               }
-              return true;
+              return true
             },
           }}
           render={({ field }) => (
@@ -328,7 +369,7 @@ const TypeofApplication = ({ form }: Props) => {
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default TypeofApplication;
+export default TypeofApplication
