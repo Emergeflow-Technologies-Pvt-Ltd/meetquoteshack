@@ -409,7 +409,9 @@ export default function ApplicationPage({ params }: Props) {
                       Employment Status
                     </label>
                     <p className="text-sm capitalize text-gray-900">
-                      {employmentTypeLabels[application.employmentStatus]}
+                      {application.employmentStatus
+                        ? employmentTypeLabels[application.employmentStatus]
+                        : "-"}
                     </p>
                   </div>
                   <div>
@@ -499,7 +501,9 @@ export default function ApplicationPage({ params }: Props) {
                       Marital Status
                     </label>
                     <p className="text-sm capitalize text-gray-900">
-                      {maritalStatusLabels[application.maritalStatus]}
+                      {application?.maritalStatus
+                        ? maritalStatusLabels[application.maritalStatus]
+                        : null}
                     </p>
                   </div>
                 </div>
