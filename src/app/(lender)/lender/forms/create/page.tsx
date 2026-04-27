@@ -14,6 +14,7 @@ import {
   loanTypeOptions,
 } from "@/app/(site)/loanee/loan-application/formSteps"
 import { FieldConfig } from "@/types/customForm"
+import { toast } from "@/hooks/use-toast"
 
 export default function LenderCustomFormsCreatePage() {
   const router = useRouter()
@@ -41,6 +42,7 @@ export default function LenderCustomFormsCreatePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [copied, setCopied] = useState(false)
   const isFormValid = formName.trim() !== "" && logoFile !== null
+  const [loanTypeError, setLoanTypeError] = useState("")
 
   const isSubStepSelected = (id: string) => selectedSubSteps.includes(id)
   const isStepOpen = (id: string) => openSteps.includes(id)
@@ -65,9 +67,17 @@ export default function LenderCustomFormsCreatePage() {
   }
 
   const toggleLoanType = (type: LoanType) => {
-    setSelectedLoanTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    )
+    setSelectedLoanTypes((prev) => {
+      const updated = prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+
+      if (updated.length > 0) {
+        setLoanTypeError("")
+      }
+
+      return updated
+    })
   }
   // useEffect(() => {
   //   const requiredSteps = formSteps
@@ -108,6 +118,16 @@ export default function LenderCustomFormsCreatePage() {
   }
 
   const handleCreate = async () => {
+    // ❌ Loan type validation
+    if (selectedLoanTypes.length === 0) {
+      toast({
+        title: "Loan type required",
+        description: "Please select at least one loan type.",
+        variant: "destructive",
+      })
+      return
+    }
+
     const structuredSteps = formSteps
       .map((step) => {
         const fields: Record<string, FieldConfig> = {}
@@ -117,9 +137,6 @@ export default function LenderCustomFormsCreatePage() {
           const isLoanType = sub.key === "loanType"
 
           if (isSelected || isLoanType) {
-            // ❗ skip empty loanType
-            if (isLoanType && selectedLoanTypes.length === 0) return
-
             fields[sub.key] = {
               enabled: true,
               required: sub.required,
@@ -128,7 +145,6 @@ export default function LenderCustomFormsCreatePage() {
           }
         })
 
-        // ❗ skip step if no fields
         if (Object.keys(fields).length === 0) return null
 
         return {
@@ -139,9 +155,12 @@ export default function LenderCustomFormsCreatePage() {
       })
       .filter(Boolean)
 
-    // ✅ SAFETY CHECK
     if (structuredSteps.length === 0) {
-      alert("Please select at least one field")
+      toast({
+        title: "Loan type required",
+        description: "Please select at least one loan type.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -390,6 +409,12 @@ export default function LenderCustomFormsCreatePage() {
                                 </span>
                               </div>
                             ))}
+
+                            {loanTypeError && (
+                              <p className="col-span-2 text-[12px] text-red-500">
+                                {loanTypeError}
+                              </p>
+                            )}
                           </div>
                         )
                       }
@@ -486,7 +511,7 @@ export default function LenderCustomFormsCreatePage() {
                       <div className="flex gap-[3px]">
                         <div className="flex flex-1 items-center rounded-[4px] bg-white p-[6px]">
                           <p className="text-[12px] text-[#5f6368]">
-                            {truncateLink(shareLink, 45)}
+                            {truncateLink(shareLink, 35)}
                           </p>
                         </div>
                         <Button

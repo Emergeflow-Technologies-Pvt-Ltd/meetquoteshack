@@ -62,7 +62,7 @@ export const formSteps = [
         label: "Current address years",
         required: false,
       },
-      { key: "housingStatus", label: "Housing status", required: false },
+      { key: "housingStatus", label: "Housing status", required: true },
     ],
   },
   {
@@ -90,7 +90,7 @@ export const formSteps = [
     description: "Your Banking and financial information",
     variant: "regular",
     subSteps: [
-      { key: "savings", label: "Savings", required: false },
+      { key: "savings", label: "Savings", required: true },
       {
         key: "monthlyDebtsExist",
         label: "Monthly debts exist",
