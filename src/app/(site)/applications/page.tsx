@@ -1,29 +1,29 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/db";
-import Section from "@/components/shared/section";
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import prisma from "@/lib/db"
+import Section from "@/components/shared/section"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 import {
   getBackgroundColorLoanStatus,
   getTextColorLoanStatus,
-} from "@/components/shared/chips";
+} from "@/components/shared/chips"
 import {
   employmentTypeLabels,
   loanTypeLabels,
-} from "@/components/shared/general.const";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoanStatus } from "@prisma/client";
+} from "@/components/shared/general.const"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LoanStatus } from "@prisma/client"
 
 export default async function ApplicationsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions)
 
   const openApplications = await prisma.application.findMany({
     where: {
@@ -31,7 +31,7 @@ export default async function ApplicationsPage() {
       userId: session?.user.id,
     },
     orderBy: { createdAt: "desc" },
-  });
+  })
 
   const inprogressApplications = await prisma.application.findMany({
     where: {
@@ -46,7 +46,7 @@ export default async function ApplicationsPage() {
       userId: session?.user?.id,
     },
     orderBy: { createdAt: "desc" },
-  });
+  })
 
   const approvedOrRejectedApplications = await prisma.application.findMany({
     where: {
@@ -56,7 +56,15 @@ export default async function ApplicationsPage() {
       userId: session?.user?.id,
     },
     orderBy: { createdAt: "desc" },
-  });
+  })
+
+  const customApplications = await prisma.application.findMany({
+    where: {
+      status: LoanStatus.CUSTOM_APPLICATION,
+      userId: session?.user?.id,
+    },
+    orderBy: { createdAt: "desc" },
+  })
 
   return (
     <Section className="py-12">
@@ -82,6 +90,12 @@ export default async function ApplicationsPage() {
             Approved/Rejected{" "}
             <Badge variant="secondary" className="ml-2">
               {approvedOrRejectedApplications.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="custom" className="w-full sm:w-auto">
+            Custom Application{" "}
+            <Badge variant="secondary" className="ml-2">
+              {customApplications.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -141,7 +155,9 @@ export default async function ApplicationsPage() {
                         <div>
                           <span className="text-gray-500">Employment</span>
                           <p className="font-medium">
-                            {employmentTypeLabels[app.employmentStatus]}
+                            {app.employmentStatus
+                              ? employmentTypeLabels[app.employmentStatus]
+                              : "-"}
                           </p>
                         </div>
                         <div>
@@ -163,7 +179,7 @@ export default async function ApplicationsPage() {
                         <div>
                           <span className="text-gray-500">Savings</span>
                           <p className="font-medium">
-                            ${app.savings.toLocaleString()}
+                            ${Number(app.savings ?? 0).toLocaleString()}
                           </p>
                         </div>
                         <div>
@@ -237,7 +253,9 @@ export default async function ApplicationsPage() {
                         <div>
                           <span className="text-gray-500">Employment</span>
                           <p className="font-medium">
-                            {employmentTypeLabels[app.employmentStatus]}
+                            {app.employmentStatus
+                              ? employmentTypeLabels[app.employmentStatus]
+                              : "-"}
                           </p>
                         </div>
                         <div>
@@ -259,7 +277,7 @@ export default async function ApplicationsPage() {
                         <div>
                           <span className="text-gray-500">Savings</span>
                           <p className="font-medium">
-                            ${app.savings.toLocaleString()}
+                            ${Number(app.savings ?? 0).toLocaleString()}
                           </p>
                         </div>
                         <div>
@@ -333,7 +351,9 @@ export default async function ApplicationsPage() {
                         <div>
                           <span className="text-gray-500">Employment</span>
                           <p className="font-medium">
-                            {employmentTypeLabels[app.employmentStatus]}
+                            {app.employmentStatus
+                              ? employmentTypeLabels[app.employmentStatus]
+                              : "-"}
                           </p>
                         </div>
                         <div>
@@ -355,7 +375,7 @@ export default async function ApplicationsPage() {
                         <div>
                           <span className="text-gray-500">Savings</span>
                           <p className="font-medium">
-                            ${app.savings.toLocaleString()}
+                            ${Number(app.savings ?? 0).toLocaleString()}
                           </p>
                         </div>
                         <div>
@@ -374,7 +394,109 @@ export default async function ApplicationsPage() {
             </p>
           )}
         </TabsContent>
+        <TabsContent value="custom">
+          {customApplications.length > 0 ? (
+            <div className="mt-16 grid grid-cols-1 gap-4 sm:mt-0 sm:grid-cols-2 lg:grid-cols-3">
+              {customApplications.map((app) => (
+                <Link
+                  key={app.id}
+                  href={`/applications/${app.id}`}
+                  className="block"
+                >
+                  <Card className="rounded-xl border border-gray-200 transition-shadow hover:shadow-lg">
+                    <CardHeader className="space-y-1 pb-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg font-semibold text-gray-800">
+                            {app.firstName} {app.lastName}
+                          </CardTitle>
+                          <CardDescription className="text-sm text-gray-500">
+                            Submitted on{" "}
+                            {new Date(app.createdAt).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <Badge
+                          className="rounded-md px-2 py-1 text-xs"
+                          style={{
+                            color: getTextColorLoanStatus(app.status),
+                            backgroundColor: getBackgroundColorLoanStatus(
+                              app.status
+                            ),
+                          }}
+                        >
+                          {app.status.replace(/_/g, " ")}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-3 text-sm text-gray-700">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div>
+                          <span className="text-gray-500">Loan Amount</span>
+                          <p className="font-medium">
+                            ${app.loanAmount?.toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Loan Type</span>
+                          <p className="font-medium">
+                            {loanTypeLabels[app.loanType]}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Employment</span>
+                          <p className="font-medium">
+                            {app.employmentStatus
+                              ? employmentTypeLabels[app.employmentStatus]
+                              : "-"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Gross Income</span>
+                          <p className="font-medium">
+                            ${app.grossIncome?.toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Housing</span>
+                          <p className="font-medium">{app.housingStatus}</p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Monthly Debts</span>
+                          <p className="font-medium">
+                            ${app.monthlyDebts?.toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Savings</span>
+                          <p className="font-medium">
+                            ${app.savings?.toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="text-gray-500">Phone no.</span>
+                          <p className="font-medium">{app.personalPhone}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-lg bg-gray-50 py-8 text-center text-gray-600">
+              No custom applications found
+            </p>
+          )}
+        </TabsContent>
       </Tabs>
     </Section>
-  );
+  )
 }

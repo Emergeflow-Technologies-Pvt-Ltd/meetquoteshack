@@ -89,7 +89,7 @@ export const generalLoanFormSchema = z
         { message: "You must be at least 18 years old" }
       )
     ),
-    maritalStatus: z.nativeEnum(MaritalStatus),
+    maritalStatus: z.nativeEnum(MaritalStatus).optional(),
     personalPhone: z
       .string()
       .min(10, "Please enter a valid personal phone number"),
@@ -97,9 +97,10 @@ export const generalLoanFormSchema = z
 
     // Step 3: Residence Information
     currentAddress: z.string().min(5, "Please enter your complete address"),
-    yearsAtCurrentAddress: z
-      .number()
-      .min(1, "Please enter your residency duration in years"),
+    yearsAtCurrentAddress: z.preprocess((val) => {
+      if (val === "" || val === null || val === undefined) return undefined
+      return Number(val)
+    }, z.number().min(1, "Please enter your residency duration in years").optional()),
     housingStatus: z.nativeEnum(HousingStatus, {
       required_error: "Housing status is required",
     }),
@@ -113,14 +114,24 @@ export const generalLoanFormSchema = z
     generalFieldOfStudy: z.string().optional(),
 
     // Step 5: Employment Details
-    employmentStatus: z.nativeEnum(EmploymentStatus),
+    employmentStatus: z.nativeEnum(EmploymentStatus).optional(),
     grossIncome: z
       .number()
       .min(1, "Please enter your gross income in CAD per year"),
-    workplaceName: z.string().min(1, "Workplace name is required"),
-    workplaceAddress: z.string().min(1, "Workplace address is required"),
-    workplacePhone: z.string().min(10, "Please enter a valid workplace phone"),
-    workplaceEmail: z.string().email("Please enter a valid workplace email"),
+    workplaceName: z.string().optional(),
+    workplaceAddress: z.string().optional(),
+    workplacePhone: z
+      .string()
+      .optional()
+      .refine((val) => !val || val.length >= 10, {
+        message: "Please enter a valid workplace phone",
+      }),
+    workplaceEmail: z
+      .string()
+      .optional()
+      .refine((val) => !val || /\S+@\S+\.\S+/.test(val), {
+        message: "Please enter a valid workplace email",
+      }),
     workplaceDuration: z
       .number()
       .min(1, "Please enter your workplace duration in years"),
@@ -194,7 +205,7 @@ export const generalLoanFormSchema = z
     monthlyDebtsExist: z.boolean({
       required_error: "Please specify if you have monthly debts",
     }),
-    savings: z.coerce.number().min(0, "Please enter your savings in CAD"),
+    savings: z.coerce.number().optional(),
     mortgage: moneyField("Please enter your mortgage amount in CAD"),
     propertyTaxMonthly: moneyField(
       "Please enter your monthly property tax in CAD"
@@ -217,9 +228,7 @@ export const generalLoanFormSchema = z
     otherIncomeAmount: moneyField(
       "Please enter your other income amount in CAD"
     ).optional(),
-    childCareBenefit: z.boolean({
-      required_error: "Please specify if you receive child care benefit",
-    }),
+    childCareBenefit: z.boolean().optional().default(false),
     creditScore: z.coerce
       .number()
       .min(300, "Credit score must be at least 300")

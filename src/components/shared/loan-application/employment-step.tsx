@@ -4,200 +4,236 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import type { UseFormReturn } from "react-hook-form";
-import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types";
+} from "@/components/ui/select"
+import type { UseFormReturn } from "react-hook-form"
+import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types"
 
-import { EmploymentStatus } from "@prisma/client";
-import { convertEnumValueToLabel } from "@/lib/utils";
-import { PlacesAutocompleteField } from "../PlacesAutocompleteField";
+import { EmploymentStatus } from "@prisma/client"
+import { convertEnumValueToLabel } from "@/lib/utils"
+import { PlacesAutocompleteField } from "../PlacesAutocompleteField"
+import { CustomFormConfig } from "@/types/customForm"
 
 interface EmploymentStepProps {
-  form: UseFormReturn<GeneralLoanFormValues>;
+  form: UseFormReturn<GeneralLoanFormValues>
+  config?: CustomFormConfig | null
+  stepId?: string
 }
 
-export function EmploymentStep({ form }: EmploymentStepProps) {
+export function EmploymentStep({ form, config, stepId }: EmploymentStepProps) {
+  const stepKeyMapping: Record<string, string> = {
+    eligibility: "step-1",
+    type: "step-2",
+    personal: "step-3",
+    residence: "step-4",
+    employment: "step-5",
+    financial: "step-6",
+    loan: "step-7",
+  }
+
+  const backendStepKey = stepKeyMapping[stepId || ""]
+  const allowedFields = config?.fields?.[backendStepKey]
+
+  const isFieldVisible = (field: keyof GeneralLoanFormValues) => {
+    if (!allowedFields) return true
+    return allowedFields[field]?.enabled === true
+  }
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <FormField
-        control={form.control}
-        name="employmentStatus"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>
-              Employment Status <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <Select onValueChange={field.onChange} value={field.value || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select employment status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(EmploymentStatus).map(([value]) => (
-                    <SelectItem key={value} value={value}>
-                      {convertEnumValueToLabel(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="grossIncome"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>
-              Gross Annual Income <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                placeholder="75000"
-                {...field}
-                value={field.value || ""}
-                onChange={(e) => {
-                  const value =
-                    e.target.value === "" ? "" : e.target.valueAsNumber;
-                  field.onChange(value);
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {isFieldVisible("employmentStatus") && (
+        <FormField
+          control={form.control}
+          name="employmentStatus"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Employment Status <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select employment status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(EmploymentStatus).map(([value]) => (
+                      <SelectItem key={value} value={value}>
+                        {convertEnumValueToLabel(value)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+      {isFieldVisible("grossIncome") && (
+        <FormField
+          control={form.control}
+          name="grossIncome"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Gross Annual Income <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="75000"
+                  {...field}
+                  value={field.value || ""}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value === "" ? "" : e.target.valueAsNumber
+                    field.onChange(value)
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="workplaceName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Current Employer <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter current employer"
-                    {...field}
-                    value={
-                      field.value === undefined || field.value === null
-                        ? ""
-                        : String(field.value)
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="workplaceAddress"
-            render={() => (
-              <PlacesAutocompleteField
-                control={form.control}
-                name="workplaceAddress"
-                label="Company Address"
-                placeholder="Enter company address"
-                onPlaceSelected={({ address }) => {
-                  form.setValue("workplaceAddress", address);
-                }}
-              />
-            )}
-          />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="workplacePhone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Work Phone <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="(555) 555-5555"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="workplaceEmail"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Work Email <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter work email"
-                    type="email"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="workplaceDuration"
-            render={({ field }) => {
-              const inputValue =
-                field.value === undefined || field.value === null
-                  ? ""
-                  : field.value.toString();
-
-              return (
+          {isFieldVisible("workplaceName") && (
+            <FormField
+              control={form.control}
+              name="workplaceName"
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Total Work Experience{" "}
-                    <span className="text-red-500">*</span>
+                    Current Employer <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      placeholder="Enter years of experience"
+                      placeholder="Enter current employer"
                       {...field}
-                      value={inputValue}
-                      onChange={(e) => {
-                        const value =
-                          e.target.value === ""
-                            ? undefined
-                            : Number(e.target.value);
-                        field.onChange(value);
-                      }}
+                      value={
+                        field.value === undefined || field.value === null
+                          ? ""
+                          : String(field.value)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              );
-            }}
-          />
+              )}
+            />
+          )}
+          {isFieldVisible("workplaceAddress") && (
+            <FormField
+              control={form.control}
+              name="workplaceAddress"
+              render={() => (
+                <PlacesAutocompleteField
+                  control={form.control}
+                  name="workplaceAddress"
+                  label="Company Address"
+                  placeholder="Enter company address"
+                  onPlaceSelected={({ address }) => {
+                    form.setValue("workplaceAddress", address)
+                  }}
+                />
+              )}
+            />
+          )}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {isFieldVisible("workplacePhone") && (
+            <FormField
+              control={form.control}
+              name="workplacePhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Work Phone <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="(555) 555-5555"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {isFieldVisible("workplaceEmail") && (
+            <FormField
+              control={form.control}
+              name="workplaceEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Work Email <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter work email"
+                      type="email"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {isFieldVisible("workplaceDuration") && (
+            <FormField
+              control={form.control}
+              name="workplaceDuration"
+              render={({ field }) => {
+                const inputValue =
+                  field.value === undefined || field.value === null
+                    ? ""
+                    : field.value.toString()
+
+                return (
+                  <FormItem>
+                    <FormLabel>
+                      Total Work Experience{" "}
+                      <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Enter years of experience"
+                        {...field}
+                        value={inputValue}
+                        onChange={(e) => {
+                          const value =
+                            e.target.value === ""
+                              ? undefined
+                              : Number(e.target.value)
+                          field.onChange(value)
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
-  );
+  )
 }
