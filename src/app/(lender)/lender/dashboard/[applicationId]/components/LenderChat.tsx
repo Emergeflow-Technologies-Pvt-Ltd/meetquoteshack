@@ -1,41 +1,41 @@
-"use client";
-import React, { useState } from "react";
-import axios from "axios";
+"use client"
+import React, { useState } from "react"
+import axios from "axios"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { Prisma } from "@prisma/client";
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+import { Prisma } from "@prisma/client"
 
 interface LenderChatProps {
   application: Prisma.ApplicationGetPayload<{
     include: {
-      documents: true;
-      messages: true;
-    };
-  }>;
+      documents: true
+      messages: true
+    }
+  }>
   setApplication: React.Dispatch<
     React.SetStateAction<Prisma.ApplicationGetPayload<{
       include: {
-        documents: true;
-        messages: true;
-      };
+        documents: true
+        messages: true
+      }
     }> | null>
-  >;
-  applicationId: string;
-  messages: Prisma.MessageGetPayload<object>[];
+  >
+  applicationId: string
+  messages: Prisma.MessageGetPayload<object>[]
   setMessages: React.Dispatch<
     React.SetStateAction<Prisma.MessageGetPayload<object>[]>
-  >;
-  missingDocumentTypes: string[];
-  documentTypeLabels: Record<string, string>;
-  LoanStatus: { IN_PROGRESS: string; IN_CHAT: string };
+  >
+  missingDocumentTypes: string[]
+  documentTypeLabels: Record<string, string>
+  LoanStatus: { IN_PROGRESS: string; IN_CHAT: string }
 }
 
 const LenderChat: React.FC<LenderChatProps> = ({
@@ -48,93 +48,94 @@ const LenderChat: React.FC<LenderChatProps> = ({
   documentTypeLabels,
   LoanStatus,
 }) => {
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [message, setMessage] = useState("")
+  const [sending, setSending] = useState(false)
+  const [selectedDocs, setSelectedDocs] = useState<string[]>([])
 
   const updateMessageWithSelectedDocs = (docs: string[]) => {
     if (docs.length === 0) {
-      setMessage("");
-      return;
+      setMessage("")
+      return
     }
 
-    const docLabels = docs.map((t) => documentTypeLabels[t]).join(", ");
-    const politeMessage = `Hi, could you please upload the following document(s): ${docLabels}?`;
+    const docLabels = docs.map((t) => documentTypeLabels[t]).join(", ")
+    const politeMessage = `Hi, could you please upload the following document(s): ${docLabels}?`
 
-    setMessage(politeMessage);
-  };
+    setMessage(politeMessage)
+  }
 
   const handleSendMessageAndMaybeRequestDocs = async () => {
-    if (!message.trim()) return;
+    if (!message.trim()) return
 
     try {
-      setSending(true);
+      setSending(true)
 
       // Send message
       const { data: newMessage } = await axios.post("/api/messages", {
         content: message,
         applicationId,
-      });
-      setMessages([...messages, newMessage]);
+        requestedDocuments: selectedDocs,
+      })
+      setMessages([...messages, newMessage])
 
-      toast({ title: "Message Sent" });
+      toast({ title: "Message Sent" })
 
       // Request documents if any selected
       if (selectedDocs.length > 0 && application) {
         const { data: newDocuments } = await axios.post(
           `/api/applications/${application.id}/documents`,
           { documentTypes: selectedDocs }
-        );
+        )
 
         setApplication((prev) =>
           prev
             ? { ...prev, documents: [...prev.documents, ...newDocuments] }
             : null
-        );
+        )
 
-        setSelectedDocs([]);
+        setSelectedDocs([])
       }
 
-      setMessage("");
+      setMessage("")
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error:", error)
       toast({
         title: "Error",
         description: "Failed to send message or request documents",
         variant: "destructive",
-      });
+      })
     } finally {
-      setSending(false);
+      setSending(false)
     }
-  };
+  }
 
   const handleStartChat = async () => {
     try {
       await axios.patch(`/api/applications/${applicationId}/startchat`, {
         status: "IN_CHAT",
-      });
+      })
 
-      setApplication((prev) => (prev ? { ...prev, status: "IN_CHAT" } : null));
+      setApplication((prev) => (prev ? { ...prev, status: "IN_CHAT" } : null))
 
       toast({
         title: "Chat started",
         description: "You can now chat with the applicant",
-      });
+      })
     } catch (error) {
-      console.error("Error starting chat:", error);
+      console.error("Error starting chat:", error)
       toast({
         title: "Error",
         description: "Failed to start chat",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   if (
     application.status !== LoanStatus.IN_PROGRESS &&
     application.status !== "IN_CHAT"
   ) {
-    return null;
+    return null
   }
 
   return (
@@ -186,13 +187,13 @@ const LenderChat: React.FC<LenderChatProps> = ({
       <div className="flex flex-col gap-2 border-t p-4">
         <form
           onSubmit={(e) => {
-            e.preventDefault();
+            e.preventDefault()
             if (
               application.status === "IN_CHAT" &&
               !sending &&
               message.trim()
             ) {
-              handleSendMessageAndMaybeRequestDocs();
+              handleSendMessageAndMaybeRequestDocs()
             }
           }}
           className="flex items-start gap-2"
@@ -213,14 +214,14 @@ const LenderChat: React.FC<LenderChatProps> = ({
                   <DropdownMenuItem
                     key={type}
                     onSelect={(e) => {
-                      e.preventDefault();
+                      e.preventDefault()
                       setSelectedDocs((prev) => {
                         const newSelection = prev.includes(type)
                           ? prev.filter((t) => t !== type)
-                          : [...prev, type];
-                        updateMessageWithSelectedDocs(newSelection);
-                        return newSelection;
-                      });
+                          : [...prev, type]
+                        updateMessageWithSelectedDocs(newSelection)
+                        return newSelection
+                      })
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -246,13 +247,13 @@ const LenderChat: React.FC<LenderChatProps> = ({
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
+                e.preventDefault()
                 if (
                   application.status === "IN_CHAT" &&
                   !sending &&
                   message.trim()
                 ) {
-                  handleSendMessageAndMaybeRequestDocs();
+                  handleSendMessageAndMaybeRequestDocs()
                 }
               }
             }}
@@ -276,7 +277,7 @@ const LenderChat: React.FC<LenderChatProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LenderChat;
+export default LenderChat

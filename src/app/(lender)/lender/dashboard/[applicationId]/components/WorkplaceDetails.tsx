@@ -1,17 +1,17 @@
-"use client";
+"use client"
 
-import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Laptop } from "lucide-react";
-import { Prisma } from "@prisma/client";
+import React from "react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Laptop } from "lucide-react"
+import { Prisma } from "@prisma/client"
 
 interface WorkpalceDetailsProps {
   application: Prisma.ApplicationGetPayload<{
     include: {
-      documents: true;
-      messages: true;
-    };
-  }> | null;
+      documents: true
+      messages: true
+    }
+  }> | null
 }
 
 const WorkplaceDetails: React.FC<WorkpalceDetailsProps> = ({ application }) => {
@@ -41,20 +41,20 @@ const WorkplaceDetails: React.FC<WorkpalceDetailsProps> = ({ application }) => {
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
 const InfoRow = ({
   label,
   value,
 }: {
-  label: string;
-  value: string | number | undefined;
+  label: string
+  value: string | number | null | undefined
 }) => (
   <div>
     <span className="text-gray-500">{label}</span>
     <p className="break-words font-medium">{value}</p>
   </div>
-);
+)
 
-export default WorkplaceDetails;
+export default WorkplaceDetails

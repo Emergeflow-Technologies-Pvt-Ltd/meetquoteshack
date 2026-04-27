@@ -1,46 +1,52 @@
-import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
-import prisma from "@/lib/db";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth"
+import { NextResponse } from "next/server"
+import prisma from "@/lib/db"
+import { authOptions } from "@/lib/auth"
+import {
+  sendNewMessageEmail,
+  sendDocumentRequestEmail,
+} from "../../../lib/mail.controller"
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { content, applicationId } = await req.json();
+    const { content, applicationId, requestedDocuments } = await req.json()
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true },
-    });
+    })
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
-      select: { userId: true },
-    });
+      include: {
+        user: true, // ✅ needed for email
+      },
+    })
 
     if (!application) {
       return NextResponse.json(
         { error: "Application not found" },
         { status: 404 }
-      );
+      )
     }
 
-    const isOwner = application.userId === session.user.id;
-    const isAdminOrLender = user.role === "ADMIN" || user.role === "LENDER";
+    const isOwner = application.userId === session.user.id
+    const isAdminOrLender = user.role === "ADMIN" || user.role === "LENDER"
 
     if (!isOwner && !isAdminOrLender) {
       return NextResponse.json(
         { error: "Not authorized to send messages for this application" },
         { status: 403 }
-      );
+      )
     }
 
     const message = await prisma.message.create({
@@ -50,47 +56,75 @@ export async function POST(req: Request) {
         senderRole: user.role,
         applicationId,
       },
-    });
+    })
 
-    return NextResponse.json(message);
+    // ✅ SEND EMAIL ONLY IF LOANEE IS RECEIVER
+    try {
+      const isSenderLenderOrAdmin =
+        user.role === "LENDER" || user.role === "ADMIN"
+
+      if (isSenderLenderOrAdmin && application.user?.email) {
+        if (requestedDocuments && requestedDocuments.length > 0) {
+          // ✅ DOCUMENT REQUEST EMAIL
+          await sendDocumentRequestEmail({
+            to: application.user.email,
+            name: application.user.name || "User",
+            applicationId: application.id,
+            documents: requestedDocuments,
+          })
+        } else {
+          // ✅ NORMAL MESSAGE EMAIL
+          await sendNewMessageEmail({
+            to: application.user.email,
+            name: application.user.name || "User",
+            applicationId: application.id,
+            message: content,
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Email failed:", err)
+    }
+
+    return NextResponse.json(message)
   } catch (error) {
-    console.error("Error creating message:", error);
+    console.error("Error creating message:", error)
     return NextResponse.json(
       { error: "Error creating message" },
       { status: 500 }
-    );
+    )
   }
 }
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { searchParams } = new URL(req.url);
-    const applicationId = searchParams.get("applicationId");
+    const { searchParams } = new URL(req.url)
+    const applicationId = searchParams.get("applicationId")
 
     if (!applicationId) {
       return NextResponse.json(
         { error: "applicationId is required" },
         { status: 400 }
-      );
+      )
     }
 
     // Fetch all messages for the application
     const messages = await prisma.message.findMany({
       where: { applicationId },
       orderBy: { createdAt: "asc" },
-    });
+    })
 
-    return NextResponse.json(messages);
+    return NextResponse.json(messages)
   } catch (error) {
-    console.error("Error fetching messages:", error);
+    console.error("Error fetching messages:", error)
     return NextResponse.json(
       { error: "Error fetching messages" },
       { status: 500 }
-    );
+    )
   }
 }
