@@ -391,7 +391,7 @@ export default async function LenderPoolPage({
               </div>
               <div className="flex flex-col">
                 <p className="text-[17px] font-semibold leading-[25.5px] text-slate-900">
-                  Create Custom Form
+                  Create smart form
                 </p>
                 <p className="text-[11.33px] leading-[17px] text-slate-500">
                   Create a form tailored to your requirements, select steps,
@@ -400,7 +400,7 @@ export default async function LenderPoolPage({
               </div>
             </div>
             <Link href="/lender/forms">
-              <Button className="flex items-center justify-center gap-[10px] rounded-[4.28px] bg-violet-600 px-[11px] py-[3px] text-[11px] font-medium text-white transition-all duration-300 hover:bg-violet-700">
+              <Button className="flex items-center justify-center gap-[10px] rounded-[4.28px] bg-violet-600 px-[11px] py-[3px] text-[14px] font-medium text-white transition-all duration-300 hover:bg-violet-700">
                 Manage Custom Forms
               </Button>
             </Link>

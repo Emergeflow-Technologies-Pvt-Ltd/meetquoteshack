@@ -236,7 +236,7 @@ export default function LenderCustomFormsCreatePage() {
         <div className="flex w-full flex-col items-start justify-between gap-3 sm:h-[45.333px] sm:flex-row sm:items-start sm:gap-6">
           <div className="flex flex-col gap-1">
             <p className="text-[17px] font-semibold leading-[25.5px] text-slate-900">
-              Create Custom Form
+              Create smart form
             </p>
             <p className="whitespace-nowrap text-[11.333px] leading-[17px] text-slate-500">
               Create a form tailored to your requirements, select steps, fields
