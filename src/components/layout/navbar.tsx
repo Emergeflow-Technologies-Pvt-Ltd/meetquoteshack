@@ -250,6 +250,14 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                             >
                               <Link href="/agentchat">Chat</Link>
                             </Button>
+                            <Button
+                              onClick={() => setIsOpen(false)}
+                              asChild
+                              variant="ghost"
+                              className="justify-start text-base"
+                            >
+                              <Link href="/agentchat">Custom Forms</Link>
+                            </Button>
                           </>
                         )}
                         <Button
@@ -597,6 +605,9 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/agentchat">Chat</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/agent/customform">Custom Forms</Link>
                       </DropdownMenuItem>
                     </>
                   )}

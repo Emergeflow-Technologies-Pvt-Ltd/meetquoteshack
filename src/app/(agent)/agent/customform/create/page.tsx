@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Section from "@/components/shared/section"
 import { Checkbox } from "@/components/ui/checkbox"
 import Image from "next/image"
@@ -18,12 +18,17 @@ import { toast } from "@/hooks/use-toast"
 
 export default function LenderCustomFormsCreatePage() {
   const router = useRouter()
-  const formSteps = useMemo(() => getFormSteps("LENDER"), [])
-  const allStepIds = useMemo(() => formSteps.map((step) => step.id), [])
+  const formSteps = useMemo(() => getFormSteps("AGENT"), [])
+  const allStepIds = useMemo(
+    () => formSteps.map((step) => step.id),
+    [formSteps]
+  )
+
   const allSubStepIds = useMemo(
     () => formSteps.flatMap((step) => step.subSteps.map((sub) => sub.key)),
     [formSteps]
   )
+
   const requiredSubSteps = useMemo(() => {
     return formSteps.flatMap((step) =>
       step.subSteps.filter((sub) => sub.required).map((sub) => sub.key)
@@ -31,8 +36,8 @@ export default function LenderCustomFormsCreatePage() {
   }, [formSteps])
   const [selectedLoanTypes, setSelectedLoanTypes] = useState<LoanType[]>([])
 
-  const [selectedSubSteps, setSelectedSubSteps] =
-    useState<string[]>(requiredSubSteps)
+  const [selectedSubSteps, setSelectedSubSteps] = useState<string[]>([])
+
   // const [selectedSteps, setSelectedSteps] = useState<string[]>([])
   const [openSteps, setOpenSteps] = useState<string[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
@@ -58,6 +63,10 @@ export default function LenderCustomFormsCreatePage() {
   //     prev.includes(id) ? prev.filter((stepId) => stepId !== id) : [...prev, id]
   //   )
   // }
+
+  useEffect(() => {
+    setSelectedSubSteps(requiredSubSteps)
+  }, [requiredSubSteps])
 
   const toggleSubStep = (id: string, isRequired: boolean) => {
     if (isRequired) return // ❌ block uncheck
@@ -177,7 +186,7 @@ export default function LenderCustomFormsCreatePage() {
       formData.append("logo", logoFile)
     }
 
-    const res = await fetch("/api/lender/customForm", {
+    const res = await fetch("/api/agent/customForm", {
       method: "POST",
       body: formData,
     })
@@ -231,6 +240,15 @@ export default function LenderCustomFormsCreatePage() {
 
     return url.slice(0, maxLength) + "..."
   }
+
+  const agentLoanTypeOptions: LoanType[] = [
+    "FIRST_TIME_HOME",
+    "MORTGAGE_REFINANCE",
+    "INVESTMENT_PROPERTY",
+    "HELOC",
+    "HOME_REPAIR",
+  ]
+
   return (
     <Section className="flex flex-col gap-6 py-12">
       <div className="relative flex w-full flex-col items-start px-[17px] pb-[0.567px] pt-[14.167px]">
@@ -390,7 +408,7 @@ export default function LenderCustomFormsCreatePage() {
                                 {fieldTypeMap[subId] ?? `Missing (${subId})`}
                               </span>
                             </div>
-                            {subStep.options.map((option: LoanType) => (
+                            {agentLoanTypeOptions.map((option: LoanType) => (
                               <div
                                 key={option}
                                 onClick={() => toggleLoanType(option)}
@@ -537,7 +555,7 @@ export default function LenderCustomFormsCreatePage() {
                   type="button"
                   onClick={() => {
                     setShowSuccess(false)
-                    router.push("/lender/forms")
+                    router.push("/agent/customform")
                   }}
                   className="w-full rounded-[4px] bg-violet-600 px-6 py-2 text-[16px] font-bold leading-[1.5] text-[#faf7f0]"
                 >

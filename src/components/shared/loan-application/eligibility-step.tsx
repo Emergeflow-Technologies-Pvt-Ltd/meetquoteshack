@@ -11,17 +11,20 @@ import { Switch } from "@/components/ui/switch"
 import type { UseFormReturn } from "react-hook-form"
 import type { GeneralLoanFormValues } from "@/app/(site)/loanee/loan-application/types"
 import { CustomFormConfig } from "@/types/customForm"
+import { useEffect } from "react"
 
 interface EligibilityStepProps {
   form: UseFormReturn<GeneralLoanFormValues>
   config?: CustomFormConfig | null
   stepId?: string
+  agentCode?: string | null // ✅ ADD THIS
 }
 
 export function EligibilityStep({
   form,
   config,
   stepId,
+  agentCode,
 }: EligibilityStepProps) {
   // ✅ STEP 3: ADD MAPPING HERE
   const stepKeyMapping: Record<string, string> = {
@@ -41,6 +44,12 @@ export function EligibilityStep({
   const allowedFields = config?.fields?.[backendStepKey]
 
   const showAll = !allowedFields
+
+  useEffect(() => {
+    if (agentCode) {
+      form.setValue("agentCode", agentCode)
+    }
+  }, [agentCode, form])
   return (
     <div className="space-y-4 md:space-y-6 lg:space-y-8">
       {(showAll || allowedFields?.isAdult?.enabled) && (
@@ -108,6 +117,7 @@ export function EligibilityStep({
                   {...field}
                   value={field.value ?? ""}
                   onChange={(e) => field.onChange(e.target.value)}
+                  disabled={!!agentCode} // 🔥 prevents editing if auto-filled
                 />
               </FormControl>
               <FormMessage />

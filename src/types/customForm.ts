@@ -18,4 +18,5 @@ export type CustomFormConfig = {
   status: "ACTIVE" | "DISABLED"
   steps: CustomFormStep[]
   fields?: Record<string, StepFieldConfig>
+  agentCode?: string | null // ✅ FIXED
 }

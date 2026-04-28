@@ -41,11 +41,21 @@ export async function GET(
       include: {
         documents: true,
         messages: true,
+
         lender: {
           include: {
             user: {
               select: { id: true },
             },
+          },
+        },
+
+        agent: true,
+
+        customForm: {
+          include: {
+            agent: true, // (agentCode comes from here)
+            lender: true, // optional but good to have
           },
         },
         ApplicationStatusHistory: {
@@ -118,6 +128,11 @@ export async function GET(
         potentialLenderIds,
         matchLenderIds,
         loaneeSelectedMatchLenderIds,
+
+        // ✅ ADD THIS
+        agentCodeFromForm: application.customForm?.agent?.agentCode || null,
+
+        agentFromForm: application.customForm?.agent || null,
       },
       lenderList,
     })
@@ -445,6 +460,7 @@ export async function PATCH(
 
         if (lender?.email) {
           await sendNewApplicationReceivedEmail({
+            receiverType: "LENDER", // ✅ FIX
             lenderEmail: lender.email,
             applicantName: `${application.firstName} ${application.lastName}`,
             loanType: application.loanType,

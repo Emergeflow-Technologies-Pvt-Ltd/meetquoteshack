@@ -59,6 +59,7 @@ type ApplicationWithUser = Application & {
   documents: Document[]
   documentKey?: string
   agent?: Agent | null
+  lender?: User | null // ✅ ADD THIS
   estimatedPropertyValue?: number
   intendedPropertyAddress?: string
   applicationStatusHistory?: ApplicationStatusHistory[]
@@ -253,6 +254,21 @@ export default function ApplicationPage({ params }: Props) {
     (docType) =>
       !application.documents.some((doc) => doc.documentType === docType.type)
   )
+  const isCustom = application.formType === "CUSTOM"
+
+  const isAgentCustomForm = isCustom && !!application.agentId
+  // const isLenderCustomForm = isCustom && !!application.lenderId
+
+  const canAssignLender =
+    application.formType === "DEFAULT" || isAgentCustomForm
+
+  const canAssignAgent = application.formType === "DEFAULT"
+
+  console.log({
+    formType: application.formType,
+    agentId: application.agentId,
+    lenderId: application.lenderId,
+  })
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -299,19 +315,26 @@ export default function ApplicationPage({ params }: Props) {
                     >
                       Verified Document
                     </Button>
-                    <LenderAssignment
-                      application={application}
-                      lenders={lenders}
-                      onUpdate={onUpdateApplication}
-                      onRefetch={() => fetchData(false)}
-                    />
 
-                    <AgentAssignment
-                      application={application}
-                      agents={agents}
-                      loadingAgents={loadingAgents}
-                      onUpdate={onUpdateApplication}
-                    />
+                    {/* ✅ Lender Assignment */}
+                    {canAssignLender && (
+                      <LenderAssignment
+                        application={application}
+                        lenders={lenders}
+                        onUpdate={onUpdateApplication}
+                        onRefetch={() => fetchData(false)}
+                      />
+                    )}
+
+                    {/* ✅ Agent Assignment */}
+                    {canAssignAgent && (
+                      <AgentAssignment
+                        application={application}
+                        agents={agents}
+                        loadingAgents={loadingAgents}
+                        onUpdate={onUpdateApplication}
+                      />
+                    )}
                   </div>
                 </div>
               </div>

@@ -120,18 +120,35 @@ export async function sendPasswordResetEmail(user: User) {
 }
 
 export async function sendNewApplicationReceivedEmail({
+  receiverType,
   lenderEmail,
+  agentEmail,
   applicantName,
   loanType,
   amount,
   applicationId,
 }: {
-  lenderEmail: string
+  receiverType: "AGENT" | "LENDER"
+  lenderEmail?: string
+  agentEmail?: string
   applicantName: string
   loanType: string
   amount: string
   applicationId: string
 }) {
+  const recipient = receiverType === "AGENT" ? agentEmail : lenderEmail
+
+  if (!recipient) {
+    throw new Error("No recipient email provided")
+  }
+
+  const dashboardPath =
+    receiverType === "AGENT"
+      ? `/agent/dashboard/${applicationId}`
+      : `/lender/dashboard/${applicationId}`
+
+  const viewUrl = `${process.env.NEXT_PUBLIC_APP_URL}${dashboardPath}`
+
   const html = baseTemplate(`
     <h2>New Loan Application Received</h2>
 
@@ -144,17 +161,16 @@ export async function sendNewApplicationReceivedEmail({
       <li><strong>Requested Amount:</strong> $${amount}</li>
     </ul>
 
- <div style="margin:24px 0;">
-    <a href="${process.env.NEXT_PUBLIC_APP_URL}/lender/dashboard/${applicationId}"
-      style="background:#7c3aed;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;">
-      View Application
-    </a>
-  </div>
+    <div style="margin:24px 0;">
+      <a href="${viewUrl}"
+        style="background:#7c3aed;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;">
+        View Application
+      </a>
+    </div>
   `)
 
-  await transporter.sendMail({
-    from: '"Quoteshack" <no-reply@loanplatform.com>',
-    to: lenderEmail,
+  await sendMail({
+    to: recipient,
     subject: "New Loan Application Received",
     html,
   })

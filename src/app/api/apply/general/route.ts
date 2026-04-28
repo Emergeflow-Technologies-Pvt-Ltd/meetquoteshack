@@ -27,6 +27,8 @@ export async function POST(request: Request) {
 
     // 🔥 Detect custom form
     let lenderConnect: Prisma.LenderWhereUniqueInput | undefined
+    let agentConnect: Prisma.AgentWhereUniqueInput | undefined // moved here
+
     let isCustomApplication = false
     let formType: FormType = FormType.DEFAULT
 
@@ -45,10 +47,16 @@ export async function POST(request: Request) {
         )
       }
 
-      lenderConnect = { id: customForm.vendorId }
-      isCustomApplication = true
+      // ✅ assign lender OR agent based on form owner
+      if (customForm.vendorId) {
+        lenderConnect = { id: customForm.vendorId }
+      }
 
-      // 🔥 IMPORTANT
+      if (customForm.agentId) {
+        agentConnect = { id: customForm.agentId }
+      }
+
+      isCustomApplication = true
       customFormId = customForm.id
       formType = FormType.CUSTOM
     }
@@ -60,7 +68,6 @@ export async function POST(request: Request) {
     }
 
     // 1) resolve agent
-    let agentConnect: Prisma.AgentWhereUniqueInput | undefined
     if (data.agentCode && data.agentCode.trim() !== "") {
       const agent = await prisma.agent.findUnique({
         where: { agentCode: data.agentCode.trim() },
@@ -331,14 +338,19 @@ async function createGeneralApplication(
       data: formattedData,
       include: {
         lender: true, // 👈 IMPORTANT
+        agent: true,
       },
     })
 
     // ✅ send email if lender exists
     try {
-      if (application.lender?.email) {
+      if (application.lender?.email || application.agent?.email) {
+        const receiverType = application.agent ? "AGENT" : "LENDER"
+
         await sendNewApplicationReceivedEmail({
-          lenderEmail: application.lender.email,
+          receiverType,
+          lenderEmail: application.lender?.email,
+          agentEmail: application.agent?.email,
           applicantName: `${application.firstName} ${application.lastName}`,
           loanType: application.loanType,
           amount: application.loanAmount.toString(),

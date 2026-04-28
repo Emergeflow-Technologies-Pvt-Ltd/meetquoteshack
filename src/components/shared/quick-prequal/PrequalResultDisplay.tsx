@@ -11,6 +11,15 @@ export function PrequalResultDisplay({
   result,
   creditScore,
 }: PrequalResultDisplayProps) {
+  const formatPercent = (val: number | null | undefined) => {
+    const num = Number(val)
+    return isNaN(num) ? "—" : `${num.toFixed(1)}%`
+  }
+
+  const formatNumber = (val: number | null | undefined) => {
+    const num = Number(val)
+    return isNaN(num) ? "—" : num.toFixed(1)
+  }
   return (
     <div
       className={`space-y-6 rounded-lg border p-6 pb-12 ${
@@ -65,7 +74,7 @@ export function PrequalResultDisplay({
             />
             <Row
               label="LTV"
-              value={`${result.ltv.toFixed(1)}%`}
+              value={formatPercent(result.ltv)}
               danger={result.ltv > 80}
             />
           </div>
@@ -75,7 +84,7 @@ export function PrequalResultDisplay({
               label="Credit"
               value={`${creditScore} (${result.creditTier})`}
             />
-            <Metric label="LTI" value={result.lti.toFixed(1)} />
+            <Metric label="LTI" value={formatNumber(result.lti)} />
           </div>
         </>
       ) : (
@@ -84,12 +93,12 @@ export function PrequalResultDisplay({
           <div className="grid grid-cols-2 gap-3 text-sm">
             <MetricCard
               title="Current DTI"
-              value={`${result.frontEndDTI.toFixed(1)}%`}
+              value={`${Number(result.frontEndDTI).toFixed(1)}%`}
               sub="Existing debts"
             />
             <MetricCard
               title="Estimated DTI"
-              value={`${result.backEndDTI.toFixed(1)}%`}
+              value={formatPercent(result.backEndDTI)}
               sub="With new loan"
             />
           </div>
@@ -100,11 +109,11 @@ export function PrequalResultDisplay({
               label="Credit"
               value={`${creditScore} (${result.creditTier})`}
             />
-            <Metric label="TDSR" value={`${result.tdsr.toFixed(1)}%`} />
-            <Metric label="LTI" value={result.lti.toFixed(1)} />
+            <Metric label="TDSR" value={`${Number(result.tdsr).toFixed(1)}%`} />
+            <Metric label="LTI" value={`${Number(result.lti).toFixed(1)}%`} />
 
             {result.isMortgageLike && result.ltv > 0 && (
-              <Metric label="LTV" value={`${result.ltv.toFixed(1)}%`} />
+              <Metric label="LTV" value={formatPercent(result.ltv)} />
             )}
           </div>
 
@@ -116,7 +125,7 @@ export function PrequalResultDisplay({
             />
             <Row
               label="Room Available"
-              value={`$${result.availableForNewLoanMonthly.toLocaleString()}/mo`}
+              value={`$${Number(result.availableForNewLoanMonthly || 0).toLocaleString()}/mo`}
             />
           </div>
         </>
@@ -245,7 +254,7 @@ function MetricBar({
       <div className="mb-1 flex justify-between text-xs">
         <span>{label}</span>
         <span className={value <= limit ? "text-green-600" : "text-red-600"}>
-          {value.toFixed(1)}%
+          {Number(value).toFixed(1)}%
         </span>
       </div>
 
@@ -254,7 +263,7 @@ function MetricBar({
           className={`h-2 rounded-full ${
             value <= limit ? "bg-green-500" : "bg-red-500"
           }`}
-          style={{ width: `${Math.min(value, 100)}%` }}
+          style={{ width: `${Math.min(Number(value) || 0, 100)}%` }}
         />
       </div>
     </div>

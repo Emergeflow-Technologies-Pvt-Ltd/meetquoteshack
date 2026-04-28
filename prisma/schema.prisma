@@ -144,6 +144,8 @@ model Agent {
   reviews                 AgentReview[]
   agentApplicationUnlocks AgentApplicationUnlock[]
 
+  customForms CustomForm[]
+
   user         User?         @relation(fields: [userId], references: [id])
   applications Application[]
 
@@ -357,7 +359,9 @@ model ApplicationStatusHistory {
 model CustomForm {
   id        String     @id @default(cuid())
   name      String
-  vendorId  String     // Lender.id
+  vendorId  String?    // optional
+  agentId   String?    // optional
+
   shareUrl  String     @unique
   status    FormStatus @default(ACTIVE)
   branding  Json?      // { companyName }
@@ -365,7 +369,9 @@ model CustomForm {
   steps     Json       // SNAPSHOT of steps + fields (IMPORTANT)
   createdAt DateTime   @default(now())
 
-  lender    Lender     @relation(fields: [vendorId], references: [id])
+  agent    Agent?     @relation(fields: [agentId], references: [id])
+
+  lender    Lender?     @relation(fields: [vendorId], references: [id])
   applications Application[]
   @@index([vendorId])
 }
