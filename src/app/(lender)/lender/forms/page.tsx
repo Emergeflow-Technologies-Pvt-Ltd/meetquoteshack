@@ -74,7 +74,7 @@ export default function LenderCustomFormsPage() {
             </div>
             <div className="flex flex-1 flex-col gap-0.5">
               <p className="text-[17px] font-semibold leading-[25.5px] text-slate-900">
-                Create Custom Form
+                Create smart form
               </p>
               <p className="text-[11.333px] leading-[17px] text-slate-500">
                 Create a form tailored to your requirements, select steps,
@@ -84,7 +84,7 @@ export default function LenderCustomFormsPage() {
             <Link href="/lender/forms/create">
               <Button
                 type="button"
-                className="flex items-center justify-center gap-[10px] rounded-[6px] bg-violet-600 px-[11px] py-[5px] text-[12px] font-medium text-white shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.1)] transition-all duration-200 hover:bg-violet-700 active:scale-95"
+                className="flex items-center justify-center gap-[10px] rounded-[6px] bg-violet-600 px-[11px] py-[5px] text-[14px] font-medium text-white shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.1)] transition-all duration-200 hover:bg-violet-700 active:scale-95"
               >
                 Create
               </Button>
