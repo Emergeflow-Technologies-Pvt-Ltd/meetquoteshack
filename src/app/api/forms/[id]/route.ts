@@ -22,6 +22,9 @@ export async function GET(
 
     const form = await prisma.customForm.findUnique({
       where: { shareId: id },
+      include: {
+        agent: true, // ✅ REQUIRED
+      },
     })
 
     if (!form) {
@@ -44,6 +47,9 @@ export async function GET(
         acc[step.id] = step.fields || {}
         return acc
       }, {}),
+
+      // ✅ ADD THIS
+      agentCode: form.agent?.agentCode || null,
     })
   } catch (error) {
     console.error(error)

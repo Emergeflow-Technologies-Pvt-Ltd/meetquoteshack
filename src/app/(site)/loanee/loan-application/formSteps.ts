@@ -2,7 +2,7 @@ import { LoanType } from "@prisma/client"
 
 export const loanTypeOptions = Object.values(LoanType)
 
-export const formSteps = [
+export const getFormSteps = (role: "AGENT" | "LENDER") => [
   {
     id: "step-1",
     title: "Step 1: Eligibility Check",
@@ -11,7 +11,7 @@ export const formSteps = [
     subSteps: [
       { key: "isAdult", label: "Terms and Conditions", required: true },
       { key: "hasBankruptcy", label: "Bankruptcy status", required: true },
-      { key: "agentCode", label: "Agent code", required: false },
+      { key: "agentCode", label: "Agent code", required: role === "AGENT" },
     ],
   },
   {

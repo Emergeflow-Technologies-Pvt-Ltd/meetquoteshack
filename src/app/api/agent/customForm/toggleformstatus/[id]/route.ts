@@ -17,14 +17,21 @@ export async function PATCH(
 
     const form = await prisma.customForm.findUnique({
       where: { id },
-      include: { lender: true },
+      include: {
+        agent: true,
+        lender: true, // ✅ include lender
+      },
     })
 
     if (!form) {
       return Response.json({ error: "Form not found" }, { status: 404 })
     }
 
-    if (!form.lender || form.lender.userId !== session.user.id) {
+    // ✅ Ownership check (agent OR lender)
+    const isAgentOwner = form.agent?.userId === session.user.id
+    const isLenderOwner = form.lender?.userId === session.user.id
+
+    if (!isAgentOwner && !isLenderOwner) {
       return Response.json({ error: "Forbidden" }, { status: 403 })
     }
 

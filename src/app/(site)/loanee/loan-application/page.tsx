@@ -84,6 +84,9 @@ export default function GeneralLoanForm() {
   const [customFormConfig, setCustomFormConfig] =
     useState<CustomFormConfig | null>(null)
   const [loadingFormConfig, setLoadingFormConfig] = useState(false)
+  const [agentCodeFromForm, setAgentCodeFromForm] = useState<string | null>(
+    null
+  )
 
   const [access, setAccess] = useState<{
     subscription?: { plan?: string | null }
@@ -146,6 +149,8 @@ export default function GeneralLoanForm() {
         const res = await axios.get<CustomFormConfig>(`/api/forms/${formId}`)
         const data = res.data
         setCustomFormConfig(data)
+
+        setAgentCodeFromForm(data.agentCode || null)
 
         // 🔥 IMPORTANT: check status
         if (data.status === "DISABLED") {
@@ -597,6 +602,7 @@ export default function GeneralLoanForm() {
                 form={form}
                 config={customFormConfig}
                 stepId={stepId}
+                agentCode={agentCodeFromForm}
               />
             )}
             {stepId === "type" && (
