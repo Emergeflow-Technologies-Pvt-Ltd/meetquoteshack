@@ -218,7 +218,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               variant="ghost"
                               className="justify-start text-base"
                             >
-                              <Link href="/admin/customform">Custom Forms</Link>
+                              <Link href="/admin/customform">Smart Forms</Link>
                             </Button>
                           </>
                         )}
@@ -256,7 +256,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                               variant="ghost"
                               className="justify-start text-base"
                             >
-                              <Link href="/agentchat">Custom Forms</Link>
+                              <Link href="/agentchat">Smart Forms</Link>
                             </Button>
                           </>
                         )}
@@ -607,7 +607,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                         <Link href="/agentchat">Chat</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/agent/customform">Custom Forms</Link>
+                        <Link href="/agent/customform">Smart Forms</Link>
                       </DropdownMenuItem>
                     </>
                   )}
@@ -618,7 +618,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem asChild>
-                        <Link href="/admin/customform">Custom Forms</Link>
+                        <Link href="/admin/customform">Smart Forms</Link>
                       </DropdownMenuItem>
                     </>
                   )}

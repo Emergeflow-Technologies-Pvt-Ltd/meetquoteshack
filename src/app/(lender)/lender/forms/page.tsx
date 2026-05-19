@@ -55,7 +55,7 @@ export default function LenderCustomFormsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex h-[58px] items-start justify-between py-3">
           <h1 className="text-[28px] font-bold leading-normal text-violet-600">
-            Custom Forms
+            Smart Forms
           </h1>
         </div>
 
@@ -113,7 +113,7 @@ export default function LenderCustomFormsPage() {
         ) : forms.length === 0 ? (
           <div className="flex h-[80px] items-center justify-center rounded-lg bg-slate-50 px-4">
             <p className="text-[12px] text-slate-600">
-              No Custom Form Available
+              No Smart Forms Available
             </p>
           </div>
         ) : (

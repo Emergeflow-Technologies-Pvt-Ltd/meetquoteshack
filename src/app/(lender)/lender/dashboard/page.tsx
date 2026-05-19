@@ -401,7 +401,7 @@ export default async function LenderPoolPage({
             </div>
             <Link href="/lender/forms">
               <Button className="flex items-center justify-center gap-[10px] rounded-[4.28px] bg-violet-600 px-[11px] py-[3px] text-[14px] font-medium text-white transition-all duration-300 hover:bg-violet-700">
-                Manage Custom Forms
+                Manage Smart Forms
               </Button>
             </Link>
           </div>

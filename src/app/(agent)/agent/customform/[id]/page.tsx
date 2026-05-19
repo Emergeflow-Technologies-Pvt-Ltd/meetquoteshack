@@ -185,7 +185,7 @@ export default function FormDetailsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex h-[58px] items-start justify-between py-3">
           <h1 className="text-[28px] font-bold leading-normal text-violet-600">
-            Custom Form Details
+            Smart Form Details
           </h1>
         </div>
 
@@ -520,14 +520,13 @@ export default function FormDetailsPage() {
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-semibold">
               {form.status === "ACTIVE"
-                ? "Disable Custom Form?"
-                : "Enable Custom Form?"}
+                ? "Disable Smart Form?"
+                : "Enable Smart Form?"}
             </DialogTitle>
 
             <DialogDescription className="text-center text-sm text-gray-500">
               Are you sure you want to{" "}
-              {form.status === "ACTIVE" ? "disable" : "enable"} this custom
-              form?
+              {form.status === "ACTIVE" ? "disable" : "enable"} this smart form?
               <br />
               Once it&apos;s done, you won&apos;t be able to undo immediately.
             </DialogDescription>
