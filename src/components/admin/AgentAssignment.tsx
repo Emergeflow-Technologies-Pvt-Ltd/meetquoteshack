@@ -21,6 +21,7 @@ interface AgentAssignmentProps {
   application: ApplicationWithUser
   agents: AgentWithUser[]
   loadingAgents: boolean
+  readonly?: boolean
   onUpdate: (app: ApplicationWithUser) => void
 }
 
@@ -28,6 +29,7 @@ export default function AgentAssignment({
   application,
   agents,
   loadingAgents,
+  readonly = false,
   onUpdate,
 }: AgentAssignmentProps) {
   const [dialogOpenAgent, setDialogOpenAgent] = useState(false)
@@ -90,10 +92,15 @@ export default function AgentAssignment({
   return (
     <>
       <Dialog
-        open={dialogOpenAgent}
+        open={readonly ? false : dialogOpenAgent}
         onOpenChange={(open) => {
+          if (readonly && open) return
+
           setDialogOpenAgent(open)
-          if (!open) setIsReassignAgent(false)
+
+          if (!open) {
+            setIsReassignAgent(false)
+          }
         }}
       >
         {application?.agentId ? (
@@ -108,22 +115,28 @@ export default function AgentAssignment({
               </span>
             </p>
 
-            <Button
-              type="button"
-              onClick={() => {
-                setIsReassignAgent(true)
-                setDialogOpenAgent(true)
-              }}
-              size="icon"
-              className="ml-6 mr-0 h-7 w-7 bg-amber-400 text-white hover:bg-amber-500"
-            >
-              <Pencil size={18} />
-            </Button>
+            {!readonly && (
+              <Button
+                type="button"
+                onClick={() => {
+                  if (readonly) return
+                  setIsReassignAgent(true)
+                  setDialogOpenAgent(true)
+                }}
+                size="icon"
+                className="ml-6 mr-0 h-7 w-7 bg-amber-400 text-white hover:bg-amber-500"
+              >
+                <Pencil size={18} />
+              </Button>
+            )}
           </div>
         ) : (
           <div>
             <Button
+              disabled={readonly}
               onClick={() => {
+                if (readonly) return
+
                 setIsReassignAgent(false)
                 setDialogOpenAgent(true)
               }}
@@ -133,95 +146,96 @@ export default function AgentAssignment({
             </Button>
           </div>
         )}
+        {!readonly && (
+          <DialogContent className="max-h-[70vh] overflow-y-auto sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>
+                {isReassignAgent
+                  ? "Reassign Agent to Loanee"
+                  : "Assign Agent to Loanee"}
+              </DialogTitle>
+              <DialogDescription>
+                {isReassignAgent
+                  ? "Select a different agent to manage this loan application"
+                  : "Select an agent to manage this loan application"}
+              </DialogDescription>
+            </DialogHeader>
 
-        <DialogContent className="max-h-[70vh] overflow-y-auto sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>
-              {isReassignAgent
-                ? "Reassign Agent to Loanee"
-                : "Assign Agent to Loanee"}
-            </DialogTitle>
-            <DialogDescription>
-              {isReassignAgent
-                ? "Select a different agent to manage this loan application"
-                : "Select an agent to manage this loan application"}
-            </DialogDescription>
-          </DialogHeader>
+            <hr className="my-4" />
 
-          <hr className="my-4" />
+            {loadingAgents ? (
+              <div className="py-6 text-center">Loading agents...</div>
+            ) : agents.length === 0 ? (
+              <div className="py-6 text-center text-muted-foreground">
+                No agents available.
+              </div>
+            ) : (
+              <RadioGroup
+                value={selectedAgentId ?? ""}
+                onValueChange={(v) => setSelectedAgentId(v || null)}
+                className="max-h-[44rem] space-y-0 overflow-y-auto"
+              >
+                {agents.map((agent, idx) => {
+                  const name = agent.name ?? agent.user?.name ?? "Unknown"
+                  const email = agent.email ?? agent.user?.email ?? ""
+                  const initials = name
+                    .split(" ")
+                    .map((s) => s[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()
 
-          {loadingAgents ? (
-            <div className="py-6 text-center">Loading agents...</div>
-          ) : agents.length === 0 ? (
-            <div className="py-6 text-center text-muted-foreground">
-              No agents available.
-            </div>
-          ) : (
-            <RadioGroup
-              value={selectedAgentId ?? ""}
-              onValueChange={(v) => setSelectedAgentId(v || null)}
-              className="max-h-[44rem] space-y-0 overflow-y-auto"
-            >
-              {agents.map((agent, idx) => {
-                const name = agent.name ?? agent.user?.name ?? "Unknown"
-                const email = agent.email ?? agent.user?.email ?? ""
-                const initials = name
-                  .split(" ")
-                  .map((s) => s[0])
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase()
-
-                return (
-                  <div key={agent.id}>
-                    <div
-                      className={`flex items-center justify-between px-4 py-2 ${
-                        selectedAgentId === agent.id
-                          ? "border border-primary/40 bg-primary/5"
-                          : "bg-card"
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="mt-2 flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 font-semibold text-violet-700">
-                          {initials}
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold">{name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {email}
+                  return (
+                    <div key={agent.id}>
+                      <div
+                        className={`flex items-center justify-between px-4 py-2 ${
+                          selectedAgentId === agent.id
+                            ? "border border-primary/40 bg-primary/5"
+                            : "bg-card"
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="mt-2 flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 font-semibold text-violet-700">
+                            {initials}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            AGENT CODE
+                          <div>
+                            <div className="text-sm font-semibold">{name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {email}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Agent Code: {agent.agentCode ?? "N/A"}
+                            </div>
                           </div>
                         </div>
+
+                        <RadioGroupItem value={agent.id} />
                       </div>
 
-                      <RadioGroupItem value={agent.id} />
+                      {idx < agents.length - 1 && (
+                        <div className="mx-8 my-2 border-t border-muted" />
+                      )}
                     </div>
+                  )
+                })}
+              </RadioGroup>
+            )}
 
-                    {idx < agents.length - 1 && (
-                      <div className="mx-8 my-2 border-t border-muted" />
-                    )}
-                  </div>
-                )
-              })}
-            </RadioGroup>
-          )}
+            <DialogFooter className="mt-6">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
 
-          <DialogFooter className="mt-6">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-
-            <Button
-              onClick={assignAgentHandler}
-              disabled={!selectedAgentId || isAssigning}
-              className="bg-purple-600 text-white"
-            >
-              {isAssigning ? "Assigning..." : "Assign"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+              <Button
+                onClick={assignAgentHandler}
+                disabled={!selectedAgentId || isAssigning || readonly}
+                className="bg-purple-600 text-white"
+              >
+                {isAssigning ? "Assigning..." : "Assign"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
       </Dialog>
     </>
   )

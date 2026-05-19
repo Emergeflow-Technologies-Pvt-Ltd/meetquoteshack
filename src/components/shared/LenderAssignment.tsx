@@ -33,6 +33,7 @@ interface LenderAssignmentProps {
   lenders: User[]
   onUpdate: (app: ApplicationWithUser) => void
   onRefetch?: () => void
+  readonly?: boolean
 }
 
 type ReturnedApplication = Partial<ApplicationWithUser> & {
@@ -46,6 +47,7 @@ export default function LenderAssignment({
   lenders,
   onUpdate,
   onRefetch,
+  readonly = false,
 }: LenderAssignmentProps) {
   const [assignmentMode, setAssignmentMode] = useState<"single" | "multi">(
     "single"
@@ -433,6 +435,7 @@ export default function LenderAssignment({
                 }}
                 className="rounded-md border border-violet-600 bg-violet-100 px-3 py-1 text-sm text-violet-600 hover:text-white"
                 title="View Loanee Matches"
+                disabled={readonly}
               >
                 {application.loaneeSelectedMatchLenderIds?.length} Lender(s)
                 Matched
@@ -445,6 +448,7 @@ export default function LenderAssignment({
                 }}
                 className="rounded-md bg-[#FFCAED] px-3 py-1 text-sm text-[#FF2BB8] hover:bg-[#FFCAEG]"
                 title="Edit matched lenders"
+                disabled={readonly}
               >
                 {selectedMatchLenderIds.length} Lenders to Match
               </Button>
@@ -455,6 +459,7 @@ export default function LenderAssignment({
                   setMatchLendersDialogOpen(true)
                 }}
                 className="bg-violet-600 text-white hover:bg-violet-700"
+                disabled={readonly}
               >
                 Lenders to match
               </Button>
@@ -473,7 +478,10 @@ export default function LenderAssignment({
                 return (
                   <Button
                     type="button"
+                    disabled={readonly}
                     onClick={() => {
+                      if (readonly) return
+
                       setAssignmentMode("multi")
                       setSelectedPotentialLenderIds(
                         application?.potentialLenderIds ?? []
@@ -501,26 +509,28 @@ export default function LenderAssignment({
                   <span className="text-sm font-medium text-slate-800">
                     Lender: {assignedLenderName}
                   </span>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setAssignmentMode(
-                        application?.assignmentMode ??
-                          (application?.potentialLenderIds?.length
-                            ? "multi"
-                            : "single")
-                      )
-                      setSelectedLenderId(application?.lenderId ?? null)
-                      setSelectedPotentialLenderIds(
-                        application?.potentialLenderIds ?? []
-                      )
-                      setDialogOpen(true)
-                    }}
-                    size="icon"
-                    className="h-7 w-7 bg-amber-400 text-white hover:bg-amber-500"
-                  >
-                    <Pencil size={16} />
-                  </Button>
+                  {!readonly && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setAssignmentMode(
+                          application?.assignmentMode ??
+                            (application?.potentialLenderIds?.length
+                              ? "multi"
+                              : "single")
+                        )
+                        setSelectedLenderId(application?.lenderId ?? null)
+                        setSelectedPotentialLenderIds(
+                          application?.potentialLenderIds ?? []
+                        )
+                        setDialogOpen(true)
+                      }}
+                      size="icon"
+                      className="h-7 w-7 bg-amber-400 text-white hover:bg-amber-500"
+                    >
+                      <Pencil size={16} />
+                    </Button>
+                  )}
                 </div>
               )
             })()}
@@ -624,6 +634,7 @@ export default function LenderAssignment({
                   <Button
                     onClick={handleAssign}
                     disabled={
+                      readonly ||
                       isAssigning ||
                       (assignmentMode === "single" && !selectedLenderId) ||
                       (assignmentMode === "multi" &&
@@ -649,6 +660,7 @@ export default function LenderAssignment({
               }}
               className="rounded-md border border-violet-600 bg-[#F9F5FF] px-3 py-1 text-sm text-violet-600"
               title="View Loanee Matches"
+              disabled={readonly}
             >
               {application.loaneeSelectedMatchLenderIds?.length} Lenders Matched
             </Button>
@@ -660,6 +672,7 @@ export default function LenderAssignment({
               }}
               className="rounded-md bg-violet-600 px-3 py-1 text-sm text-white"
               title="Edit matched lenders"
+              disabled={readonly}
             >
               {selectedMatchLenderIds.length} Lenders to Match
             </Button>
@@ -670,13 +683,14 @@ export default function LenderAssignment({
                 setMatchLendersDialogOpen(true)
               }}
               className="bg-violet-600 text-white"
+              disabled={readonly}
             >
               Lenders to match
             </Button>
           )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-violet-600 text-white">
+              <Button disabled={readonly} className="bg-violet-600 text-white">
                 Assign Lender
               </Button>
             </DialogTrigger>
@@ -699,6 +713,7 @@ export default function LenderAssignment({
                 <Button
                   onClick={handleAssign}
                   disabled={
+                    readonly ||
                     isAssigning ||
                     (assignmentMode === "single" && !selectedLenderId) ||
                     (assignmentMode === "multi" &&

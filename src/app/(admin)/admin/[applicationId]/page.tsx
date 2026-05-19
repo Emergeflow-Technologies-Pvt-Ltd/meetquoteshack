@@ -258,17 +258,19 @@ export default function ApplicationPage({ params }: Props) {
 
   const isAgentCustomForm = isCustom && !!application.agentId
   // const isLenderCustomForm = isCustom && !!application.lenderId
+  const isLenderCustomForm = isCustom && !!application.lenderId
 
-  const canAssignLender =
-    application.formType === "DEFAULT" || isAgentCustomForm
+  // const canAssignLender =
+  //   application.formType === "DEFAULT" || isAgentCustomForm
+  const canAssignLender = application.formType === "DEFAULT"
 
+  // const canAssignAgent = application.formType === "DEFAULT"
   const canAssignAgent = application.formType === "DEFAULT"
-
-  console.log({
-    formType: application.formType,
-    agentId: application.agentId,
-    lenderId: application.lenderId,
-  })
+  // console.log({
+  //   formType: application.formType,
+  //   agentId: application.agentId,
+  //   lenderId: application.lenderId,
+  // })
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -280,74 +282,120 @@ export default function ApplicationPage({ params }: Props) {
               <span className="sr-only">Back</span>
             </button>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Application Details
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Application Details
+                </h1>
+
+                <Badge
+                  className={`px-3 py-1 text-sm font-medium hover:bg-transparent hover:text-inherit ${
+                    application.formType === "CUSTOM"
+                      ? "bg-violet-100 text-violet-700"
+                      : "bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {application.formType === "CUSTOM" ? "Custom" : "Default"}
+                </Badge>
+              </div>
+
               <p className="mt-1 text-sm text-gray-500">
                 ID: {application?.id}
               </p>
             </div>
           </div>
 
-          <Badge
-            className="px-3 py-1 text-sm font-medium"
-            style={{
-              color: getTextColorLoanStatus(application?.status as LoanStatus),
-              backgroundColor: getBackgroundColorLoanStatus(
-                application?.status as LoanStatus
-              ),
-            }}
-          >
-            {application?.status.replace(/_/g, " ")}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge
+              className="px-3 py-1 text-sm font-medium"
+              style={{
+                color: getTextColorLoanStatus(
+                  application?.status as LoanStatus
+                ),
+                backgroundColor: getBackgroundColorLoanStatus(
+                  application?.status as LoanStatus
+                ),
+              }}
+            >
+              {application?.status.replace(/_/g, " ")}
+            </Badge>
+          </div>
         </div>
 
-        {!["REJECTED", "APPROVED"].includes(application.status as string) && (
-          <>
-            <div className="w-full">
-              <div className="mb-8 mt-6 w-full">
-                <div className="flex w-full items-center justify-between px-4 py-2">
-                  <h3 className="text-lg font-semibold">Assign to Lender</h3>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => setVerificationModalOpen(true)}
-                      className="bg-violet-600 text-white hover:bg-violet-700"
-                    >
-                      Verified Document
-                    </Button>
+        <>
+          <div className="w-full">
+            <div className="mb-8 mt-6 w-full">
+              <div className="flex w-full items-center justify-between px-4 py-2">
+                <h3 className="text-lg font-semibold">Assign to Lender</h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setVerificationModalOpen(true)}
+                    className="bg-violet-600 text-white hover:bg-violet-700"
+                  >
+                    Verified Document
+                  </Button>
 
-                    {/* ✅ Lender Assignment */}
-                    {canAssignLender && (
+                  {/* ✅ Lender Assignment */}
+                  {isLenderCustomForm ? (
+                    <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
+                      <p className="text-sm font-medium text-slate-800">
+                        Lender:{" "}
+                        <span className="font-medium">
+                          {application.lender?.name ||
+                            application.lender?.email ||
+                            "Assigned Lender"}
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
+                    canAssignLender && (
                       <LenderAssignment
                         application={application}
                         lenders={lenders}
                         onUpdate={onUpdateApplication}
                         onRefetch={() => fetchData(false)}
                       />
-                    )}
+                    )
+                  )}
 
-                    {/* ✅ Agent Assignment */}
-                    {canAssignAgent && (
+                  {/* ✅ Agent Assignment */}
+                  {isAgentCustomForm ? (
+                    <div className="inline-flex items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 shadow-sm">
+                      <p className="text-sm font-medium text-slate-800">
+                        Agent:{" "}
+                        <span className="font-medium">
+                          {application.agent?.name ||
+                            application.agent?.name ||
+                            "Assigned Agent"}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Agent Code:{" "}
+                        {agents.find((a) => a.id === application.agentId)
+                          ?.agentCode ?? "N/A"}
+                      </p>
+                    </div>
+                  ) : (
+                    canAssignAgent && (
                       <AgentAssignment
                         application={application}
                         agents={agents}
                         loadingAgents={loadingAgents}
                         onUpdate={onUpdateApplication}
                       />
-                    )}
-                  </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
+          </div>
 
-            <VerificationUploadModal
-              applicationId={application.id}
-              open={verificationModalOpen}
-              onOpenChange={setVerificationModalOpen}
-              onUploadComplete={() => fetchData(false)}
-            />
-          </>
-        )}
+          <VerificationUploadModal
+            applicationId={application.id}
+            open={verificationModalOpen}
+            onOpenChange={setVerificationModalOpen}
+            onUploadComplete={() => fetchData(false)}
+          />
+        </>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left Column - Applicant Info */}

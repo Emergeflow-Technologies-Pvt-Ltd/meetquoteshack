@@ -19,7 +19,10 @@ import { toast } from "@/hooks/use-toast"
 export default function LenderCustomFormsCreatePage() {
   const router = useRouter()
   const formSteps = useMemo(() => getFormSteps("LENDER"), [])
-  const allStepIds = useMemo(() => formSteps.map((step) => step.id), [])
+  const allStepIds = useMemo(
+    () => formSteps.map((step) => step.id),
+    [formSteps]
+  )
   const allSubStepIds = useMemo(
     () => formSteps.flatMap((step) => step.subSteps.map((sub) => sub.key)),
     [formSteps]

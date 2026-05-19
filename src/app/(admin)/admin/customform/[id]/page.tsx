@@ -123,7 +123,7 @@ export default function AdminCustomFormDetailsPage() {
       <div className="flex flex-col gap-6">
         <div className="flex h-[58px] items-start justify-between py-3">
           <h1 className="text-[28px] font-bold leading-normal text-violet-600">
-            Custom Forms
+            Smart Forms
           </h1>
         </div>
 

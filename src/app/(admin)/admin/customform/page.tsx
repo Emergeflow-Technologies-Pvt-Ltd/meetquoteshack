@@ -56,9 +56,7 @@ export default function AdminCustomFormsPage() {
       <div className="flex flex-col gap-6">
         {/* HEADER */}
         <div className="flex h-[58px] items-start justify-between py-3">
-          <h1 className="text-[28px] font-bold text-violet-600">
-            Custom Forms
-          </h1>
+          <h1 className="text-[28px] font-bold text-violet-600">Smart Forms</h1>
         </div>
 
         {/* CREATE CARD */}
@@ -86,7 +84,7 @@ export default function AdminCustomFormsPage() {
           </div>
         ) : forms.length === 0 ? (
           <div className="flex h-20 items-center justify-center rounded-lg bg-slate-50">
-            <p className="text-sm text-slate-600">No Custom Forms Available</p>
+            <p className="text-sm text-slate-600">No Smart Forms Available</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">

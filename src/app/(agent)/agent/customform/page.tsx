@@ -59,9 +59,7 @@ export default function AgentCustomFormsPage() {
       <div className="flex flex-col gap-6">
         {/* HEADER */}
         <div className="flex h-[58px] items-start justify-between py-3">
-          <h1 className="text-[28px] font-bold text-violet-600">
-            Custom Forms
-          </h1>
+          <h1 className="text-[28px] font-bold text-violet-600">Smart Forms</h1>
         </div>
         <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-3">
           <div className="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-violet-600">
@@ -77,7 +75,7 @@ export default function AgentCustomFormsPage() {
           </div>
           <div className="flex flex-1 flex-col gap-0.5">
             <p className="text-[17px] font-semibold leading-[25.5px] text-slate-900">
-              Create smart form
+              Create Smart Form
             </p>
             <p className="text-[11.333px] leading-[17px] text-slate-500">
               Create a form tailored to your requirements, select steps, fields
@@ -119,7 +117,7 @@ export default function AgentCustomFormsPage() {
           </div>
         ) : forms.length === 0 ? (
           <div className="flex h-20 items-center justify-center rounded-lg bg-slate-50">
-            <p className="text-sm text-slate-600">No Custom Forms Available</p>
+            <p className="text-sm text-slate-600">No Smart Forms Available</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
