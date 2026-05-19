@@ -45,11 +45,11 @@ export function PersonalStep({ form, config, stepId }: PersonalStepProps) {
     if (!allowedFields) return true
     return allowedFields[field]?.enabled === true
   }
-  console.log("STEP ID:", stepId)
-  console.log("BACKEND KEY:", backendStepKey)
-  console.log("CONFIG:", config)
-  console.log("FIELDS:", config?.fields)
-  console.log("ALLOWED FIELDS:", allowedFields)
+  // console.log("STEP ID:", stepId)
+  // console.log("BACKEND KEY:", backendStepKey)
+  // console.log("CONFIG:", config)
+  // console.log("FIELDS:", config?.fields)
+  // console.log("ALLOWED FIELDS:", allowedFields)
 
   return (
     <div className="space-y-4">
