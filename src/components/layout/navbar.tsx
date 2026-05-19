@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils"
 import Logo from "./logo"
 import { routeList } from "@/data/navbar"
 import { Session } from "next-auth"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +49,14 @@ import Image from "next/image"
 import axios from "axios"
 import NotificationIcon from "../assets/notification.svg"
 
-export const Navbar = ({ session }: { session: Session | null }) => {
+export const Navbar = ({
+  session: initialSession,
+}: {
+  session: Session | null
+}) => {
+  const { data: session } = useSession()
+
+  const activeSession = session ?? initialSession
   const [isOpen, setIsOpen] = React.useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
@@ -60,7 +67,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalOpenMobile, setModalOpenMobile] = useState(false)
-  const userRole = session?.user?.role
+  const userRole = activeSession?.user?.role
   const router = useRouter()
 
   useEffect(() => {
@@ -69,11 +76,11 @@ export const Navbar = ({ session }: { session: Session | null }) => {
         const { data } = await axios.get("/api/notifications")
         let filteredNotifications = data
 
-        if (session?.user?.role === "LOANEE") {
+        if (activeSession?.user?.role === "LOANEE") {
           filteredNotifications = data.filter(
             (n: { type: string }) => n.type === "DOCUMENT_REQUEST"
           )
-        } else if (session?.user?.role === "LENDER") {
+        } else if (activeSession?.user?.role === "LENDER") {
           filteredNotifications = data.filter(
             (n: { type: string }) => n.type === "DOCUMENT_SUBMITTED"
           )
@@ -88,14 +95,14 @@ export const Navbar = ({ session }: { session: Session | null }) => {
     }
 
     fetchUnreadNotifications()
-  }, [session?.user?.role])
+  }, [activeSession?.user?.role])
 
   const unreadCount = notifications.length
 
   const visibleRoutes = routeList.filter((route) => {
-    if (!session) return true // Show all routes if not logged in
+    if (!activeSession) return true // Show all routes if not logged in
 
-    const { role } = session.user
+    const { role } = activeSession.user
 
     // Only hide Lender and Agent routes for Loanee
     if (role === "LOANEE") {
@@ -144,7 +151,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </Button>
                     ))}
 
-                    {session ? (
+                    {activeSession ? (
                       <>
                         {/* 🔔 Notification Bell */}
                         {(userRole === UserRole.LOANEE ||
@@ -429,7 +436,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </div>
                     </div>
 
-                    {session?.user?.role === "LENDER" && (
+                    {activeSession?.user?.role === "LENDER" && (
                       <button
                         onClick={async (e) => {
                           e.stopPropagation()
@@ -477,7 +484,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
 
           <div className="hidden items-center gap-4 lg:flex">
             {/* Show bell only if logged in */}
-            {session && userRole !== UserRole.ADMIN && (
+            {activeSession && userRole !== UserRole.ADMIN && (
               <button
                 className="relative rounded-full p-2 hover:bg-accent"
                 onClick={() => setModalOpen(true)}
@@ -528,7 +535,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                       </div>
                     </div>
 
-                    {session?.user?.role === "LENDER" && (
+                    {activeSession?.user?.role === "LENDER" && (
                       <button
                         onClick={async (e) => {
                           e.stopPropagation()
@@ -554,7 +561,7 @@ export const Navbar = ({ session }: { session: Session | null }) => {
               </DialogContent>
             </Dialog>
 
-            {session ? (
+            {activeSession ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Image
@@ -568,10 +575,10 @@ export const Navbar = ({ session }: { session: Session | null }) => {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {session.user?.name}
+                        {activeSession.user?.name}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {session.user?.email}
+                        {activeSession.user?.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
