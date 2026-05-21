@@ -26,8 +26,7 @@ type ApplicationLike = {
   prequalRateMin?: NumericLike
   prequalRateMax?: NumericLike
   prequalLenderCategory?: string | null
-  prequalLenders?: string[] | null
-
+  prequalLenders?: LenderInfo[] | null
   // 🔥 REFINANCE
   prequalMaxRefinanceAmount?: NumericLike
   prequalAvailableCash?: NumericLike
@@ -36,6 +35,11 @@ type ApplicationLike = {
 type Props = {
   application: ApplicationLike | null | undefined
   context?: "lender" | "loanee"
+}
+
+type LenderInfo = {
+  name: string
+  description?: string
 }
 
 export function PrequalificationSummary({
@@ -185,7 +189,7 @@ export function PrequalificationSummary({
               )}
 
               <Metric
-                label="Lender Type"
+                label="Lender Category"
                 value={application.prequalLenderCategory || "--"}
               />
             </div>
@@ -193,7 +197,10 @@ export function PrequalificationSummary({
             {application.prequalLenders?.length ? (
               <p className="mt-2 text-xs">
                 <span className="text-muted-foreground">Lenders: </span>
-                {application.prequalLenders.join(", ")}
+
+                {application.prequalLenders
+                  .map((lender) => lender.name)
+                  .join(", ")}
               </p>
             ) : null}
           </div>

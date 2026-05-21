@@ -921,8 +921,7 @@ export function computePrequalification(input: PrequalInput) {
 
     proposedLoanPayment,
     availableForNewLoanMonthly: Math.max(grossMonth * 0.4 - existingDebts, 0),
-    eligibleMaxPayment: grossMonth * 0.15,
-
+    eligibleMaxPayment: isMortgageLike ? grossMonth * 0.32 : grossMonth * 0.15,
     creditTier,
     prequalStatus,
     prequalLabel,
