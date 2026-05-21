@@ -178,6 +178,47 @@ export function GeneralLoanStep({
     offer, // ✅ correct
   } = result
 
+  function formatLenderCategory(category?: string | null, loanType?: LoanType) {
+    if (!category) return "--"
+
+    if (loanType === LoanType.CAR) {
+      switch (category) {
+        case "PRIME":
+          return "Prime Lenders / Big Six"
+
+        case "NON_PRIME":
+          return "Alternative / Non-Prime"
+
+        case "B_LENDER":
+          return "Alternative / Non-Prime /B Lenders"
+
+        case "SUBPRIME":
+          return "Subprime / Private Lenders"
+
+        default:
+          return category
+      }
+    }
+
+    if (loanType === LoanType.MORTGAGE_REFINANCE) {
+      switch (category) {
+        case "PRIME":
+          return "Prime Lenders"
+
+        case "B_LENDER":
+          return "B Lenders"
+
+        case "PRIVATE":
+          return "Private Lenders"
+
+        default:
+          return category
+      }
+    }
+
+    return category.replaceAll("_", " ")
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -613,7 +654,7 @@ export function GeneralLoanStep({
                   </div>
                   <div className="flex justify-between pt-1">
                     <span className="text-muted-foreground">
-                      Eligible Max Payment (15%):
+                      Eligible Max Payment (32% of income):
                     </span>
                     <span className="font-medium">
                       ${eligibleMaxPayment.toLocaleString()}
@@ -739,7 +780,7 @@ export function GeneralLoanStep({
           )}
         </div>
       )}
-      {offer && (
+      {offer && !isRefinance && (
         // {offer && prequalStatus !== "DECLINED" && (
         <div className="space-y-2 rounded border bg-background p-3 text-sm">
           <p className="text-xs font-semibold text-muted-foreground">
@@ -756,13 +797,66 @@ export function GeneralLoanStep({
 
             <div>
               <p className="text-xs text-muted-foreground">Category</p>
-              <p className="font-medium">{offer.lenderCategory}</p>
+              <p className="font-medium">
+                {formatLenderCategory(offer.lenderCategory, loanType)}
+              </p>
             </div>
           </div>
 
-          <div>
-            <p className="text-xs text-muted-foreground">Lenders</p>
-            <p className="font-medium">{offer.lenders.join(", ")}</p>
+          <div className="space-y-3">
+            <div>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Recommended Lenders
+              </p>
+
+              <div className="space-y-2">
+                {offer.lenders.map((lender, index) => (
+                  <div
+                    key={`${lender.name}-${index}`}
+                    className="rounded-md border bg-muted/30 p-3"
+                  >
+                    <p className="font-medium">{lender.name}</p>
+
+                    {lender.description ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {lender.description}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {offer.notes?.length > 0 && (
+              <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 p-3">
+                <p className="mb-2 text-xs font-semibold text-amber-900">
+                  Important Notes
+                </p>
+
+                <ul className="space-y-1 text-xs text-amber-800">
+                  {offer.notes.map((note, index) => (
+                    <li key={index} className="flex gap-2">
+                      <span>•</span>
+                      <span>{note}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {offer && isRefinance && (
+        <div className="space-y-3 rounded border bg-background p-3 text-sm">
+          <div className="rounded-md border-l-4 border-blue-500 bg-blue-50 p-3">
+            <p className="text-sm font-medium text-blue-900">
+              May need a mortgage broker for best advice.
+            </p>
+
+            <p className="mt-1 text-xs text-blue-800">
+              Connect with an Advisor now from your profile.
+            </p>
           </div>
         </div>
       )}
