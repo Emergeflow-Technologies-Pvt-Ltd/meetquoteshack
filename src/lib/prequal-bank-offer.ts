@@ -35,41 +35,35 @@ export interface OfferInput {
 /* -------------------------------------------------- */
 
 function getCarLoanRate(creditScore: number, dti: number): RateRange {
-  // Severe DTI override
-  if (dti > 40) {
-    if (creditScore >= 725) {
-      return { min: 8.0, max: 15.0 }
-    }
-
-    if (creditScore >= 560) {
-      return { min: 10.99, max: 20.99 }
-    }
-
+  // SUBPRIME: credit <560
+  if (creditScore < 560) {
     return { min: 15.99, max: 29.99 }
   }
 
-  // Excellent
+  // NON_PRIME: credit 560–659 or DTI >40
+  if (creditScore < 660 || dti > 40) {
+    return { min: 10.99, max: 20.99 }
+  }
+
+  // --- PRIME tier (credit ≥660, DTI ≤40) ---
+
+  // Excellent: >760 credit, DTI <30
   if (creditScore > 760 && dti < 30) {
     return { min: 3.99, max: 6.99 }
   }
 
-  // Very good
+  // Strong prime: ≥725, DTI ≤35
   if (creditScore >= 725 && dti <= 35) {
     return { min: 5.0, max: 7.5 }
   }
 
-  // Good
-  if (creditScore >= 660 && dti <= 40) {
-    return { min: 5.99, max: 9.99 }
+  // Prime with small premium: 660–724, DTI <35
+  if (dti < 35) {
+    return { min: 5.5, max: 8.0 }
   }
 
-  // Fair
-  if (creditScore >= 560) {
-    return { min: 8.99, max: 16.99 }
-  }
-
-  // Poor
-  return { min: 10.99, max: 29.99 }
+  // Prime with scrutiny: 660–724 (or ≥725 with DTI 35–40), DTI 35–40
+  return { min: 6.0, max: 10.0 }
 }
 
 function getPersonalLoanRate(creditScore: number, dti: number): RateRange {
@@ -214,21 +208,17 @@ function getMortgageNotes(
 }
 
 function getCarLoanCategory(creditScore: number, dti: number): LenderCategory {
-  // Strong prime
-  if (creditScore >= 725 && dti <= 35) {
+  // PRIME: credit ≥660 and DTI ≤40 — Big Six territory
+  if (creditScore >= 660 && dti <= 40) {
     return "PRIME"
   }
 
-  // Borderline / alternative
-  if (creditScore >= 660 && dti <= 40) {
-    return "B_LENDER"
-  }
-
-  // Subprime but still financeable
+  // NON_PRIME: credit 560–659 or DTI >40
   if (creditScore >= 560) {
-    return "SUBPRIME"
+    return "NON_PRIME"
   }
 
+  // SUBPRIME: credit <560
   return "SUBPRIME"
 }
 
@@ -482,41 +472,7 @@ const CAR_LOAN_LENDER_MAP: Record<LenderCategory, LenderInfo[]> = {
     },
   ],
 
-  B_LENDER: [
-    {
-      name: "iA Auto Finance",
-      description: "Known for flexible approvals for fair credit borrowers.",
-    },
-    {
-      name: "Lendcare",
-      description: "Strong dealership partnerships for non-prime financing.",
-    },
-    {
-      name: "Scotia Dealer Advantage",
-      description: "Scotiabank’s non-prime auto financing division.",
-    },
-    {
-      name: "Santander Consumer",
-      description: "Subprime-focused lender with flexible approval criteria.",
-    },
-    {
-      name: "Eden Park",
-      description: "Large non-prime auto lender for higher-risk profiles.",
-    },
-    {
-      name: "AutoCapital Canada",
-      description: "Flexible financing options for non-prime borrowers.",
-    },
-    {
-      name: "Northlake Financial",
-      description:
-        "Alternative auto financing for challenged credit situations.",
-    },
-    {
-      name: "OCM Auto Financing",
-      description: "Works with dealerships for non-prime approvals.",
-    },
-  ],
+  B_LENDER: [],
   PRIVATE: [],
 }
 
@@ -662,47 +618,28 @@ function getCarLoanNotes(
   const notes: string[] = []
 
   if (category === "PRIME") {
-    notes.push("You qualify for competitive prime auto financing rates.")
-
-    notes.push(
-      "Big bank financing and dealership promotional offers may be available."
-    )
-
     if (creditScore > 760 && dti < 30) {
-      notes.push(
-        "You may qualify for the lowest promotional vehicle financing rates."
-      )
+      notes.push("You may qualify for the lowest promotional vehicle financing rates.")
+      notes.push("Big bank financing and dealership promotional offers are available.")
+    } else if (dti >= 35 && dti <= 40) {
+      notes.push("Approval possible with TD, Scotiabank, RBC, or CIBC — a small rate premium may apply.")
+      notes.push("Scrutiny increases at this DTI level; consider getting pre-approved directly through your bank.")
+    } else {
+      notes.push("You qualify for competitive prime auto financing rates.")
+      notes.push("Big bank financing and dealership promotional offers may be available.")
     }
   }
 
-  if (category === "NON_PRIME" || category === "B_LENDER") {
-    notes.push(
-      "Approval possible through alternative or non-prime auto lenders."
-    )
-
-    notes.push(
-      "Interest rates may be slightly higher due to credit profile or DTI."
-    )
-
-    notes.push(
-      "Pre-approval through dealership financing may improve approval chances."
-    )
+  if (category === "NON_PRIME") {
+    notes.push("Approval possible through alternative or non-prime auto lenders.")
+    notes.push("Interest rates are typically above 10% due to credit profile or DTI.")
+    notes.push("Pre-approval through dealership financing may improve approval chances.")
   }
 
   if (category === "SUBPRIME") {
-    notes.push(
-      "Approval may require subprime or high-risk vehicle financing programs."
-    )
-
+    notes.push("Approval may require subprime or high-risk vehicle financing programs.")
     notes.push("Larger down payment or co-signer may improve lender options.")
-
-    notes.push(
-      "Higher interest rates and stricter approval conditions are likely."
-    )
-  }
-
-  if (dti > 40) {
-    notes.push("High DTI may reduce approval chances with prime lenders.")
+    notes.push("Higher interest rates and stricter approval conditions are likely.")
   }
 
   return notes

@@ -28,7 +28,13 @@ import {
   ChevronLeft,
 } from "lucide-react"
 import axios from "axios"
-import { Application, Document, LoanStatus, Message, DocumentType } from "@prisma/client"
+import {
+  Application,
+  Document,
+  LoanStatus,
+  Message,
+  DocumentType,
+} from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { availableDocumentTypes } from "@/lib/constants"
 import { Button } from "@/components/ui/button"
@@ -932,6 +938,7 @@ export default function ApplicationPage({
               <PrequalificationSummary
                 application={application}
                 context="loanee"
+                hideEstimatedOffer={application?.formType === "CUSTOM"}
               />
             ) : (
               <LockedPrequalificationSection
