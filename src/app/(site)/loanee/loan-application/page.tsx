@@ -645,6 +645,7 @@ export default function GeneralLoanForm() {
                 form={form}
                 subscriptionPlan={subscriptionPlan}
                 freeTierActive={freeTierActive}
+                isCustomForm={!!customFormConfig}
               />
             )}
             <div className="flex justify-between pt-4">

@@ -35,6 +35,7 @@ type ApplicationLike = {
 type Props = {
   application: ApplicationLike | null | undefined
   context?: "lender" | "loanee"
+  hideEstimatedOffer?: boolean
 }
 
 type LenderInfo = {
@@ -45,6 +46,7 @@ type LenderInfo = {
 export function PrequalificationSummary({
   application,
   context = "lender",
+  hideEstimatedOffer = false,
 }: Props) {
   if (!application || !application.prequalStatus) return null
 
@@ -174,7 +176,7 @@ export function PrequalificationSummary({
         )}
 
         {/* ================= OFFER ================= */}
-        {(rateMin !== null || application.prequalLenderCategory) && (
+        {!hideEstimatedOffer && (rateMin !== null || application.prequalLenderCategory) && (
           <div className="rounded-md border bg-muted p-3">
             <p className="mb-2 text-xs font-semibold text-muted-foreground">
               Estimated Offer

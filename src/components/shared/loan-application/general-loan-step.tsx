@@ -19,12 +19,14 @@ interface GeneralLoanStepProps {
   form: UseFormReturn<GeneralLoanFormValues>
   subscriptionPlan?: "LOANEE_BASIC" | "LOANEE_STAY_SMART" | null
   freeTierActive?: boolean
+  isCustomForm?: boolean
 }
 
 export function GeneralLoanStep({
   form,
   subscriptionPlan,
   freeTierActive = false,
+  isCustomForm = false,
 }: GeneralLoanStepProps) {
   const hasCoApplicant = form.watch("hasCoApplicant")
 
@@ -189,11 +191,8 @@ export function GeneralLoanStep({
         case "NON_PRIME":
           return "Alternative / Non-Prime"
 
-        case "B_LENDER":
-          return "Alternative / Non-Prime /B Lenders"
-
         case "SUBPRIME":
-          return "Subprime / Private Lenders"
+          return "Subprime Lenders"
 
         default:
           return category
@@ -780,7 +779,7 @@ export function GeneralLoanStep({
           )}
         </div>
       )}
-      {offer && !isRefinance && (
+      {offer && !isRefinance && !isCustomForm && (
         // {offer && prequalStatus !== "DECLINED" && (
         <div className="space-y-2 rounded border bg-background p-3 text-sm">
           <p className="text-xs font-semibold text-muted-foreground">
@@ -804,28 +803,30 @@ export function GeneralLoanStep({
           </div>
 
           <div className="space-y-3">
-            <div>
-              <p className="mb-2 text-xs text-muted-foreground">
-                Recommended Lenders
-              </p>
+            {!isCustomForm && (
+              <div>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Recommended Lenders
+                </p>
 
-              <div className="space-y-2">
-                {offer.lenders.map((lender, index) => (
-                  <div
-                    key={`${lender.name}-${index}`}
-                    className="rounded-md border bg-muted/30 p-3"
-                  >
-                    <p className="font-medium">{lender.name}</p>
+                <div className="space-y-2">
+                  {offer.lenders.map((lender, index) => (
+                    <div
+                      key={`${lender.name}-${index}`}
+                      className="rounded-md border bg-muted/30 p-3"
+                    >
+                      <p className="font-medium">{lender.name}</p>
 
-                    {lender.description ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {lender.description}
-                      </p>
-                    ) : null}
-                  </div>
-                ))}
+                      {lender.description ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {lender.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {offer.notes?.length > 0 && (
               <div className="rounded-md border-l-4 border-amber-500 bg-amber-50 p-3">
